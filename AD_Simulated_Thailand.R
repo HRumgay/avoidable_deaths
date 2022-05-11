@@ -1,9 +1,9 @@
 
 ###############################################
 #
-# Net survival and Avoidable deaths - Simulated data
-# Date: 25/4/2022
-# Version 1.2
+# Net survival and Avoidable deaths - Simulated data Thailand Example
+# Date: 11/5/2022
+# Version 2
 #
 #
 #Load files and packages in AD_2.R file
@@ -29,30 +29,62 @@ lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
 
+Thai_pop<-Thailand_pop%>%mutate(
+  age = case_when(
+  age=="0 to 4 years" ~ 1,
+  age=="5 to 9 years"  ~ 2,
+  age=="10 to 14 years"~ 3,
+  age=="15 to 19 years"~ 4,
+  age=="20 to 24 years" ~ 5,
+  age==  "25 to 29 years"~ 6,
+  age== "30 to 34 years"~ 7,
+  age== "35 to 39 years"~ 8,
+  age== "40 to 44 years"~ 9,
+  age==  "45 to 49 years"  ~ 10,
+  age== "50 to 54 years"~ 11,
+  age==  "55 to 59 years"~ 12,
+  age== "60 to 64 years"~ 13,
+  age=="65 to 69 years"     ~ 14,
+  age== "70 to 74 years"~ 15,
+  age==  "75 to 79 years"  ~ 16,
+  age== "80 to 84 years" ~ 17,
+  age== "85 years and over"~ 18
+))%>%
+  mutate(sex=replace(sex,sex=="Male",1))%>%
+  mutate(sex=replace(sex,sex=="Female",2))%>%
+  as.data.frame()%>%
+  mutate(sex=as.integer(sex))%>%mutate(country_code=764)%>%
+  mutate(country_code=as.numeric(country_code))
+
 Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about the overall "mx" for all genders? 
-  filter(X_year==2015)%>%
-  group_by(X_age,X_year)%>% 
-  summarize(mx=mean(mx), prob=mean(prob),region, country_code)%>% #This needs to be adjusted with population weights
-  distinct()%>%mutate(   age = case_when(
-    X_age>=0 & X_age<=4 ~ 1,
-    X_age>=5 & X_age<=9 ~ 2,
-    X_age>=10 & X_age<=14 ~ 3,
-    X_age>=15 & X_age<=19 ~ 4,
-    X_age>=20 & X_age<=24 ~ 5,
-    X_age>=25 & X_age<=29 ~ 6,
-    X_age>=30 & X_age<=34 ~ 7,
-    X_age>=35 & X_age<=39 ~ 8,
-    X_age>=40 & X_age<=44 ~ 9,
-    X_age>=45 & X_age<=49 ~ 10,
-    X_age>=50 & X_age<=54 ~ 11,
-    X_age>=55 & X_age<=59 ~ 12,
-    X_age>=60 & X_age<=64 ~ 13,
-    X_age>=65 & X_age<=69 ~ 14,
-    X_age>=70 & X_age<=74 ~ 15,
-    X_age>=75 & X_age<=79 ~ 16,
-    X_age>=80 & X_age<=84 ~ 17,
-    X_age>=85 ~ 18,
-  ))
+  filter(X_year==2012)%>%
+  group_by(X_age,X_year)%>%
+  filter(sex!=0)%>%
+  rename("year"="X_year")%>%
+  rename("age"="X_age")%>%
+   distinct()%>%mutate(   age = case_when(
+    age>=0 & age<=4 ~ 1,
+    age>=5 & age<=9 ~ 2,
+    age>=10 & age<=14 ~ 3,
+    age>=15 & age<=19 ~ 4,
+    age>=20 & age<=24 ~ 5,
+    age>=25 & age<=29 ~ 6,
+    age>=30 & age<=34 ~ 7,
+    age>=35 & age<=39 ~ 8,
+    age>=40 & age<=44 ~ 9,
+    age>=45 & age<=49 ~ 10,
+    age>=50 & age<=54 ~ 11,
+    age>=55 & age<=59 ~ 12,
+    age>=60 & age<=64 ~ 13,
+    age>=65 & age<=69 ~ 14,
+    age>=70 & age<=74 ~ 15,
+    age>=75 & age<=79 ~ 16,
+    age>=80 & age<=84 ~ 17,
+    age>=85 ~ 18
+  ))%>%
+  left_join(Thai_pop,by=c("country_code","sex","year","age"))%>%
+  summarize(mx=sum(pop*mx)/sum(pop), prob=sum(prob*pop)/sum(pop),region, country_code)%>% #This needs to be adjusted with population weights
+     as.data.frame()%>%distinct()
 
 
 countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. Not sure why
@@ -75,6 +107,7 @@ Countries_Simulated <-countries_5y%>%
   group_by(country_name,cancer_label,age_cat)%>%
   summarize(country_code,country_name, cancer_code, cancer_label,age,
             age_cat,rel_surv,mx)%>%as.data.frame()
+
 
 Countries_Simulated_Overall<-Countries_Simulated%>%
   mutate(age_cat="Overall")%>%
@@ -202,25 +235,28 @@ Simulated_Data_PAF_1<-simulated_overall%>%
 Avoidable_Deaths_Simulated <- matrix(ncol = 6, nrow = nrow(Simulated_Data_PAF)) #AD(t)
 NS_Ref<-0.9 #Reference countries survival
 
+write.csv(Simulated_Data_PAF, "~/Documents/R_Projects/Data/NS_Simulated.csv")
+
 for (i in 1:nrow(Avoidable_Deaths_Simulated)) {
   
   Expected_5_year_surv_mx <- Simulated_Data_PAF[i,]$Expected_5_year_surv_mx #Crude calculations of expected survival
   
   #Preventable deaths
-    AD_prev<-(Simulated_Data_PAF[i,]$af.comb)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$rel_surv)*(1-5*Expected_5_year_surv_mx)
+  AD_prev <- (Simulated_Data_PAF[i,]$af.comb) * Simulated_Data_PAF[i,]$total_overall * 
+    (1 - Simulated_Data_PAF[i,]$Five_Year_Net_Surv) *(1-5*Expected_5_year_surv_mx)
   #AD_prev_Lower<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv_mx
   #AD_prev_Upper<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv_mx
 
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
-  AD_treat<-(NS_RefSimulated_Data_PAF[i,]$rel_surv)*(1-Simulated_Data_PAF[i,]$af.comb)*(Simulated_Data_PAF[i,]$total_overall)*(1-5*Expected_5_year_surv_mx)
+  AD_treat<-(NS_Ref-Simulated_Data_PAF[i,]$rel_surv)*(1-Simulated_Data_PAF[i,]$af.comb)*(Simulated_Data_PAF[i,]$total_overall)*(1-5*Expected_5_year_surv_mx)
   #AD_treat_Lower<-(0.9-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
   #AD_treat_Upper<-(0.9-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
   
   
   #Deaths not avoidable 
   
-  AD_unavoid<-(NS_Ref-Simulated_Data_PAF[i,]$af.comb)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$rel_surv*(1-5*Expected_5_year_surv_mx))
+  AD_unavoid<-(1-Simulated_Data_PAF[i,]$af.comb)*Simulated_Data_PAF[i,]$total_overall*(NS_Ref-Simulated_Data_PAF[i,]$rel_surv*(1-5*Expected_5_year_surv_mx))
   #AD_unavoid_Lower<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI*Expected_5_year_surv_mx)
   #AD_unavoid_Upper<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI*Expected_5_year_surv_mx)
   
@@ -242,7 +278,8 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated)) {
 }
 
 Avoidable_Deaths_Simulated<-Avoidable_Deaths_Simulated%>%as.data.frame()%>%
-  mutate(cancer_code=as.numeric(cancer_code))
+  mutate(cancer_code=as.numeric(cancer_code))%>%
+  as.data.frame()
 
 colnames(Avoidable_Deaths_Simulated)<-c("age_cat","cancer_code","cancer",   "AD_treat",
                               #"AD_treat_Lower", 

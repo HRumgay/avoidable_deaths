@@ -1,8 +1,8 @@
 ###############################################
 #
 # Net survival and Avoidable deaths
-# Date: 25/4/2022
-# Version 1.2
+#  Date: 11/5/2022
+# Version 2
 #
 # Works for multiple cancer sites currently. W
 #
@@ -49,6 +49,7 @@ Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.c
   left_join(country_codes, by = c("region" = "country_label"))
 Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
 
+popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()
 
 country_codes <-
   PAFs %>% summarize(country_code, country_label) %>% distinct()
@@ -608,7 +609,7 @@ NS_OS_PAF <- NS_OS %>%
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
 Avoidable_Deaths <- matrix(ncol = 13, nrow = nrow(NS_OS_PAF)) #AD(t)
 NS_OS_PAF$cancer <- as.character(NS_OS_PAF$cancer)
-NS_Ref<-0.9 #Reference countries survival
+NS_Ref<-0.9 #Reference countries survival. Decide on for each data site. Use simulated highest survival for each cancer site
 
 for (i in 1:nrow(NS_OS_PAF)) {
   Expected_5_year_surv_mx <-
@@ -712,7 +713,7 @@ library(survival)
 #https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/
 
 #creating training and test datasets
-Thai_Surv_test<-Thai_Surv%>%filter(cancer_code==20)
+Thai_Surv_test<-Thai_Surv%>%filter(cancer_code==13)
 
 ten_cancer_sites
 
@@ -780,7 +781,7 @@ plot(kmfit, xlim=c(0,5),
      xlab = "Survival Time In Years", 
      ylab = "Survival Probabilities")
 
-title("Breast Cancer Survival Kaplan Meier")
+title("Pancreas Cancer Survival Kaplan Meier")
 
 
 model_fit <- survfit(Surv(surv_yydd, event=event1) ~ cancer, data = Thai_Surv)
