@@ -88,7 +88,7 @@ for (j in 0:20){
   SurvExpNew[i] <- sum(Temp$surv*Temp$w)
  
   
-  SurvExpNew_age_cats[j, ]<-c(j,SurvExpNew[1000])
+  SurvExpNew_age_cats[[j]]<-c(j,SurvExpNew[1000])
   }
 }
 
