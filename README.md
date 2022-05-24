@@ -10,6 +10,8 @@ AD_Simulated_Thailand.R: Toy example with simulated data that can be compared wi
 
 AD_Simulated.R: Simulated data for ten cancer sites in 185 countries
 
+AD_Figures: Figures/ tables for the paper
+
 
 # Bug log: 
 
