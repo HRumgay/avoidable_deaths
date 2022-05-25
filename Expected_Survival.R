@@ -66,40 +66,72 @@ for(j in 2000:2014){
 
 ratetablepop<-transrate(men,women,yearlim=c(2000,2014),int.length=1) #if even one column that is unused has NA values it fails to calculated in the loop below...
 
-SurvExpNew <- rep(0,1000)
-SurvExpNew_age_cats <- matrix(ncol = 2, nrow = 20)
+SurvExpNew_1 <- rep(0,1000)
+SurvExpNew_2 <- rep(0,1000)
+SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow = 20)
+SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 20)
 
 Time <- seq(0,5,le=1001)[-1]
 
+
 for (j in 0:20){
+  DataTemp <- expand.grid(age=((j*5):(5*(j+1)-1)),year=2009:2014)   #
+  DataTemp$year <- as.Date(paste0(DataTemp$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
+  DataTemp$cens <- 0 ## actually, not used in the calculations...
+  DataTemp$timeFix <- 0
+  DataTemp$sex <- 1
+  DataTemp$w <- 1/dim(DataTemp)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
+
+  
+  DataTemp2 <- expand.grid(age=((j*5):(5*(j+1)-1)),year=2009:2014)   #
+  DataTemp2$year <- as.Date(paste0(DataTemp2$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
+  DataTemp2$cens <- 0 ## actually, not used in the calculations...
+  DataTemp2$timeFix <- 0
+  DataTemp2$sex <- 2
+  DataTemp2$w <- 1/dim(DataTemp2)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
+  
   for (i in 1:1000){
 
-    DataTemp <- expand.grid(age=j*5:5*(j+1)-1,year=2009:2014)
-    DataTemp$year <- as.Date(paste0(DataTemp$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
-    DataTemp$cens <- 0 ## actually, not used in the calculations...
-    DataTemp$timeFix <- 0
-    DataTemp$sex <- 1
-    DataTemp$w <- 1/dim(DataTemp)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
-    
+    DataTemp$timeFix <- Time[i]
+    Temp <- calcExpect(time="timeFix",
+                       event="cens", 
+                       ratetable=ratetablepop, 
+                       rmap=list(age=age*365.241,
+                                 year=year,
+                                 sex=sex),
+                       data=DataTemp)
+    Temp$surv <- exp(-Temp$MUA)
 
-  DataTemp$timeFix <- Time[i]
-  Temp <- calcExpect(time="timeFix",event="cens", ratetable=ratetablepop, rmap=list(age=age*365.241,year=year,sex=sex),data=DataTemp)
-  Temp$surv <- exp(-Temp$MUA)
-  SurvExpNew[i] <- sum(Temp$surv*Temp$w)
- 
+  DataTemp2$timeFix <- Time[i]
+  Temp2 <- calcExpect(time="timeFix",
+                     event="cens", 
+                     ratetable=ratetablepop, 
+                     rmap=list(age=age*365.241,
+                               year=year,
+                               sex=sex),
+                     data=DataTemp2)
+  Temp2$surv <- exp(-Temp2$MUA)
+  SurvExpNew_1[i] <- sum(Temp$surv*Temp$w)
+  SurvExpNew_2[i] <- sum(Temp2$surv*Temp2$w)
   
-  SurvExpNew_age_cats[j,]<-c(j,SurvExpNew[1000])
+  SurvExpNew_age_cats_men[j,]<-c(j,SurvExpNew_1[1000])
+  SurvExpNew_age_cats_women[j,]<-c(j,SurvExpNew_2[1000])
   }
 }
 
+SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
+  as.data.frame()%>%
+  rename("age"="V1")%>% #age coded in age groups of five years like globocan
+  rename("ES"="V2")%>%
+  mutate(sex=1)
+
+Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
+  as.data.frame()%>%
+  rename("age"="V1")%>% #age coded in age groups of five years like globocan
+  rename("ES"="V2")%>%
+  mutate(sex=2)%>%full_join(SurvExpNew_age_cats_men2)
+  
+write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
 
 
-# SurvExpNew <- rep(0,1000)
-# for (i in 1:1000){
-#   DataTemp$timeFix <- Time[i]
-#   Temp <- calcExpect(time="timeFix",event="cens",ratetable=ratetablepop,rmap=list(age=age*365.241,year=year,sex=sex),data=DataTemp)
-#   Temp$surv <- exp(-Temp$MUA)
-#   SurvExpNew[i] <- sum(Temp$surv*Temp$w)
-# }
-# 
 

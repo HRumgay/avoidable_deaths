@@ -50,6 +50,10 @@ Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.c
 Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
 
 popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()
+Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
+
+
+
 
 country_codes <-
   PAFs %>% summarize(country_code, country_label) %>% 
@@ -59,6 +63,8 @@ ten_cancer_sites <-
   Cancer_codes %>% 
   filter(cancer_code %in% c(6, 7, 11, 13, 15, 20, 23, 27, 30, 38))%>%
   mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","colorectal"))
+
+
 
 #Checking cancer codes in various files
 a<-PAFs%>%summarize(cancer_code,cancer_label)%>%distinct()%>%filter(cancer_code%in%ten_cancer_sites$cancer_code)

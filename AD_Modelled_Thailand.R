@@ -83,7 +83,7 @@ Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about t
     age>=85 ~ 18
   ))%>%
   left_join(Thai_pop,by=c("country_code","sex","year","age"))%>%
-  summarize(mx=sum(pop*mx)/sum(pop), prob=sum(prob*pop)/sum(pop),region, country_code)%>% #This needs to be adjusted with population weights
+  summarize(mx=sum(pop*mx)/sum(pop), prob=sum(prob*pop)/sum(pop),region, country_code)%>% 
      as.data.frame()%>%distinct()
 
 
@@ -131,6 +131,22 @@ simulated_overall<-Countries_Simulated%>%
 
 #PAF combinations
 
+
+Thailand_expected_Survival2<-Thailand_expected_Survival%>%
+   filter(age>=4)#%>%
+  # mutate(age=replace(age, age==19,18))%>%
+  # mutate(age=replace(age, age==20,18))%>%
+  # mutate(
+  #   age_cat = case_when(
+  #     age>=4 & age<14 ~ "15-64",
+  #     age>=14 ~ "65-99",
+  #     FALSE ~"0-15"
+  #   ))%>%
+  # filter(age_cat!="0-15")%>%
+  # group_by(age_cat)%>%
+  # summarize(ES)
+    
+
 PAFs_age_Cat<-PAFs%>%
   filter(country_label=="Thailand")%>%
   mutate(
@@ -141,11 +157,15 @@ PAFs_age_Cat<-PAFs%>%
     ))%>%
   filter(age_cat!="0-15")%>%
   droplevels()%>%
+  left_join(Thailand_expected_Survival2, by=c("age","sex"))%>%
   group_by(country_label,cancer_label, age_cat,age)%>%
+  mutate(ES=sum(ES*cases)/sum(cases))%>%
   summarize(country_code,country_label, cancer_code, cancer_label,
-            age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
+            age, age_cat, cases=sum(cases),
+            cases.prev=sum(cases.prev), 
             cases.notprev=sum(cases.notprev),
-            af.comb=sum(cases.prev)/cases)%>%
+            af.comb=sum(cases.prev)/cases,
+            ES)%>%
   distinct()%>%
   group_by(country_label,cancer_label, age_cat)%>%
   mutate(total_overall=sum(cases))
@@ -158,7 +178,8 @@ PAFS_Overall<-PAFs_age_Cat%>%mutate(age_cat="Overall")%>%
   summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
             cases.notprev=sum(cases.notprev),
-            af.comb=sum(cases.prev)/cases)%>%
+            af.comb=sum(cases.prev)/cases,
+            ES=sum(ES*cases)/sum(cases))%>%
   distinct()%>%
   group_by(country_label,cancer_label, age_cat)%>%
   mutate(total_overall=sum(cases))
@@ -167,14 +188,15 @@ PAFs2<-PAFs_age_Cat%>%
   full_join(PAFS_Overall)%>%
   as.data.frame()%>%
   droplevels()%>%
-  group_by(country_code,cancer_code, age_cat,age)%>%
+  group_by(country_code,cancer_code, age_cat,age, ES)%>%
   mutate(total_age_prev=sum(cases.prev))%>%
   as.data.frame()%>%
   #mutate(af.comb.agecat=total_age_prev/total_overall)%>%
   group_by(country_code,cancer_code,age)%>%
   summarize(country_label, cancer_label,
             age_cat,  total_overall,cases,
-            cases.prev)%>%
+            cases.prev,
+            ES)%>%
   distinct()%>%
   arrange(cancer_label,
           age_cat)%>%
@@ -186,6 +208,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   ungroup()%>%
   filter(age_cat!="Overall")%>%
   left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
+ # left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
   group_by(cancer_code,age_cat)%>%
   summarize(country_code, 
@@ -195,7 +218,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
             rel_surv=sum(rel_surv*cases)/sum(cases),
             af.comb=sum(cases.prev)/sum(cases),
             rel_surv,
-            Expected_5_year_surv_mx=sum(mx*cases)/sum(cases),
+            Expected_5_year_surv=sum(ES*cases)/sum(cases),
             total_overall)%>%
   droplevels()%>%
   select(-age)%>%
@@ -216,7 +239,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
               rel_surv=sum(rel_surv*cases)/sum(cases),
               af.comb=sum(cases.prev)/sum(cases),
               rel_surv,
-              Expected_5_year_surv_mx=sum(mx*cases)/sum(cases),
+              Expected_5_year_surv=sum(ES*cases)/sum(cases),
               total_overall)%>%
     droplevels()%>%
     select(-age)%>%
@@ -240,37 +263,27 @@ Avoidable_Deaths_Simulated <- matrix(ncol = 7, nrow = nrow(Simulated_Data_PAF)) 
 NS_Ref<-0.9 #Reference countries survival
 
 
-MyData$timeFix <- Time[5]
-Temp <- calcExpect(time="timeFix",
-                   event="cens", 
-                   ratetable=popmort,
-                   rmap=list(age=age*365.241,year=year),
-                   data=Simulated_Data_PAF)
-Temp$surv <- exp(-Temp$MUA)
-SurvExp[i] <- mean(Temp$surv)
-
-
 for (i in 1:nrow(Avoidable_Deaths_Simulated)) {
 
   
-  Expected_5_year_surv_mx <- Simulated_Data_PAF[i,]$Expected_5_year_surv_mx #Crude calculations of expected survival
+  Expected_5_year_surv  <- Simulated_Data_PAF[i,]$Expected_5_year_surv #Crude calculations of expected survival
   
   #Preventable deaths
   AD_prev <- (Simulated_Data_PAF[i,]$af.comb) * 
     Simulated_Data_PAF[i,]$total_overall * 
     (1 - Simulated_Data_PAF[i,]$rel_surv) *
-    (1-5*Expected_5_year_surv_mx)
-  #AD_prev_Lower<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv_mx
-  #AD_prev_Upper<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv_mx
+    (Expected_5_year_surv )
+  #AD_prev_Lower<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv 
+  #AD_prev_Upper<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv 
 
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
   AD_treat<-(NS_Ref-Simulated_Data_PAF[i,]$rel_surv)*
     (1-Simulated_Data_PAF[i,]$af.comb)*
     (Simulated_Data_PAF[i,]$total_overall)*
-    (1-5*Expected_5_year_surv_mx)
-  #AD_treat_Lower<-(0.9-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
-  #AD_treat_Upper<-(0.9-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
+    (Expected_5_year_surv )
+  #AD_treat_Lower<-(0.9-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv *(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
+  #AD_treat_Upper<-(0.9-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv *(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
   
   
   #Deaths not avoidable 
@@ -278,9 +291,9 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated)) {
   AD_unavoid<-(1-Simulated_Data_PAF[i,]$af.comb)*
     Simulated_Data_PAF[i,]$total_overall*
     (NS_Ref-Simulated_Data_PAF[i,]$rel_surv*
-       (1-5*Expected_5_year_surv_mx))
-  #AD_unavoid_Lower<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI*Expected_5_year_surv_mx)
-  #AD_unavoid_Upper<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI*Expected_5_year_surv_mx)
+       (Expected_5_year_surv ))
+  #AD_unavoid_Lower<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI*Expected_5_year_surv )
+  #AD_unavoid_Upper<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI*Expected_5_year_surv )
   
   
   Avoidable_Deaths_Simulated[i, ] <- c(
