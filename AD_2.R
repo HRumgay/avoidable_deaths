@@ -142,7 +142,7 @@ Thai_Survcan2 <- Thailand_Survcan %>%
 
 
 Thai_Surv11<- Thai_Surv3%>%
-  select(region_lab,country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
+  select(region_lab, country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
   group_by(region_lab,country,cancer_code)%>%
   summarize( end_FU=max(year))%>%
   as.data.frame()

@@ -103,6 +103,7 @@ for (j in 0:20){
     Temp$surv <- exp(-Temp$MUA)
 
   DataTemp2$timeFix <- Time[i]
+  
   Temp2 <- calcExpect(time="timeFix",
                      event="cens", 
                      ratetable=ratetablepop, 
@@ -131,7 +132,5 @@ Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
   rename("ES"="V2")%>%
   mutate(sex=2)%>%full_join(SurvExpNew_age_cats_men2)
   
-write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
-
-
+#write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
 
