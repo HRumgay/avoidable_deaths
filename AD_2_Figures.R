@@ -149,7 +149,7 @@ AD_plotable_L %>%
   coord_flip() +
   labs(x = '', y = '', fill = '') +
   scale_y_continuous(labels = scales::percent) +
-  scale_fill_manual(values = c('#6baed6','#74c476',  '#E1B378')) +
+  scale_fill_manual(values = c('#fc8d59','#ffffbf',  '#99d594')) +
   #facet_grid(REGION_LABEL ~ SEX_LABEL, scales = 'free_y', space = 'free',  labeller = label_wrap_gen(width = 10, multi_line = TRUE)) +
   facet_wrap(~Scenario, nrow = 1, drop = TRUE, scales = 'free_y') +
   theme_minimal() +
@@ -177,7 +177,7 @@ AD_plotable_L %>%
   coord_flip() +
   labs(x = '', y = '', fill = '') +
   scale_y_continuous(labels = scales::percent) +
-  scale_fill_manual(values = c('#6baed6','#74c476',  '#E1B378')) +
+  scale_fill_manual(values = c('#fc8d59','#ffffbf',  '#99d594')) +
   #facet_grid(REGION_LABEL ~ SEX_LABEL, scales = 'free_y', space = 'free',  labeller = label_wrap_gen(width = 10, multi_line = TRUE)) +
   facet_wrap(~Scenario, nrow = 1, drop = TRUE, scales = 'free_y') +
   theme_minimal() +
@@ -204,7 +204,7 @@ AD_plotable_L %>%
   coord_flip() +
   labs(x = '', y = '', fill = '') +
   scale_y_continuous(labels = scales::percent) +
-  scale_fill_manual(values = c('#6baed6','#74c476',  '#E1B378')) +
+  scale_fill_manual(values = c('#fc8d59','#ffffbf',  '#99d594')) +
   #facet_grid(REGION_LABEL ~ SEX_LABEL, scales = 'free_y', space = 'free',  labeller = label_wrap_gen(width = 10, multi_line = TRUE)) +
   facet_wrap(~Scenario, nrow = 1, drop = TRUE, scales = 'free_y') +
   theme_minimal() +
