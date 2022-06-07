@@ -210,7 +210,7 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
   AD_treat<-(1-Simulated_Data_PAF_All[i,]$af.comb) *
     (Simulated_Data_PAF_All[i,]$total_overall) *
     (NS_Ref-Simulated_Data_PAF_All[i,]$rel_surv) *
-    (1-10*Expected_5_year_surv_mx)
+    (1-5*Expected_5_year_surv_mx)
   #AD_treat_Lower<-(0.9-Simulated_Data_PAF_All[i,]$NS_Lower_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall
   #AD_treat_Upper<-(0.9-Simulated_Data_PAF_All[i,]$NS_Upper_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall
   
@@ -220,7 +220,7 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
   AD_unavoid<-(1-Simulated_Data_PAF_All[i,]$af.comb)*
     Simulated_Data_PAF_All[i,]$total_overall*
     (NS_Ref-Simulated_Data_PAF_All[i,]$rel_surv*
-       (1-10*Expected_5_year_surv_mx))
+       (1-5*Expected_5_year_surv_mx))
   #AD_unavoid_Lower<-(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall*(1-Simulated_Data_PAF_All[i,]$NS_Lower_CI*Expected_5_year_surv_mx)
   #AD_unavoid_Upper<-(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall*(1-Simulated_Data_PAF_All[i,]$NS_Upper_CI*Expected_5_year_surv_mx)
   
@@ -272,13 +272,13 @@ Avoidable_Deaths_Simulated_All<-Avoidable_Deaths_Simulated_All%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
-  mutate(AD_sum=AD_prev+AD_unavoid+ AD_treat)%>%
+  mutate(AD_sum=AD_prev+AD_treat)%>%
   mutate(total=as.numeric(total))%>%
 #  filter(total<AD_sum)%>%
   arrange(country_code,cancer_code,age_cat)
 
 
- write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
+ #write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
 
- write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
+ #write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
 

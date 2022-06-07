@@ -49,7 +49,11 @@ Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.c
   left_join(country_codes, by = c("region" = "country_label"))
 Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
 
-popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()
+p<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()
+popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%as.data.frame()%>%
+  left_join(country_codes)
+
+
 Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
 
 
