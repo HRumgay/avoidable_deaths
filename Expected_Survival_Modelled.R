@@ -151,9 +151,9 @@ women3<-women2%>%
   full_join(women2014)
 
 
-Test1<-list()
+E_men<-list()
 
-Test2<-list()
+E_Women<-list()
 
  
 # SurvExpNew_age_cats_men <- list()
@@ -164,7 +164,7 @@ Test2<-list()
 
 
 
-for (k in 1:1){
+for (k in 1:1){ #Looping through the countries
   
 #Aggregating life table data forward and converting to a matrix...
 men2<-men2%>%
@@ -249,12 +249,11 @@ for (j in 0:18){
   SurvExpNew_1[i] <- sum(Temp$surv*Temp$w)
   SurvExpNew_2[i] <- sum(Temp2$surv*Temp2$w)
   
-  # Test1[[k]]<-SurvExpNew_1
-  # Test2[[k]]<-SurvExpNew_2
+   E_men[[k]]<-SurvExpNew_1
+   E_Women[[k]]<-SurvExpNew_2
   
-  SurvExpNew_age_cats_men[j,]<-c(j,SurvExpNew_1[1000])
-  SurvExpNew_age_cats_women[j,]<-c(j,SurvExpNew_2[1000])
-  
+  # SurvExpNew_age_cats_men[k,]<-c(j,SurvExpNew_1[1000])
+  # SurvExpNew_age_cats_women[k,]<-c(j,SurvExpNew_2[1000])
   }
 }
 
