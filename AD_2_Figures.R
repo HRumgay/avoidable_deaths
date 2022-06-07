@@ -36,6 +36,7 @@ AD_barplot_treat <- AD_plotable %>%
   ggplot(
     aes(cancer_label, AD_treat,  
         ymin = min(AD_treat),
+        ymax = max(AD_treat)),
     mapping = aes(
       reorder(cancer_label, AD_treat),AD_treat,
       fill = age_cat,drop=FALSE,na.rm = TRUE
@@ -63,6 +64,7 @@ AD_barplot_prev <- AD_plotable %>%
   ggplot(
     aes(cancer_label, AD_prev,  
         ymin = min(AD_prev),
+        ymax = max(AD_prev)),
     mapping = aes(
       reorder(cancer_label, AD_prev),AD_prev,
       fill = age_cat,drop=FALSE
@@ -87,6 +89,7 @@ AD_barplot_unavoid <- AD_plotable %>%
   ggplot(
     aes(cancer_label, AD_unavoid,  
         ymin = min(AD_unavoid),
+        ymax = max(AD_unavoid)),
     mapping = aes(
       reorder(cancer_label, AD_unavoid),AD_unavoid,
       fill = age_cat,drop=FALSE
