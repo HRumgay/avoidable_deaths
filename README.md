@@ -13,6 +13,10 @@ AD_Simulated.R: Simulated data for ten cancer sites in 185 countries
 AD_Figures: Figures/ tables for the paper
 
 
-# Bug log: 
+# Bug log/ To Do: 
 
-Currently a bug in the simulated avoidable deaths file by country and cancer site (not present in example) causing overestimation of AD
+- Expected value calculations overall
+
+- Fix weighted mean issue when the number of cases is zero. 
+
+- Add prostate cancer to PAF (fixed)
