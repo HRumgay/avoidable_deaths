@@ -34,7 +34,7 @@ data(slopop)
 data(rdata)
 data(slopop)
 
-men2<-popmort2%>%
+men2<-p%>%
   filter(sex==1)%>%
   mutate(prob=1-ndx/nLx)
 
@@ -78,7 +78,7 @@ men2014<-men2%>%
   mutate(year=2014)
 
 
-women2<-popmort2%>%
+women2<-p%>%
   filter(sex==2)%>%
   mutate(prob=1-ndx/nLx)
 
@@ -164,7 +164,7 @@ E_Women<-list()
 
 
 
-for (k in 1:1){ #Looping through the countries
+for (k in 1:185){ #Looping through the countries
   
 #Aggregating life table data forward and converting to a matrix...
 men2<-men2%>%
@@ -198,8 +198,8 @@ ratetablepop<-transrate(men,women,yearlim=c(2000,2014),int.length=1) #if even on
 
 SurvExpNew_1 <- rep(0,1000)
 SurvExpNew_2 <- rep(0,1000)
-SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow = 18)
-SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 18)
+SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow = 19*185)
+SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 19*185)
 
 
 
@@ -224,7 +224,7 @@ for (j in 0:18){
   DataTemp2$sex <- 2
   DataTemp2$w <- 1/dim(DataTemp2)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
   
-  for (i in 1:1000){
+  for (i in 1000:1000){
 
     DataTemp$timeFix <- Time[i]
     Temp <- calcExpect(time="timeFix",
@@ -256,8 +256,16 @@ for (j in 0:18){
   # SurvExpNew_age_cats_women[k,]<-c(j,SurvExpNew_2[1000])
   }
 }
-
 }
+
+
+for(i in 1:185){
+  for (i in 0:18)
+  SurvExpNew_age_cats_men[i,]<-c(j,E_men[1000])
+  SurvExpNew_age_cats_women[i,]<-c(j,SurvExpNew_2[1000])
+  }
+
+
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
   as.data.frame()%>%
@@ -270,6 +278,6 @@ Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
   rename("age"="V1")%>% #age coded in age groups of five years like globocan
   rename("ES"="V2")%>%
   mutate(sex=2)%>%full_join(SurvExpNew_age_cats_men2)
-  
+
 #write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
 

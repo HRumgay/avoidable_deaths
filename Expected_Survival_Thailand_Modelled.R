@@ -90,7 +90,7 @@ for (j in 0:20){
   DataTemp2$sex <- 2
   DataTemp2$w <- 1/dim(DataTemp2)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
   
-  for (i in 1:1000){
+  for (i in 1000:1000){
 
     DataTemp$timeFix <- Time[i]
     Temp <- calcExpect(time="timeFix",
@@ -130,7 +130,8 @@ Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
   as.data.frame()%>%
   rename("age"="V1")%>% #age coded in age groups of five years like globocan
   rename("ES"="V2")%>%
-  mutate(sex=2)%>%full_join(SurvExpNew_age_cats_men2)
+  mutate(sex=2)%>%
+  full_join(SurvExpNew_age_cats_men2)
   
 #write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
 
