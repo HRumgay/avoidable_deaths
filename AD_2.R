@@ -23,7 +23,7 @@ library(ggplot2)
 library(relsurv)
 
 #Reading all the variables
-PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_20.04.22.csv")%>%
+PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Prostate.csv")%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "colorectal")) %>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "colorectal")) %>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
@@ -34,12 +34,15 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_20.04.22.csv")%
   mutate(cases.prev=sum(cases.prev))%>%
   mutate(cases.notprev=sum(cases.notprev))%>%
   mutate(cases=sum(cases))%>%
-  ungroup()
+  ungroup()%>%as.data.frame()
+
+
+  
 
 
 survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Data/survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
-Cancer_codes_Survcan<- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
+Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
 
 Thailand <- read.csv("~/Documents/R_Projects/Data/survival_Thailand_anchor_ALL.csv") %>% as.data.frame()
 Israel <- read.csv("~/Documents/R_Projects/Data/survival_Israel_anchor_ALL.csv") %>% as.data.frame()
@@ -50,6 +53,7 @@ Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.c
 Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
 
 popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()
+popmort<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort2.dta")%>%as.data.frame()
 p<-read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%as.data.frame()%>%
   left_join(country_codes)
 
@@ -691,8 +695,7 @@ colnames(Avoidable_Deaths) <-
     "AD_unavoid",
     "AD_unavoid_Lower",
     "AD_unavoid_Upper",
-    "total"
-    )
+    "total")
 
 Avoidable_Deaths<-Avoidable_Deaths%>%
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
@@ -703,108 +706,114 @@ Avoidable_Deaths<-Avoidable_Deaths%>%
 
 NS_OS_PAF
 
-
-write.csv(Avoidable_Deaths, "~/Documents/R_Projects/Data/Thai_AD.csv")
-write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
-
-
-
-library(ranger)
-library(mlr3)
-library(caTools)
-library(survival)
-
-# Random Forest model as a different approach
-# Using the ranger package 
-# 
-# 
-# 
-# 
-# 
-
-
-# ranger model.Too complex for the whole dataset on this laptop
-# would be interesting to try this again with a more powerful computer
-#https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/
-
-#creating training and test datasets
-Thai_Surv_test<-Thai_Surv%>%filter(cancer_code==13)
-
-ten_cancer_sites
-
-T_split<-sample.split(Thai_Surv_test,SplitRatio = 0.3)
-
-T_train=subset(Thai_Surv_test, 
-               T_split==TRUE)
-T_test=subset(Thai_Surv_test,
-              T_split==FALSE)
-
-
-
-
-r_fit <- ranger(Surv(surv_yydd,event1) ~ age_cat,
-                data = T_train,
-                mtry = 1,
-                importance = "permutation",
-                splitrule = "extratrees",
-                verbose = TRUE,
-                num.trees = 100)
-
-# Average the survival models
-death_times <- r_fit$unique.death.times 
-surv_prob <- data.frame(r_fit$survival)
-avg_prob <- sapply(surv_prob,mean)
-
-# Plot the survival models for each patient
-plot(r_fit$unique.death.times,r_fit$survival[1,], 
-     type = "l", 
-     ylim = c(0,1),
-     xlim=c(0,5),
-     col = "red",
-     xlab = "Years",
-     ylab = "survival",
-     main = "Cancer Survranger Survival Curves")
-
+###############
 #
-
-cols <- colors()
-for (n in sample(c(2:dim(T_train)[1]), 80)){
-  lines(r_fit$unique.death.times, r_fit$survival[n,], type = "l", col = cols[n])
-}
-lines(death_times, avg_prob, lwd = 2)
-legend(1000, 0.7, legend = c('Average = black'))
-
-#Kaplan Meier Curves for OS
-
-library(survival)
-library(ggplot2)
-library(ggfortify)
-library(survminer)
-
-# Plotting Survival Curves Using ggplot2 and ggfortify:
-
-Y = Surv(Thai_Surv_test$surv_yy, Thai_Surv_test$event1 == 1)
-xlim=c(0,5)
-
-kmfit = survfit(Y ~ 1)
-
-summary(kmfit, times = c(seq(0, 5, by = 100)))
-
-plot(kmfit, xlim=c(0,5), 
-     lty = c("solid", "dashed"), 
-     col = c("black", "grey"), 
-     xlab = "Survival Time In Years", 
-     ylab = "Survival Probabilities")
-
-title("Pancreas Cancer Survival Kaplan Meier")
+#Exporting Results
+#
+###############
 
 
-model_fit <- survfit(Surv(surv_yydd, event=event1) ~ cancer, data = Thai_Surv)
+#write.csv(Avoidable_Deaths, "~/Documents/R_Projects/Data/Thai_AD.csv")
+#write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 
-ggsurvplot(model_fit, xlim = c(0, 5))+
-  labs(x = " Survival Time (years) ", 
-       y = "Survival Probabilities", 
-       title = "Kaplan Meier Of Breast Cancer Patients in Thailand")
+
+# 
+# library(ranger)
+# library(mlr3)
+# library(caTools)
+# library(survival)
+# 
+# # Random Forest model as a different approach
+# # Using the ranger package 
+# # 
+# # 
+# # 
+# # 
+# # 
+# 
+# 
+# # ranger model.Too complex for the whole dataset on this laptop
+# # would be interesting to try this again with a more powerful computer
+# #https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/
+# 
+# #creating training and test datasets
+# Thai_Surv_test<-Thai_Surv%>%filter(cancer_code==13)
+# 
+# ten_cancer_sites
+# 
+# T_split<-sample.split(Thai_Surv_test,SplitRatio = 0.3)
+# 
+# T_train=subset(Thai_Surv_test, 
+#                T_split==TRUE)
+# T_test=subset(Thai_Surv_test,
+#               T_split==FALSE)
+# 
+# 
+# 
+# 
+# r_fit <- ranger(Surv(surv_yydd,event1) ~ age_cat,
+#                 data = T_train,
+#                 mtry = 1,
+#                 importance = "permutation",
+#                 splitrule = "extratrees",
+#                 verbose = TRUE,
+#                 num.trees = 100)
+# 
+# # Average the survival models
+# death_times <- r_fit$unique.death.times 
+# surv_prob <- data.frame(r_fit$survival)
+# avg_prob <- sapply(surv_prob,mean)
+# 
+# # Plot the survival models for each patient
+# plot(r_fit$unique.death.times,r_fit$survival[1,], 
+#      type = "l", 
+#      ylim = c(0,1),
+#      xlim=c(0,5),
+#      col = "red",
+#      xlab = "Years",
+#      ylab = "survival",
+#      main = "Cancer Survranger Survival Curves")
+# 
+# #
+# 
+# cols <- colors()
+# for (n in sample(c(2:dim(T_train)[1]), 80)){
+#   lines(r_fit$unique.death.times, r_fit$survival[n,], type = "l", col = cols[n])
+# }
+# lines(death_times, avg_prob, lwd = 2)
+# legend(1000, 0.7, legend = c('Average = black'))
+# 
+# #Kaplan Meier Curves for OS
+# 
+# library(survival)
+# library(ggplot2)
+# library(ggfortify)
+# library(survminer)
+# 
+# # Plotting Survival Curves Using ggplot2 and ggfortify:
+# 
+# Y = Surv(Thai_Surv_test$surv_yy, Thai_Surv_test$event1 == 1)
+# xlim=c(0,5)
+# 
+# kmfit = survfit(Y ~ 1)
+# 
+# summary(kmfit, times = c(seq(0, 5, by = 100)))
+# 
+# plot(kmfit, xlim=c(0,5), 
+#      lty = c("solid", "dashed"), 
+#      col = c("black", "grey"), 
+#      xlab = "Survival Time In Years", 
+#      ylab = "Survival Probabilities")
+# 
+# title("Pancreas Cancer Survival Kaplan Meier")
+# 
+# 
+# model_fit <- survfit(Surv(surv_yydd, event=event1) ~ cancer, data = Thai_Surv)
+# 
+# ggsurvplot(model_fit, xlim = c(0, 5))+
+#   labs(x = " Survival Time (years) ", 
+#        y = "Survival Probabilities", 
+#        title = "Kaplan Meier Of Breast Cancer Patients in Thailand")
 
   # theme(plot.title = element_text(hjust = 0.5), 
   #       axis.title.x = element_text(face="bold", colour="#FF7A33", size = 12),

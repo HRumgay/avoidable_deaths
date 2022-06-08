@@ -152,21 +152,20 @@ women3<-women2%>%
   full_join(women2014)
 
 
-E_men<-list()
+# E_men<-list()
+# 
+# E_Women<-list()
+SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =18)
+SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 18)
 
-E_Women<-list()
-SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =18*185)
-SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 18*185)
-
-# SurvExpNew_age_cats_men <- list()
-# SurvExpNew_age_cats_women <- list()
+SurvExpNew_age_cats_men <- list(list(matrix(ncol = 2, nrow =18)))
+SurvExpNew_age_cats_women <- list(list(matrix(ncol = 2, nrow =18)))
 
 
 # 
 
-k->2
 
-for (k in 1:185){ #Looping through the countries
+for (k in 1:2){ #Looping through the countries
   
   #Aggregating life table data forward and converting to a matrix...
   men2<-men3%>%
@@ -250,11 +249,11 @@ for (k in 1:185){ #Looping through the countries
       SurvExpNew_1[i] <- sum(Temp$surv*Temp$w)
       SurvExpNew_2[i] <- sum(Temp2$surv*Temp2$w)
       
-      E_men[[k]]<-SurvExpNew_1
-      E_Women[[k]]<-SurvExpNew_2
+      # E_men[[k]]<-SurvExpNew_1
+      # E_Women[[k]]<-SurvExpNew_2
       
-      # SurvExpNew_age_cats_men[k,]<-c(j,SurvExpNew_1[1000])
-      #  SurvExpNew_age_cats_women[k+j,]<-c(j,SurvExpNew_2[1000])
+      SurvExpNew_age_cats_men[[(k-1)*j+j]]<-c(k, j,SurvExpNew_1[1000])
+      SurvExpNew_age_cats_women[[(k-1)*j+j]]<-c(k, j,SurvExpNew_2[1000])
     }
   }
 }
@@ -263,7 +262,7 @@ for (k in 1:185){ #Looping through the countries
 for(i in 1:185){
   for (j in 1:18)
     SurvExpNew_age_cats_men[i+j,]<-c(j,E_men[[i]][1000])
-    SurvExpNew_age_cats_women[i+j,]<-c(j,SurvExpNew_2[[i]][1000])
+    SurvExpNew_age_cats_women[i+j,]<-c(j,E_Women[[i]][1000])
 }
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
