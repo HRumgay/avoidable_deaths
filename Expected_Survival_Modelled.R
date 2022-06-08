@@ -261,9 +261,9 @@ for (k in 1:185){ #Looping through the countries
 
 
 for(i in 1:185){
-  for (i in 0:18)
-    SurvExpNew_age_cats_men[i,]<-c(j,E_men[[185]])
-  SurvExpNew_age_cats_women[i,]<-c(j,SurvExpNew_2[[185]])
+  for (j in 1:18)
+    SurvExpNew_age_cats_men[i+j,]<-c(j,E_men[[i]][1000])
+    SurvExpNew_age_cats_women[i+j,]<-c(j,SurvExpNew_2[[i]][1000])
 }
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
