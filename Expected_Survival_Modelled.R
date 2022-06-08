@@ -164,7 +164,7 @@ E_Women<-list()
 
 
 
-for (k in 1:1){ #Looping through the countries
+for (k in 1:185){ #Looping through the countries
   
 #Aggregating life table data forward and converting to a matrix...
 men2<-men2%>%
