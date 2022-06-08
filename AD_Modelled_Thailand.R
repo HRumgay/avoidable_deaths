@@ -272,7 +272,7 @@ for (i in 1:nrow(Avoidable_Deaths_modelled)) {
   AD_prev <- (Simulated_Data_PAF[i,]$af.comb) * 
     Simulated_Data_PAF[i,]$total_overall * 
     (1 - Simulated_Data_PAF[i,]$rel_surv) *
-    (1-Expected_5_year_surv )
+    (Expected_5_year_surv )
   #AD_prev_Lower<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv 
   #AD_prev_Upper<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv 
 
@@ -340,8 +340,8 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
 Avoidable_Deaths_modelled
 
 
-#write.csv(Avoidable_Deaths_modelled, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
-#write.csv(Simulated_Data_PAF, "~/Documents/R_Projects/Data/Thai_NS_Modelled.csv")
+write.csv(Avoidable_Deaths_modelled, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
+write.csv(Simulated_Data_PAF, "~/Documents/R_Projects/Data/Thai_NS_Modelled.csv")
 
 
 
