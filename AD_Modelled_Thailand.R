@@ -247,7 +247,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   
   
   Simulated_Data_PAF<-Simulated_Data_PAF_1%>%full_join(Simulated_Data_PAF_2)%>%
-    left_join(Reference_Survival)
+    left_join(Reference_Survival,by=c("age_cat","cancer_code"))
   
   
   

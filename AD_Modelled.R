@@ -34,8 +34,13 @@ popmort<-popmort2%>%
   mutate(mx=1-prob)%>%
   mutate(country_code=as.numeric(country_code))%>%
   group_by(country_code,age,year)%>%
-  summarize(mx=sum(cases*mx)/sum(cases), prob=sum(prob*cases)/sum(cases),country_label, country_code,age_label)%>% #This needs to be adjusted with population weights
-     as.data.frame()%>%distinct()
+  summarize(mx=sum(cases*mx)/sum(cases), 
+            prob=sum(prob*cases)/sum(cases),
+            country_label, 
+            country_code,
+            age_label)%>% #This needs to be adjusted with population weights
+     as.data.frame()%>%
+  distinct()
 
 
 countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. Not sure why
@@ -55,8 +60,9 @@ Countries_Simulated <-countries_5y%>%
     ))%>%
   filter(age_cat!="0-15")%>%
   group_by(country_name,cancer_label,age_cat)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,age,
-            age_cat,rel_surv,mx)%>%as.data.frame()
+  summarize(country_code,country_name, cancer_code, cancer_label,
+            age, age_cat,
+            rel_surv, mx)%>%as.data.frame()
 
 
 Countries_Simulated_Overall<-Countries_Simulated%>%
@@ -180,19 +186,9 @@ Simulated_Data_PAF_1<-simulated_overall%>%
     mutate(total_overall=as.double(total_overall))%>%
     full_join(Simulated_Data_PAF_2)%>%
     arrange(country_label,cancer_code,age_cat)%>%
-    left_join(Reference_Survival)%>%
+    left_join(Reference_Survival,by=c("age_cat","cancer_code"))%>%
     as_tibble()
   
-#Printing and exporting the highest reference survivals in the 
-  
-# Reference_Survival <- Simulated_Data_PAF_All%>%
-#  # filter(age_cat=="Overall")%>%
-#   filter(!is.na(rel_surv))%>%
-#  group_by(cancer_code,age_cat)%>%
-#   filter(rel_surv==max(rel_surv))%>%
-#   select(cancer_code,cancer_label,country_code,country_label, rel_surv)
-# 
-# write.csv(Reference_Survival,"~/Documents/R_Projects/Data/Reference_Survival.csv")
 
 #Avoidable deaths
 

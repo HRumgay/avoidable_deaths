@@ -34,11 +34,8 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Pros
   mutate(cases.prev=sum(cases.prev))%>%
   mutate(cases.notprev=sum(cases.notprev))%>%
   mutate(cases=sum(cases))%>%
-  ungroup()%>%as.data.frame()
-
-
-  
-
+  ungroup()%>%
+  as.data.frame()
 
 survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Data/survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
@@ -62,8 +59,9 @@ Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expec
 
 Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv")%>%
   as.data.frame()%>%
-  filter(age_cat=="Overall")%>%
-  select(cancer_code, rel_surv)%>%
+  select(age_cat, 
+         cancer_code, 
+         rel_surv)%>%
   rename("surv_ref"="rel_surv")
 
 
@@ -625,7 +623,7 @@ PAFs2 <- PAFs_age_Cat %>%
 NS_OS_PAF <- NS_OS %>% 
   left_join(PAFs2, by = c("cancer_code" = "cancer_code", "age_cat" ="age_cat")) %>% 
   droplevels()%>%
-  left_join(Reference_Survival)
+  left_join(Reference_Survival,by=c("age_cat","cancer_code"))
 
 
 #Three AD calcs
