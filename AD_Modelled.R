@@ -2,15 +2,14 @@
 ###############################################
 #
 # Net survival and Avoidable deaths - Simulated data
-#  Date: 11/5/2022
-# Version 1
+#  Date: 09/06/2022
+# Version 2.2
 #
 #
 #Load files and packages in AD_2.R file
 #
 # Works for multiple cancer sites currently.
 #
-#Needs to be synced
 #
 ###############################################
 
@@ -174,13 +173,27 @@ Simulated_Data_PAF_1<-simulated_overall%>%
     as.data.frame()
   
   
-  Simulated_Data_PAF_All<-Simulated_Data_PAF_1%>%
+  Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
     mutate(rel_surv=as.double(rel_surv))%>%
     mutate(af.comb=as.double(af.comb))%>% 
     mutate(Expected_5_year_surv_mx=as.double(Expected_5_year_surv_mx))%>% 
     mutate(total_overall=as.double(total_overall))%>%
     full_join(Simulated_Data_PAF_2)%>%
-    arrange(country_label,cancer_code,age_cat)%>%as_tibble()
+    arrange(country_label,cancer_code,age_cat)%>%
+    left_join(Reference_Survival)%>%
+    as_tibble()
+  
+#Printing and exporting the highest reference survivals in the 
+  
+# Reference_Survival <- Simulated_Data_PAF_All%>%
+#  # filter(age_cat=="Overall")%>%
+#   filter(!is.na(rel_surv))%>%
+#  group_by(cancer_code,age_cat)%>%
+#   filter(rel_surv==max(rel_surv))%>%
+#   select(cancer_code,cancer_label,country_code,country_label, rel_surv)
+# 
+# write.csv(Reference_Survival,"~/Documents/R_Projects/Data/Reference_Survival.csv")
+
 #Avoidable deaths
 
 #Three AD calcs 
@@ -190,7 +203,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
 Avoidable_Deaths_Simulated_All <- matrix(ncol = 10, nrow = nrow(Simulated_Data_PAF_All)) #AD(t)
 
-NS_Ref<-0.9 #Reference countries survival
+#NS_Ref<-0.9 #Reference countries survival
 
 
 for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
@@ -209,7 +222,7 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
   
   AD_treat<-(1-Simulated_Data_PAF_All[i,]$af.comb) *
     (Simulated_Data_PAF_All[i,]$total_overall) *
-    (NS_Ref-Simulated_Data_PAF_All[i,]$rel_surv) *
+    (Simulated_Data_PAF_All[i,]$surv_ref-Simulated_Data_PAF_All[i,]$rel_surv) *
     (1-5*Expected_5_year_surv_mx)
   #AD_treat_Lower<-(0.9-Simulated_Data_PAF_All[i,]$NS_Lower_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall
   #AD_treat_Upper<-(0.9-Simulated_Data_PAF_All[i,]$NS_Upper_CI)*Expected_5_year_surv_mx*(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall
@@ -219,7 +232,7 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
   
   AD_unavoid<-(1-Simulated_Data_PAF_All[i,]$af.comb)*
     Simulated_Data_PAF_All[i,]$total_overall*
-    (NS_Ref-Simulated_Data_PAF_All[i,]$rel_surv*
+    (Simulated_Data_PAF_All[i,]$surv_ref-Simulated_Data_PAF_All[i,]$rel_surv*
        (1-5*Expected_5_year_surv_mx))
   #AD_unavoid_Lower<-(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall*(1-Simulated_Data_PAF_All[i,]$NS_Lower_CI*Expected_5_year_surv_mx)
   #AD_unavoid_Upper<-(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall*(1-Simulated_Data_PAF_All[i,]$NS_Upper_CI*Expected_5_year_surv_mx)
@@ -275,7 +288,8 @@ Avoidable_Deaths_Simulated_All<-Avoidable_Deaths_Simulated_All%>%
   mutate(AD_sum=AD_prev+AD_treat)%>%
   mutate(total=as.numeric(total))%>%
 #  filter(total<AD_sum)%>%
-  arrange(country_code,cancer_code,age_cat)
+  arrange(country_label,cancer_code,age_cat)%>%
+  as.data.frame()
 
 
  #write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
