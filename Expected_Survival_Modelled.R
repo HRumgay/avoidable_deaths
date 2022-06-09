@@ -247,10 +247,12 @@ ES_list <- lapply(1:185, function(k) { #Looping through the countries
       #SurvExpNew_age_cats_men[[(k-1)*j+j]]<-c(k, j,SurvExpNew_1[1000])
       #SurvExpNew_age_cats_women[[(k-1)*j+j]]<-c(k, j,SurvExpNew_2[1000])
     }
-    t <-list(SurvExpNew_1,SurvExpNew_2)
+    t <- bind_rows(setnames(as.data.table(SurvExpNew_1), "SurvExpNew_1","SurvExpNew")[,sex:=1],
+                   setnames(as.data.table(SurvExpNew_2), "SurvExpNew_2","SurvExpNew")[,sex:=2])
   })
 })
-# ES_list is now list of 185 countries, each with 19 age groups, 2 sexes and ES estimates
+# ES_list is now list of 185 countries, each with 19 age groups and ES estimates for both sexes
+save(ES_list, file="ES_list.RData")
 
 for(i in 1:185){
   for (j in 1:19)
