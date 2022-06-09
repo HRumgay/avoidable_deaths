@@ -256,8 +256,8 @@ save(ES_list, file="ES_list.RData")
 
 for(i in 1:185){
   for (j in 1:19)
-    SurvExpNew_age_cats_men[i+j,]<-c(ES_list[[i]][[j]][[1]][1000])
-    SurvExpNew_age_cats_women[i+j,]<-c(ES_list[[i]][[j]][[2]][1000])
+    SurvExpNew_age_cats_men[i+j,]<-c(ES_list[[i]][[j]][sex==1,1000])
+    SurvExpNew_age_cats_women[i+j,]<-c(ES_list[[i]][[j]][sex==2,1000])
 }
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
