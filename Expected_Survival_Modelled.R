@@ -1,5 +1,6 @@
 library("relsurv")
 library("mexhaz")
+library("data.table")
 
 ## Function used to calculate the expected rate / cumulative rate
 calcExpect <- function(time,event,id=NULL,data,ratetable,rmap,conv.time=365.241,names=c("mua","MUA")){
@@ -123,72 +124,65 @@ women2014<-women2%>%
   filter(year==2010)%>%
   mutate(year=2014)
 
-men3<-men2%>%
-  full_join(men2001)%>%
-  full_join(men2002)%>%
-  full_join(men2003)%>%
-  full_join(men2004)%>%
-  full_join(men2006)%>%
-  full_join(men2007)%>%
-  full_join(men2008)%>%
-  full_join(men2009)%>%
-  full_join(men2011)%>%
-  full_join(men2012)%>%
-  full_join(men2013)%>%
-  full_join(men2014)
+men3<-data.table(men2%>%
+                   full_join(men2001)%>%
+                   full_join(men2002)%>%
+                   full_join(men2003)%>%
+                   full_join(men2004)%>%
+                   full_join(men2006)%>%
+                   full_join(men2007)%>%
+                   full_join(men2008)%>%
+                   full_join(men2009)%>%
+                   full_join(men2011)%>%
+                   full_join(men2012)%>%
+                   full_join(men2013)%>%
+                   full_join(men2014))
 
-women3<-women2%>%
-  full_join(women2001)%>%
-  full_join(women2002)%>%
-  full_join(women2003)%>%
-  full_join(women2004)%>%
-  full_join(women2006)%>%
-  full_join(women2007)%>%
-  full_join(women2008)%>%
-  full_join(women2009)%>%
-  full_join(women2011)%>%
-  full_join(women2012)%>%
-  full_join(women2013)%>%
-  full_join(women2014)
+women3<-data.table(women2%>%
+                     full_join(women2001)%>%
+                     full_join(women2002)%>%
+                     full_join(women2003)%>%
+                     full_join(women2004)%>%
+                     full_join(women2006)%>%
+                     full_join(women2007)%>%
+                     full_join(women2008)%>%
+                     full_join(women2009)%>%
+                     full_join(women2011)%>%
+                     full_join(women2012)%>%
+                     full_join(women2013)%>%
+                     full_join(women2014))
 
 
-# E_men<-list()
-# 
-# E_Women<-list()
-SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =18)
-SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 18)
+#SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =18)
+#SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 18)
 
-SurvExpNew_age_cats_men <- list(list(matrix(ncol = 2, nrow =18)))
-SurvExpNew_age_cats_women <- list(list(matrix(ncol = 2, nrow =18)))
+#SurvExpNew_age_cats_men <- list(list(matrix(ncol = 2, nrow =18)))
+#SurvExpNew_age_cats_women <- list(list(matrix(ncol = 2, nrow =18)))
 
 
 # 
 
 
-for (k in 1:2){ #Looping through the countries
+ES_list <- lapply(1:185, function(k) { #Looping through the countries
   
   #Aggregating life table data forward and converting to a matrix...
-  men2<-men3%>%
-    filter(country_code==country_codes[k,]$country_code)
+  men2<-men3[country_code==country_codes[k,]$country_code,]
   
   
   
-  women2<-women3%>%
-    filter(country_code==country_codes[k,]$country_code)
+  women2<-women3[country_code==country_codes[k,]$country_code,]
   
-  men<-matrix(NA, 18, 15, dimnames = list(c(seq(1,18,by=1)), c(seq(2000,2014,by=1))))
+  men<-matrix(NA, 19, 15, dimnames = list(c(seq(0,18,by=1)), c(seq(2000,2014,by=1))))
   
-  women<-matrix(NA, 18, 15, dimnames = list(c(seq(1,18,by=1)), c(seq(2000,2014,by=1))))
+  women<-matrix(NA, 19, 15, dimnames = list(c(seq(0,18,by=1)), c(seq(2000,2014,by=1))))
   
   
   for(j in 2000:2014){
-    for(i in 1:18){
-      men2<-men2%>%
-        filter(year==j)
+    for(i in 1:19){
+      men2<-men4[year==j,]
       men[i,j-1999] <- men2[i,]$prob
       
-      women2<-women2%>%
-        filter(year==j)
+      women2<-women4[year==j,]
       women[i,j-1999] <- women2[i,]$prob
     }
   }
@@ -206,10 +200,10 @@ for (k in 1:2){ #Looping through the countries
   Time <- seq(0,5,le=1001)[-1]
   
   
-  for (j in 0:18){
-    
-    #Update age here. We have groups only
-    DataTemp <- expand.grid(age=1:18,year=2009:2014)   #
+  t2 <- lapply(0:18, function(j) {
+    cat(toString(k), ", ", toString(j),"\n") #print country + age group
+ 
+    DataTemp <- expand.grid(age=j,year=2014)   #
     DataTemp$year <- as.Date(paste0(DataTemp$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
     DataTemp$cens <- 0 # actually, not used in the calculations...
     DataTemp$timeFix <- 0
@@ -217,14 +211,14 @@ for (k in 1:2){ #Looping through the countries
     DataTemp$w <- 1/dim(DataTemp)[1]  # or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
     
     
-    DataTemp2 <- expand.grid(age=((j*5):(5*(j+1)-1)),year=2009:2014)   #
+    DataTemp2 <- expand.grid(age=j,year=2014)   #
     DataTemp2$year <- as.Date(paste0(DataTemp2$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
     DataTemp2$cens <- 0 ## actually, not used in the calculations...
     DataTemp2$timeFix <- 0
     DataTemp2$sex <- 2
     DataTemp2$w <- 1/dim(DataTemp2)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
     
-    for (i in 1000:1000){
+    for (i in 1000){
       
       DataTemp$timeFix <- Time[i]
       Temp <- calcExpect(time="timeFix",
@@ -246,23 +240,22 @@ for (k in 1:2){ #Looping through the countries
                                     sex=sex),
                           data=DataTemp2)
       Temp2$surv <- exp(-Temp2$MUA)
+      
       SurvExpNew_1[i] <- sum(Temp$surv*Temp$w)
       SurvExpNew_2[i] <- sum(Temp2$surv*Temp2$w)
       
-      # E_men[[k]]<-SurvExpNew_1
-      # E_Women[[k]]<-SurvExpNew_2
-      
-      SurvExpNew_age_cats_men[[(k-1)*j+j]]<-c(k, j,SurvExpNew_1[1000])
-      SurvExpNew_age_cats_women[[(k-1)*j+j]]<-c(k, j,SurvExpNew_2[1000])
+      #SurvExpNew_age_cats_men[[(k-1)*j+j]]<-c(k, j,SurvExpNew_1[1000])
+      #SurvExpNew_age_cats_women[[(k-1)*j+j]]<-c(k, j,SurvExpNew_2[1000])
     }
-  }
-}
-
+    t <-list(SurvExpNew_1,SurvExpNew_2)
+  })
+})
+# ES_list is now list of 185 countries, each with 19 age groups, 2 sexes and ES estimates
 
 for(i in 1:185){
-  for (j in 1:18)
-    SurvExpNew_age_cats_men[i+j,]<-c(j,E_men[[i]][1000])
-    SurvExpNew_age_cats_women[i+j,]<-c(j,E_Women[[i]][1000])
+  for (j in 1:19)
+    SurvExpNew_age_cats_men[i+j,]<-c(ES_list[[i]][[j]][[1]][1000])
+    SurvExpNew_age_cats_women[i+j,]<-c(ES_list[[i]][[j]][[2]][1000])
 }
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
