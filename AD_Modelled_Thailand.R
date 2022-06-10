@@ -341,6 +341,7 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+ # filter(total_overall<AD_sum)%>%
   as.data.frame()
 
 

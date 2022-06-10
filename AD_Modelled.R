@@ -13,6 +13,12 @@
 #
 ###############################################
 
+#Expected survival
+
+ES2<-ES_dt%>%
+  filter(time==1000)%>%
+  select(-time)
+
 
 #Combining datasets at the time point of interest 5 years and combining to HDI
 

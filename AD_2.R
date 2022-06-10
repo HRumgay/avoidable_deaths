@@ -4,7 +4,7 @@
 #  Date: 09/06/2022
 # Version 2.2
 #
-# Works for multiple cancer sites currently. W
+# Works for multiple cancer sites currently.
 #
 #Needs to be synced
 #
@@ -68,9 +68,11 @@ Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv
          rel_surv)%>%
   rename("surv_ref"="rel_surv")
 
+load("~/Documents/R_Projects/Data/ES_dt.RData")
+
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
 country_codes <-
-  read.csv("DATA/GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
+  read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
   filter(country_code<900) %>% 
   select(country_code, country_label)
 
@@ -709,6 +711,7 @@ Avoidable_Deaths<-Avoidable_Deaths%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   mutate(AD_treatprev=AD_treat+AD_prev+AD_unavoid)%>%
+ # filter(total<AD_treatprev)%>%
   mutate(cancer_code=as.numeric(cancer_code))
 
 NS_OS_PAF

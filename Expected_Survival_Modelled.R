@@ -1,6 +1,7 @@
 library("relsurv")
 library("mexhaz")
 library("data.table")
+library("numbers")
 
 ## Function used to calculate the expected rate / cumulative rate
 calcExpect <- function(time,event,id=NULL,data,ratetable,rmap,conv.time=365.241,names=c("mua","MUA")){
@@ -254,17 +255,25 @@ save(ES_dt, file="ES_dt.RData")
 
 countries<-p%>%summarize(country_code,country_label)%>%distinct()
 
-SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =19*185)
-SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =19*185)
+SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =3515)
+SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =3515)
 
+
+SurvExpNew_age_cats_men[1, ]
+
+  
+ES_dt
 # fix formula so it indexes correctly
 # shouldn't be necessary now with ES_dt
-for (j in 0:18){
-  for(i in 1:185){
-    SurvExpNew_age_cats_men[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][1000])
-    SurvExpNew_age_cats_women[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][2000])
+
+2*185*19
+
+  for(i in 1:(7030/3)){
+     SurvExpNew_age_cats_men[i, ]<-c(mod(i-1,19),ES_dt[1000,i*2-1])
+     SurvExpNew_age_cats_women[i, ]<-c(mod(i-1,19),ES_dt[2000,i*2-1])
   }
-}
+mod(i-1,19)
+
 
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
@@ -273,7 +282,7 @@ SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
   rename("ES"="V2")%>%
   mutate(sex=1)
 
-Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
+Expected_Survival<-SurvExpNew_age_cats_women%>%
   as.data.frame()%>%
   rename("age"="V1")%>% #age coded in age groups of five years like globocan
   rename("ES"="V2")%>%
