@@ -68,10 +68,11 @@ Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv
          rel_surv)%>%
   rename("surv_ref"="rel_surv")
 
-
+# GCO_country_info.csv has correct country_label variable to match with pop_mort2
 country_codes <-
-  PAFs %>% summarize(country_code, country_label) %>% 
-  distinct()
+  read.csv("DATA/GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
+  filter(country_code<900) %>% 
+  select(country_code, country_label)
 
 ten_cancer_sites <-
   Cancer_codes %>% 
