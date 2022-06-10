@@ -181,8 +181,8 @@ ES_list <- lapply(1:185, function(k) { #Looping through the countries
   
   ratetablepop<-transrate(men,women,yearlim=c(2000,2014),int.length=1) #if even one column that is unused has NA values it fails to calculated in the loop below...
   
-  SurvExpNew_1 <- rep(0,1000)
-  SurvExpNew_2 <- rep(0,1000)
+  SurvExpNew_1 <- data.table(rep(0, 1000),1:1000)
+  SurvExpNew_2 <- data.table(rep(0, 1000),1:1000)
 
   
   
@@ -231,30 +231,24 @@ ES_list <- lapply(1:185, function(k) { #Looping through the countries
                           data=DataTemp2)
       Temp2$surv <- exp(-Temp2$MUA)
       
-      SurvExpNew_1[i] <- sum(Temp$surv*Temp$w)
-      SurvExpNew_2[i] <- sum(Temp2$surv*Temp2$w)
+      SurvExpNew_1[i,1] <- sum(Temp$surv*Temp$w)
+      SurvExpNew_2[i,1] <- sum(Temp2$surv*Temp2$w)
       
       #SurvExpNew_age_cats_men[[(k-1)*j+j]]<-c(k, j,SurvExpNew_1[1000])
       #SurvExpNew_age_cats_women[[(k-1)*j+j]]<-c(k, j,SurvExpNew_2[1000])
     }
-    t <- bind_rows(setnames(as.data.table(SurvExpNew_1), "SurvExpNew_1","SurvExpNew")[,sex:=1],
-                   setnames(as.data.table(SurvExpNew_2), "SurvExpNew_2","SurvExpNew")[,sex:=2])
+    t <- bind_rows(SurvExpNew_1[,sex:=1],
+                   SurvExpNew_2[,sex:=2])
+    setnames(t, c("V1","V2"),c("SurvExp","time"))
+    t <- t[,country_code:=country_codes[k,]$country_code][,age:=j]
   })
+  t3 <- do.call(rbind.data.frame, t2)
 })
-# ES_list is now list of 185 countries, each with 19 age groups and ES estimates for both sexes
-save(ES_list, file="ES_list.RData")
+ES_dt <- do.call(rbind.data.frame, ES_list)
+# ES_dt is now data.table of 185 countries, each with 19 age groups and ES estimates for both sexes
+save(ES_dt, file="ES_dt.RData")
 
 
-SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =19*185)
-SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =19*185)
-
-# fix formula so it indexes correctly
-for (j in 0:18){
-  for(i in 1:185){
-    SurvExpNew_age_cats_men[(i*(j+1)), ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][1000])
-    SurvExpNew_age_cats_women[i*(j+1), ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][2000])
-  }
-}
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
   as.data.frame()%>%
