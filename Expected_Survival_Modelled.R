@@ -153,16 +153,6 @@ women3<-data.table(women2%>%
                      full_join(women2014))
 
 
-#SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =18)
-#SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 18)
-
-#SurvExpNew_age_cats_men <- list(list(matrix(ncol = 2, nrow =18)))
-#SurvExpNew_age_cats_women <- list(list(matrix(ncol = 2, nrow =18)))
-
-
-# 
-
-
 ES_list <- lapply(1:185, function(k) { #Looping through the countries
   
   #Aggregating life table data forward and converting to a matrix...
@@ -254,10 +244,16 @@ ES_list <- lapply(1:185, function(k) { #Looping through the countries
 # ES_list is now list of 185 countries, each with 19 age groups and ES estimates for both sexes
 save(ES_list, file="ES_list.RData")
 
-for(i in 1:185){
-  for (j in 1:19)
-    SurvExpNew_age_cats_men[i+j,]<-c(ES_list[[i]][[j]][sex==1,][1000,1])
-    SurvExpNew_age_cats_women[i+j,]<-c(ES_list[[i]][[j]][sex==2,][1000,1])
+
+SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =19*185)
+SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =19*185)
+
+# fix formula so it indexes correctly
+for (j in 0:18){
+  for(i in 1:185){
+    SurvExpNew_age_cats_men[(i*(j+1)), ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][1000])
+    SurvExpNew_age_cats_women[i*(j+1), ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][2000])
+  }
 }
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
@@ -270,7 +266,8 @@ Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
   as.data.frame()%>%
   rename("age"="V1")%>% #age coded in age groups of five years like globocan
   rename("ES"="V2")%>%
-  mutate(sex=2)%>%full_join(SurvExpNew_age_cats_men2)
+  mutate(sex=2)%>%
+  full_join(SurvExpNew_age_cats_men2)
 
 #write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
 

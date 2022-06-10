@@ -1,8 +1,8 @@
 ###############################################
 #
 # Net survival and Avoidable deaths
-#  Date: 11/5/2022
-# Version 2
+#  Date: 09/06/2022
+# Version 2.2
 #
 # Works for multiple cancer sites currently. W
 #
@@ -34,11 +34,8 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Pros
   mutate(cases.prev=sum(cases.prev))%>%
   mutate(cases.notprev=sum(cases.notprev))%>%
   mutate(cases=sum(cases))%>%
-  ungroup()%>%as.data.frame()
-
-
-  
-
+  ungroup()%>%
+  as.data.frame()
 
 survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Data/survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
@@ -60,7 +57,12 @@ p<-read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%as.data.frame()%>
 
 Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
 
-
+Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv")%>%
+  as.data.frame()%>%
+  select(age_cat, 
+         cancer_code, 
+         rel_surv)%>%
+  rename("surv_ref"="rel_surv")
 
 
 country_codes <-
@@ -620,7 +622,8 @@ PAFs2 <- PAFs_age_Cat %>%
 
 NS_OS_PAF <- NS_OS %>% 
   left_join(PAFs2, by = c("cancer_code" = "cancer_code", "age_cat" ="age_cat")) %>% 
-  droplevels()
+  droplevels()%>%
+  left_join(Reference_Survival,by=c("age_cat","cancer_code"))
 
 
 #Three AD calcs
@@ -629,7 +632,6 @@ NS_OS_PAF <- NS_OS %>%
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
 Avoidable_Deaths <- matrix(ncol = 13, nrow = nrow(NS_OS_PAF)) #AD(t)
 NS_OS_PAF$cancer <- as.character(NS_OS_PAF$cancer)
-NS_Ref<-0.9 #Reference countries survival. Decide on for each data site. Use simulated highest survival for each cancer site
 
 for (i in 1:nrow(NS_OS_PAF)) {
   Expected_5_year_surv_mx <-
@@ -646,22 +648,22 @@ for (i in 1:nrow(NS_OS_PAF)) {
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
   AD_treat <-
-    (NS_Ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall
   AD_treat_Lower <-
-    (NS_Ref - NS_OS_PAF[i,]$NS_Lower_CI) * Expected_5_year_surv_mx * (NS_OS_PAF[i,]$af.comb.agecat) * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * Expected_5_year_surv_mx * (NS_OS_PAF[i,]$af.comb.agecat) * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
     NS_OS_PAF[i,]$total_overall
   AD_treat_Upper <-
-    (NS_Ref - NS_OS_PAF[i,]$NS_Upper_CI) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
     NS_OS_PAF[i,]$total_overall
   
   #Deaths not avoidable
   
   AD_unavoid <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_Ref - NS_OS_PAF[i,]$Five_Year_Net_Surv * Expected_5_year_surv_mx)
+    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv * Expected_5_year_surv_mx)
   AD_unavoid_Lower <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_Ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
+    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
   AD_unavoid_Upper <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_Ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
+    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
   
   
   Avoidable_Deaths[i,] <- c(NS_OS_PAF[i,]$age_cat,

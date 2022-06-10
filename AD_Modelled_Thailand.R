@@ -2,15 +2,14 @@
 ###############################################
 #
 # Net survival and Avoidable deaths - Simulated data Thailand Example
-# Date: 11/5/2022
-# Version 2
+# Date: 09/06/2022
+# Version 2.2
 #
 #
 #Load files and packages in AD_2.R file
 #
 # Works for multiple cancer sites currently.
 #
-#Needs to be synced
 #
 ###############################################
 
@@ -247,7 +246,9 @@ Simulated_Data_PAF_1<-simulated_overall%>%
     as.data.frame()
   
   
-  Simulated_Data_PAF<-Simulated_Data_PAF_1%>%full_join(Simulated_Data_PAF_2)
+  Simulated_Data_PAF<-Simulated_Data_PAF_1%>%full_join(Simulated_Data_PAF_2)%>%
+    left_join(Reference_Survival,by=c("age_cat","cancer_code"))
+  
   
   
   
@@ -260,7 +261,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
 
 Avoidable_Deaths_modelled <- matrix(ncol = 7, nrow = nrow(Simulated_Data_PAF)) #AD(t)
-NS_Ref<-0.9 #Reference countries survival
+#NS_Ref<-0.9 #Reference countries survival
 
 
 for (i in 1:nrow(Avoidable_Deaths_modelled)) {
@@ -278,7 +279,7 @@ for (i in 1:nrow(Avoidable_Deaths_modelled)) {
 
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
-  AD_treat<-(NS_Ref-Simulated_Data_PAF[i,]$rel_surv)*
+  AD_treat<-(Simulated_Data_PAF[i,]$surv_ref-Simulated_Data_PAF[i,]$rel_surv)*
     (1-Simulated_Data_PAF[i,]$af.comb)*
     (Simulated_Data_PAF[i,]$total_overall)*
     (Expected_5_year_surv )
@@ -290,7 +291,7 @@ for (i in 1:nrow(Avoidable_Deaths_modelled)) {
   
   AD_unavoid<-(1-Simulated_Data_PAF[i,]$af.comb)*
     Simulated_Data_PAF[i,]$total_overall*
-    (NS_Ref-Simulated_Data_PAF[i,]$rel_surv*
+    (Simulated_Data_PAF[i,]$surv_ref-Simulated_Data_PAF[i,]$rel_surv*
        (Expected_5_year_surv ))
   #AD_unavoid_Lower<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI*Expected_5_year_surv )
   #AD_unavoid_Upper<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI*Expected_5_year_surv )
