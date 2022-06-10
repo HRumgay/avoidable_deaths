@@ -133,5 +133,5 @@ Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
   mutate(sex=2)%>%
   full_join(SurvExpNew_age_cats_men2)
   
-#write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
+write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
 
