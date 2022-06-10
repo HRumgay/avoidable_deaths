@@ -30,7 +30,10 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Pros
   mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
   group_by(country_code, cancer_code,sex, age)%>%
   filter(sex!=0)%>%
-  mutate(af.comb=sum(cases.prev)/sum(cases))%>%
+  mutate(af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
+                            FALSE ~    af.comb))%>%
+
+
   mutate(cases.prev=sum(cases.prev))%>%
   mutate(cases.notprev=sum(cases.notprev))%>%
   mutate(cases=sum(cases))%>%
@@ -60,7 +63,7 @@ Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expec
 
 Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv")%>%
   as.data.frame()%>%
-  select(age_cat, 
+  select(age, 
          cancer_code, 
          rel_surv)%>%
   rename("surv_ref"="rel_surv")

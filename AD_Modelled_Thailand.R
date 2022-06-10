@@ -159,16 +159,17 @@ PAFs_age_Cat<-PAFs%>%
   filter(age_cat!="0-15")%>%
   droplevels()%>%
   left_join(Thailand_expected_Survival2, by=c("age","sex"))%>%
-
-
   group_by(country_label,cancer_label, age_cat,age)%>%
-  mutate(ES=sum(ES*cases)/sum(cases))%>%
   summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat, cases=sum(cases),
             cases.prev=sum(cases.prev), 
             cases.notprev=sum(cases.notprev),
-            af.comb=sum(cases.prev)/cases,
+            af.comb,
             ES)%>%
+  mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+    FALSE ~ ES))%>%
+    mutate(af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
+                              FALSE ~    af.comb))%>%
   distinct()%>%
    group_by(country_label,cancer_label, age_cat, age)%>%
   mutate(total_overall=sum(cases))
@@ -252,7 +253,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   
   Simulated_Data_PAF<-Simulated_Data_PAF_1%>%
     #full_join(Simulated_Data_PAF_2)%>%
-    left_join(Reference_Survival,by=c("age_cat","cancer_code"))
+    left_join(Reference_Survival,by=c("age","cancer_code"))
   
   
   
