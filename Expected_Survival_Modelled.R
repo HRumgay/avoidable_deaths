@@ -254,6 +254,10 @@
 # }
 
 
+
+
+countries<-p%>%summarize(country_code,country_label)%>%summary()
+
 SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =19*185)
 SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =19*185)
 
@@ -261,8 +265,8 @@ SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =19*185)
 # fix formula so it indexes correctly
 for (j in 0:18){
   for(i in 1:185){
-    SurvExpNew_age_cats_men[(i*(j+1)), ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][1000])
-    SurvExpNew_age_cats_women[i*(j+1), ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][2000])
+    SurvExpNew_age_cats_men[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][1000])
+    SurvExpNew_age_cats_women[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][2000])
   }
 }
 
