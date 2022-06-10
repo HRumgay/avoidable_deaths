@@ -153,7 +153,8 @@ women3<-data.table(women2%>%
                      full_join(women2014))
 
 
-ES_list <- lapply(1:185, function(k) { #Looping through the countries
+ES_list <- lapply(1:186, function(k) { #Looping through the countries
+  #new country_codes data has 186 countries
   
   #Aggregating life table data forward and converting to a matrix...
   men2<-men3[country_code==country_codes[k,]$country_code,]
@@ -245,7 +246,7 @@ ES_list <- lapply(1:185, function(k) { #Looping through the countries
   t3 <- do.call(rbind.data.frame, t2)
 })
 ES_dt <- do.call(rbind.data.frame, ES_list)
-# ES_dt is now data.table of 185 countries, each with 19 age groups and ES estimates for both sexes
+# ES_dt is now data.table of 186 countries, each with 19 age groups and ES estimates for both sexes
 save(ES_dt, file="ES_dt.RData")
 
 
