@@ -54,62 +54,103 @@ Countries_Simulated <-countries_5y%>%
             rel_surv, mx)%>%as.data.frame()
 
 
-Countries_Simulated_Overall<-Countries_Simulated%>%
-  mutate(age_cat="Overall")%>%
-  group_by(country_name,cancer_label)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,age, 
-            age_cat,rel_surv,mx)
+# Countries_Simulated_Overall<-Countries_Simulated%>%
+#   mutate(age_cat="Overall")%>%
+#   group_by(country_name,cancer_label)%>%
+#   summarize(country_code,country_name, cancer_code, cancer_label,age, 
+#             age_cat,rel_surv,mx)
 
+
+#PAF combinations
+
+PAFs_age_Cat<-PAFs%>%
+  mutate(
+    age_cat = case_when(
+      age>=4 & age<14 ~ "15-64",
+      age>=14 ~ "65-99",
+      FALSE ~"0-15"
+    ))%>%
+  filter(age_cat!="0-15")%>%
+  droplevels()%>%
+  group_by(country_code,cancer_label, age_cat,age)%>%
+  summarize(country_code,country_label, cancer_code, cancer_label,
+            age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
+            cases.notprev=sum(cases.notprev),
+            af.comb=sum(cases.prev)/cases)%>%
+  distinct()%>%
+  group_by(country_label,cancer_label, age_cat)%>%
+  mutate(total_overall=sum(cases))
+
+
+
+# PAFS_Overall<-PAFs_age_Cat%>%mutate(age_cat="Overall")%>%
+#   droplevels()%>%
+#   group_by(country_code,cancer_label, age_cat,age)%>%
+#   summarize(country_code,country_label, cancer_code, cancer_label,
+#             age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
+#             cases.notprev=sum(cases.notprev),
+#             af.comb=sum(cases.prev)/cases)%>%
+#   distinct()%>%
+#   group_by(country_code,cancer_label, age_cat)%>%
+#   mutate(total_overall=sum(cases))
+
+PAFs2<-PAFs_age_Cat%>%
+ # full_join(PAFS_Overall)%>%
+  as.data.frame()%>%
+  droplevels()%>%
+  group_by(country_code,cancer_code, age_cat,age)%>%
+  mutate(total_age_prev=sum(cases.prev))%>%
+  as.data.frame()%>%
+  #mutate(af.comb.agecat=total_age_prev/total_overall)%>%
+  group_by(country_code,cancer_code,age)%>%
+  summarize(country_label, cancer_label,
+            age_cat,  total_overall,cases,
+            cases.prev)%>%
+  distinct()%>%
+  arrange(cancer_label,
+          age_cat)%>%
+  select(-cancer_label)
 
 
 
 R1<-Countries_Simulated%>%
   ungroup()%>%
-  filter(age_cat!="Overall")%>%
-  left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
+  left_join(PAFs2,by=c("country_code"="country_code",
+                       "cancer_code"="cancer_code",
+                       "age"="age"))%>%
   ungroup()%>%
   group_by(cancer_code,age)%>%
   filter(rel_surv==max(rel_surv))%>%
-  as.data.frame()%>%
-  group_by(cancer_code,age_cat)%>%
-  summarize(cancer_code, cancer_label,
-            age_cat, age, 
-            total_overall=sum(total_overall),
-            rel_surv=sum(rel_surv*cases)/sum(cases),
-            af.comb=sum(cases.prev)/sum(cases),
-            rel_surv,
-            Expected_5_year_surv_mx=sum(mx*cases)/sum(cases),
-            total_overall)%>%
   droplevels()%>%
-  select(-age)%>%
   distinct()%>%
   as.data.frame()
+# 
+# R2<-Countries_Simulated_Overall%>%
+#   as.data.frame()%>%
+#   ungroup()%>%
+#   filter(age_cat=="Overall")%>%
+#   left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
+#   ungroup()%>%
+#   group_by(cancer_code,age)%>%
+#   filter(rel_surv==max(rel_surv))%>%
+#   as.data.frame()%>%
+#   group_by(cancer_code,age_cat)%>%
+#   summarize(cancer_code, cancer_label,
+#             age_cat, age, 
+#             total_overall=sum(total_overall),
+#             rel_surv=sum(rel_surv*cases)/sum(cases),
+#             af.comb=sum(cases.prev)/sum(cases),
+#             rel_surv,
+#             Expected_5_year_surv_mx=sum(mx*cases)/sum(cases),
+#             total_overall)%>%
+#   droplevels()%>%
+#   select(-age)%>%
+#   distinct()%>%
+#   as.data.frame()
 
-R2<-Countries_Simulated_Overall%>%
-  as.data.frame()%>%
-  ungroup()%>%
-  filter(age_cat=="Overall")%>%
-  left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
-  ungroup()%>%
-  group_by(cancer_code,age)%>%
-  filter(rel_surv==max(rel_surv))%>%
-  as.data.frame()%>%
-  group_by(cancer_code,age_cat)%>%
-  summarize(cancer_code, cancer_label,
-            age_cat, age, 
-            total_overall=sum(total_overall),
-            rel_surv=sum(rel_surv*cases)/sum(cases),
-            af.comb=sum(cases.prev)/sum(cases),
-            rel_surv,
-            Expected_5_year_surv_mx=sum(mx*cases)/sum(cases),
-            total_overall)%>%
-  droplevels()%>%
-  select(-age)%>%
-  distinct()%>%
-  as.data.frame()
+Reference_Survival<-R1%>%select(country_name, country_code, cancer_label, cancer_code, age, rel_surv)
+#%>%full_join(R2)
 
-Reference_Survival<-R1%>%full_join(R2)
-
-
+names(R1)
 
 write.csv(Reference_Survival,"~/Documents/R_Projects/Data/Reference_Survival.csv")

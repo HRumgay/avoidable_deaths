@@ -24,7 +24,10 @@ hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
 lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
   left_join(HDI, by="country_code")%>%
   select(-c(country_label, hdi_rank, year,X.1, X))%>%
-  filter(hdi_group%in% c(1,2))
+  #filter(hdi_group%in% c(1,2))%>%
+  filter(!hdi_group%in%c(3,4))
+
+lm_HDI%>%summarize(country_name,country_code, hdi_group)%>%distinct()
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
 

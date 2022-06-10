@@ -256,7 +256,7 @@
 
 
 
-countries<-p%>%summarize(country_code,country_label)%>%summary()
+countries<-p%>%summarize(country_code,country_label)%>%distinct()
 
 SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =19*185)
 SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =19*185)
