@@ -177,11 +177,8 @@ ES_list <- lapply(unique(country_codes$country_code), function(k) { #Looping thr
   #new country_codes data has 186 countries
   
   #Aggregating life table data forward and converting to a matrix...
-  men2<-men3[country_code==country_codes[k,]$country_code,]
-  
-  
-  
-  women2<-women3[country_code==country_codes[k,]$country_code,]
+  men2<-men3[country_code==k,]
+  women2<-women3[country_code==k,]
   
   men<-matrix(NA, 18, 15, dimnames = list(c(seq(1,18,by=1)), c(seq(2000,2014,by=1))))
   
@@ -261,7 +258,7 @@ ES_list <- lapply(unique(country_codes$country_code), function(k) { #Looping thr
     t <- bind_rows(SurvExpNew_1[,sex:=1],
                    SurvExpNew_2[,sex:=2])
     setnames(t, c("V1","V2"),c("SurvExp","time"))
-    t <- t[,country_code:=country_codes[k,]$country_code][,age:=j]
+    t <- t[,country_code:=k][,age:=j]
   })
   t3 <- do.call(rbind.data.frame, t2)
 })
