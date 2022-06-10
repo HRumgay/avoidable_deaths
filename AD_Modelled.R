@@ -16,6 +16,8 @@
 
 #Combining datasets at the time point of interest 5 years and combining to HDI
 
+#check country_code for China in HDI dataset and Thailand/Israel datasets match up
+
 hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
   left_join(HDI, by="country_code")%>%
   select(-c(country_label, hdi_rank, year, X))%>%
@@ -25,6 +27,7 @@ lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
   left_join(HDI, by="country_code")%>%
   select(-c(country_label, hdi_rank, year,X.1, X))%>%
   filter(!hdi_group%in%c(3,4)) #includes low, medium and missing HDI groups
+
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
 
