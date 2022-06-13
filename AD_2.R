@@ -24,8 +24,8 @@ library(relsurv)
 
 #Reading all the variables
 PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Prostate.csv")%>%
-  mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "colorectal")) %>%
-  mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "colorectal")) %>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
   group_by(country_code,sex, cancer_code, age)%>%
@@ -98,16 +98,16 @@ ten_cancer_sites <-
 a<-PAFs%>%summarize(cancer_code,cancer_label)%>%distinct()%>%filter(cancer_code%in%ten_cancer_sites$cancer_code)
 b<-simulated_overall%>%
   ungroup()%>%
-  summarize(cancer_code,cancer_label)%>%
+  summarize(cancer_code, cancer_label)%>%
   distinct()
 survcancancer<-Thai_Surv%>%
   ungroup()%>%
-  summarize(cancer_code,cancer)%>%
+  summarize(cancer_code, cancer)%>%
   distinct()
 
 cancer_popmort<-Thailand_popmort2%>%
   ungroup()%>%
-  summarize(country_code,region)%>%
+  summarize(country_code, region)%>%
   distinct()
   
 
@@ -595,7 +595,8 @@ PAFs_age_Cat <- PAFs %>%
     cases.notprev,
     py,
     total_overall = sum(cases)
-  ) %>% as.data.frame()%>%
+  ) %>% 
+  as.data.frame()%>%
   droplevels()
 
 
