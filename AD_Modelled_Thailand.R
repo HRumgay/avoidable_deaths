@@ -96,6 +96,7 @@ countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. No
 
   
   
+
 Countries_modelled <-countries_5y%>%
   filter(country_name=="Thailand")%>%
   mutate(
@@ -121,7 +122,7 @@ simulated_overall<-Countries_modelled%>%
  # full_join(Countries_modelled_Overall)%>% 
   as.data.frame()%>%
   droplevels()%>%
-  group_by(country_name,cancer_label, age_cat,age)%>%
+  group_by(country_name,cancer_label, age)%>%
   summarize(country_code,country_name, cancer_code, cancer_label,rel_surv,mx,
             age_cat, age)%>%
   distinct()%>%
@@ -159,19 +160,18 @@ PAFs_age_Cat<-PAFs%>%
   filter(age_cat!="0-15")%>%
   droplevels()%>%
   left_join(Thailand_expected_Survival2, by=c("age","sex"))%>%
-  group_by(country_label,cancer_label, age_cat,age)%>%
+  group_by(country_label,cancer_label, age)%>%
+  mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+                       cases==0 ~ ES))%>%
   summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat, cases=sum(cases),
             cases.prev=sum(cases.prev), 
             cases.notprev=sum(cases.notprev),
-            af.comb,
-            ES)%>%
-  mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
-    FALSE ~ ES))%>%
-    mutate(af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
-                              FALSE ~    af.comb))%>%
+            af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
+                               cases==0 ~ af.comb),
+            ES)%>% #Summarizing by sex. This is a bit crude but won't be used in calcs anyways
   distinct()%>%
-   group_by(country_label,cancer_label, age_cat, age)%>%
+  group_by(country_label,cancer_label, age)%>%
   mutate(total_overall=sum(cases))
 
 
@@ -200,7 +200,7 @@ PAFs2<-PAFs_age_Cat%>%
   summarize(country_label, cancer_label,
             age_cat,  total_overall,cases,
             cases.prev,
-            ES)%>%
+            ES,af.comb)%>%
   distinct()%>%
   arrange(cancer_label,
           age)%>%
@@ -214,15 +214,18 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
  # left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
-  group_by(cancer_code,age_cat, age)%>%
+  group_by(cancer_code,age)%>%
   summarize(country_code, 
             country_label, 
             cancer_code, cancer_label,
             age_cat, age, total_overall,
-            rel_surv=sum(rel_surv*cases)/sum(cases),
-            af.comb=sum(cases.prev)/sum(cases),
-            rel_surv,
-            Expected_5_year_surv=sum(ES*cases)/sum(cases),
+            af.comb,
+            rel_surv= case_when(total_overall!=0 ~ sum(rel_surv*cases)/sum(cases),
+                                total_overall==0 ~ rel_surv),
+            Expected_5_year_surv=case_when(total_overall!=0 ~ sum(ES*cases)/sum(cases),
+            total_overall==0 ~ ES),
+            # = case_when(total_overall!=0 ~ sum(ES*cases)/sum(cases),
+            #                                 total_overall==0 ~ ES),
             total_overall)%>%
   droplevels()%>%
  # select(-age)%>%
@@ -253,7 +256,8 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   
   Simulated_Data_PAF<-Simulated_Data_PAF_1%>%
     #full_join(Simulated_Data_PAF_2)%>%
-    left_join(Reference_Survival,by=c("age","cancer_code"))
+    left_join(Reference_Survival,by=c("age","cancer_code"))%>%
+    distinct
   
   
   
@@ -345,7 +349,8 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   as.data.frame()
 
 
-Avoidable_Deaths_modelled
+Avoidable_Deaths_modelled 
+
 
 
 write.csv(Avoidable_Deaths_modelled, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
