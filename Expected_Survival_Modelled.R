@@ -1,7 +1,27 @@
+##########################################################
+#
+# Expected survival for all countries, ages and sex
+#
+##########################################################
+
 library("relsurv")
 library("mexhaz")
 library("data.table")
 library("numbers")
+
+load("popmort2.RData")
+load("country_codes.RData")
+
+# combine age groups 0 (<1 yr) and 1 (1-4 yr) in popmort2
+popmort2 %>% 
+  group_by(country_code,sex,year) %>% 
+  mutate(nLx=case_when(age==1 ~ sum(nLx[age%in%c(0,1)]),
+                       TRUE~nLx),
+         ndx=case_when(age==1 ~ sum(ndx[age%in%c(0,1)]),
+                       TRUE~ndx)
+         ) %>%
+  filter(age!=0) -> p
+  
 
 ## Function used to calculate the expected rate / cumulative rate
 calcExpect <- function(time,event,id=NULL,data,ratetable,rmap,conv.time=365.241,names=c("mua","MUA")){
@@ -154,23 +174,20 @@ women3<-data.table(women2%>%
                      full_join(women2014))
 
 
-ES_list <- lapply(1:186, function(k) { #Looping through the countries
+ES_list <- lapply(unique(country_codes$country_code), function(k) { #Looping through the countries
   #new country_codes data has 186 countries
   
   #Aggregating life table data forward and converting to a matrix...
-  men2<-men3[country_code==country_codes[k,]$country_code,]
+  men2<-men3[country_code==k,]
+  women2<-women3[country_code==k,]
   
+  men<-matrix(NA, 18, 15, dimnames = list(c(seq(1,18,by=1)), c(seq(2000,2014,by=1))))
   
-  
-  women2<-women3[country_code==country_codes[k,]$country_code,]
-  
-  men<-matrix(NA, 19, 15, dimnames = list(c(seq(0,18,by=1)), c(seq(2000,2014,by=1))))
-  
-  women<-matrix(NA, 19, 15, dimnames = list(c(seq(0,18,by=1)), c(seq(2000,2014,by=1))))
+  women<-matrix(NA, 18, 15, dimnames = list(c(seq(1,18,by=1)), c(seq(2000,2014,by=1))))
   
   
   for(j in 2000:2014){
-    for(i in 1:19){
+    for(i in 1:18){
       men2<-men4[year==j,]
       men[i,j-1999] <- men2[i,]$prob
       
@@ -192,7 +209,7 @@ ES_list <- lapply(1:186, function(k) { #Looping through the countries
   Time <- seq(0,5,le=1001)[-1]
   
   
-  t2 <- lapply(0:18, function(j) {
+  t2 <- lapply(1:18, function(j) {
     cat(toString(k), ", ", toString(j),"\n") #print country + age group
  
     DataTemp <- expand.grid(age=j,year=2014)   #
@@ -242,12 +259,12 @@ ES_list <- lapply(1:186, function(k) { #Looping through the countries
     t <- bind_rows(SurvExpNew_1[,sex:=1],
                    SurvExpNew_2[,sex:=2])
     setnames(t, c("V1","V2"),c("SurvExp","time"))
-    t <- t[,country_code:=country_codes[k,]$country_code][,age:=j]
+    t <- t[,country_code:=k][,age:=j]
   })
   t3 <- do.call(rbind.data.frame, t2)
 })
 ES_dt <- do.call(rbind.data.frame, ES_list)
-# ES_dt is now data.table of 186 countries, each with 19 age groups and ES estimates for both sexes
+# ES_dt is now data.table of 186 countries, each with 18 age groups and ES estimates for both sexes
 save(ES_dt, file="ES_dt.RData")
 
 
@@ -255,8 +272,13 @@ save(ES_dt, file="ES_dt.RData")
 
 countries<-p%>%summarize(country_code,country_label)%>%distinct()
 
+<<<<<<< HEAD
 SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =3515)
 SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =3515)
+=======
+SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =18*186)
+SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =18*186)
+>>>>>>> 270b88ed5036a87c7a25e5b5370745191d823de1
 
 
 SurvExpNew_age_cats_men[1, ]
@@ -265,12 +287,19 @@ SurvExpNew_age_cats_men[1, ]
 ES_dt
 # fix formula so it indexes correctly
 # shouldn't be necessary now with ES_dt
+<<<<<<< HEAD
 
 2*185*19
 
   for(i in 1:(7030/3)){
      SurvExpNew_age_cats_men[i, ]<-c(mod(i-1,19),ES_dt[1000,i*2-1])
      SurvExpNew_age_cats_women[i, ]<-c(mod(i-1,19),ES_dt[2000,i*2-1])
+=======
+for (j in 1:18){
+  for(i in 1:185){
+    SurvExpNew_age_cats_men[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][1000])
+    SurvExpNew_age_cats_women[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][2000])
+>>>>>>> 270b88ed5036a87c7a25e5b5370745191d823de1
   }
 mod(i-1,19)
 
