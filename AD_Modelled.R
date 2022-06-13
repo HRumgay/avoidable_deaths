@@ -163,8 +163,6 @@ PAFs2<-PAFs_age_Cat%>%
 
 
 
-
-
 Simulated_Data_PAF_1<-simulated_overall%>%
   ungroup()%>%
   filter(age_cat!="Overall")%>%
@@ -332,6 +330,8 @@ Avoidable_Deaths_Simulated_All <- Avoidable_Deaths_Simulated_All%>%
   #filter(total<AD_sum)%>%
   arrange(country_label,cancer_code,age_cat)%>%
   as.data.frame()
+
+
 
 
  #write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")

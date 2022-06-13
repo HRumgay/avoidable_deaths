@@ -657,11 +657,14 @@ for (i in 1:nrow(NS_OS_PAF)){
     (NS_OS_PAF[i,]$Five_Year_all_cause_Surv) / (NS_OS_PAF[i,]$Five_Year_Net_Surv) #Calculate expected survival from mortality rates which is all cause surv/ net survival
   
   #Preventable deaths
-  AD_prev <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (1 - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
+  AD_prev <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
+    (1 - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
     Expected_5_year_surv_mx
-  AD_prev_Lower <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (1 - NS_OS_PAF[i,]$NS_Lower_CI) *
+  AD_prev_Lower <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
+    (1 - NS_OS_PAF[i,]$NS_Lower_CI) *
     Expected_5_year_surv_mx
-  AD_prev_Upper <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (1 - NS_OS_PAF[i,]$NS_Upper_CI) *
+  AD_prev_Upper <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall *
+    (1 - NS_OS_PAF[i,]$NS_Upper_CI) *
     Expected_5_year_surv_mx
   
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
@@ -670,7 +673,8 @@ for (i in 1:nrow(NS_OS_PAF)){
     (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * (NS_OS_PAF[i,]$af.comb.agecat) * 
     NS_OS_PAF[i,]$total_overall
   AD_treat_Lower <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * Expected_5_year_surv_mx * (NS_OS_PAF[i,]$af.comb.agecat) * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
+    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
     NS_OS_PAF[i,]$total_overall
   AD_treat_Upper <-
     (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
@@ -719,10 +723,10 @@ colnames(Avoidable_Deaths) <- c("age_cat",
     "total")
 
 Avoidable_Deaths<-Avoidable_Deaths%>%
-  mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
-  mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
-  mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
-  mutate(AD_treatprev=AD_treat+AD_prev+AD_unavoid)%>%
+#  mutate(AD_treat=as.numeric(AD_treat))%>%
+ # mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
+#  mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
+ # mutate(AD_treatprev=AD_treat+AD_prev+AD_unavoid)%>%
  # filter(total<AD_treatprev)%>%
   mutate(cancer_code=as.numeric(cancer_code))
 

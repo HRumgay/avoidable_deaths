@@ -215,9 +215,6 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
  # left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
-<<<<<<< Updated upstream
-  group_by(cancer_code,age)%>%
-=======
   group_by(cancer_code,age_cat, age)%>%
   mutate(Expected_5_year_surv=case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
                        cases==0 ~ ES))%>%
@@ -225,7 +222,6 @@ Simulated_Data_PAF_1<-simulated_overall%>%
                            cases==0  ~    0))%>%
   mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases)/sum(cases),
                            cases==0  ~    rel_surv))%>%
->>>>>>> Stashed changes
   summarize(country_code, 
             country_label, 
             cancer_code, cancer_label,
@@ -357,15 +353,40 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   as.data.frame()%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
+  mutate(total_overall=as.numeric(as.character(total_overall)))%>%
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
-  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
  # filter(total_overall<AD_sum)%>%
   as.data.frame()%>%distinct()
 
+Avoidable_Deaths_modelled_overall<-Avoidable_Deaths_modelled%>%
+  mutate(age_cat="Overall")%>%
+  group_by(cancer_code, age_cat)%>%
+  mutate(total_overall=sum(total_overall))%>%
+  mutate(AD_prev= sum(AD_prev))%>%
+  mutate(AD_treat = sum(AD_treat))%>%
+  mutate(AD_unavoid = sum(AD_unavoid))%>%
+  distinct()%>%
+  as.data.frame()
+
+Avoidable_Deaths_modelled_age_cat<-Avoidable_Deaths_modelled%>%
+  group_by(cancer_code, age_cat)%>%
+  mutate(AD_prev= sum(AD_prev))%>%
+  mutate(AD_treat = sum(AD_treat))%>%
+  mutate(AD_unavoid = sum(AD_unavoid))%>%
+  mutate(total_overall=sum(total_overall))%>%
+  full_join(Avoidable_Deaths_modelled_overall)%>%
+  select(-age)%>%
+  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+  distinct()%>%
+  arrange(cancer, age_cat)%>%
+  as.data.frame()
+
+
+
 
 Avoidable_Deaths_modelled 
-
+Avoidable_Deaths_modelled_age_cat
 
 
 write.csv(Avoidable_Deaths_modelled, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
