@@ -2,7 +2,7 @@
 #
 # Net survival and Avoidable deaths
 #  Date: 09/06/2022
-# Version 2.2
+# Version 2.22
 #
 # Works for multiple cancer sites currently.
 #

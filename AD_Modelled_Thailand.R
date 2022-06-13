@@ -2,7 +2,7 @@
 #
 # Net survival and Avoidable deaths - Simulated data Thailand Example
 # Date: 09/06/2022
-# Version 2.2
+# Version 2.22
 #
 #
 #Load files and packages in AD_2.R file
