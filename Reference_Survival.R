@@ -54,6 +54,7 @@ Countries_Simulated <-countries_5y%>%
             rel_surv, mx)%>%as.data.frame()
 
 
+
 # Countries_Simulated_Overall<-Countries_Simulated%>%
 #   mutate(age_cat="Overall")%>%
 #   group_by(country_name,cancer_label)%>%
@@ -87,7 +88,7 @@ PAFs_age_Cat<-PAFs%>%
 #   droplevels()%>%
 #   group_by(country_code,cancer_label, age_cat,age)%>%
 #   summarize(country_code,country_label, cancer_code, cancer_label,
-#             age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
+#             age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev),
 #             cases.notprev=sum(cases.notprev),
 #             af.comb=sum(cases.prev)/cases)%>%
 #   distinct()%>%
@@ -117,14 +118,17 @@ R1<-Countries_Simulated%>%
   ungroup()%>%
   left_join(PAFs2,by=c("country_code"="country_code",
                        "cancer_code"="cancer_code",
-                       "age"="age"))%>%
+                       "age"="age",
+                       "age_cat"="age_cat"))%>%
   ungroup()%>%
   group_by(cancer_code,age)%>%
   filter(rel_surv==max(rel_surv))%>%
   droplevels()%>%
   distinct()%>%
   as.data.frame()
-# 
+
+
+ 
 # R2<-Countries_Simulated_Overall%>%
 #   as.data.frame()%>%
 #   ungroup()%>%
@@ -148,9 +152,31 @@ R1<-Countries_Simulated%>%
 #   distinct()%>%
 #   as.data.frame()
 
-Reference_Survival<-R1%>%select(country_name, country_code, cancer_label, cancer_code, age, rel_surv)
+
+Reference_Survival<-R1%>%select(country_name, country_code, 
+                                cancer_label, cancer_code, 
+                                age, age_cat, rel_surv,cases)%>%
+  arrange(cancer_label, age)
 #%>%full_join(R2)
+
+Ref_overall<-Reference_Survival%>%
+  mutate(age_cat="Overall")%>%
+  group_by(cancer_label, age_cat)%>%
+  mutate(rel_surv = sum(rel_surv*cases)/sum(cases))%>%
+  select(-cases,-age)%>%
+  distinct()
+
+Reference_Survival_Survcan<-Reference_Survival%>%
+  group_by(cancer_label, age_cat)%>%
+  mutate(rel_surv = sum(rel_surv*cases)/sum(cases))%>%
+  select(-c(cases, age))%>%
+  distinct()%>%full_join(Ref_overall)
 
 names(R1)
 
 write.csv(Reference_Survival,"~/Documents/R_Projects/Data/Reference_Survival.csv")
+write.csv(Reference_Survival_Survcan,"~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")
+
+
+
+

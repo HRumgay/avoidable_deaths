@@ -67,6 +67,15 @@ Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv
   rename("surv_ref"="rel_surv")%>%
   distinct()
 
+Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
+  as.data.frame()%>%
+  select( age_cat, 
+          cancer_code, 
+          rel_surv)%>%
+  rename("surv_ref"="rel_surv")%>%
+  distinct()
+
+
 load("~/Documents/R_Projects/Data/ES_dt.RData")
 
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
@@ -608,7 +617,6 @@ PAFS_Overall <- PAFs_age_Cat %>%
 
 PAFs2 <- PAFs_age_Cat %>%
   full_join(PAFS_Overall) %>%
-  left_join(Reference_Survival,by=c("age","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
     as.data.frame() %>%
   droplevels()%>%
   group_by(country_label, cancer_label, age_cat) %>%
@@ -621,8 +629,7 @@ PAFs2 <- PAFs_age_Cat %>%
     cancer_label,
     age_cat,
     af.comb.agecat,
-    total_overall,
-    surv_ref
+    total_overall
   ) %>%
   distinct() %>%
   arrange(cancer_label, age_cat)
@@ -632,16 +639,17 @@ PAFs2 <- PAFs_age_Cat %>%
 
 NS_OS_PAF <- NS_OS %>% 
   left_join(PAFs2, by = c("cancer_code" = "cancer_code", "age_cat" ="age_cat")) %>% 
-  droplevels()
+  left_join(Reference_Survival_Survcan,by=c("age_cat","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
+  droplevels()%>%
+  mutate(cancer=as.character(cancer))
 
 #Three AD calcs
 
 
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
 Avoidable_Deaths <- matrix(ncol = 13, nrow = nrow(NS_OS_PAF)) #AD(t)
-NS_OS_PAF$cancer <- as.character(NS_OS_PAF$cancer)
 
-for (i in 1:nrow(NS_OS_PAF)) {
+for (i in 1:nrow(NS_OS_PAF)){
   Expected_5_year_surv_mx <-
     (NS_OS_PAF[i,]$Five_Year_all_cause_Surv) / (NS_OS_PAF[i,]$Five_Year_Net_Surv) #Calculate expected survival from mortality rates which is all cause surv/ net survival
   
@@ -656,7 +664,8 @@ for (i in 1:nrow(NS_OS_PAF)) {
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
   AD_treat <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * (NS_OS_PAF[i,]$af.comb.agecat) * 
+    NS_OS_PAF[i,]$total_overall
   AD_treat_Lower <-
     (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * Expected_5_year_surv_mx * (NS_OS_PAF[i,]$af.comb.agecat) * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
     NS_OS_PAF[i,]$total_overall
@@ -673,10 +682,10 @@ for (i in 1:nrow(NS_OS_PAF)) {
   AD_unavoid_Upper <-
     (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
   
-  
-  Avoidable_Deaths[i,] <- c(NS_OS_PAF[i,]$age_cat,
-    NS_OS_PAF[i,]$cancer_code,
-    NS_OS_PAF[i,]$cancer,
+  Avoidable_Deaths[i, ] <- c(
+    NS_OS_PAF[i, ]$age_cat,
+    NS_OS_PAF[i, ]$cancer_code,
+    NS_OS_PAF[i, ]$cancer_label,
     AD_treat,
     AD_treat_Lower,
     AD_treat_Upper,
@@ -687,7 +696,7 @@ for (i in 1:nrow(NS_OS_PAF)) {
     AD_unavoid_Lower,
     AD_unavoid_Upper,
     NS_OS_PAF[i,]$total_overall
-  )
+ )
 }
 
 Avoidable_Deaths <- Avoidable_Deaths %>% as.data.frame()
@@ -748,81 +757,81 @@ write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 # 
 # #creating training and test datasets
 # Thai_Surv_test<-Thai_Surv%>%filter(cancer_code==13)
-
-ten_cancer_sites
-
-T_split<-sample.split(Thai_Surv_test,SplitRatio = 0.3)
-
-T_train=subset(Thai_Surv_test,
-               T_split==TRUE)
-T_test=subset(Thai_Surv_test,
-              T_split==FALSE)
-
-
-
-
-r_fit <- ranger(Surv(surv_yydd,event1) ~ age_cat,
-                data = T_train,
-                mtry = 1,
-                importance = "permutation",
-                splitrule = "extratrees",
-                verbose = TRUE,
-                num.trees = 100)
-
-# Average the survival models
-death_times <- r_fit$unique.death.times
-avg_prob <- sapply(surv_prob,mean)
-
-# Plot the survival models for each patient
-plot(r_fit$unique.death.times,r_fit$survival[1,],
-     type = "l",
-     ylim = c(0,1),
-     xlim=c(0,5),
-     col = "red",
-     xlab = "Years",
-     ylab = "survival",
-     main = "Cancer Survranger Survival Curves")
-
-#
-
-cols <- colors()
-for (n in sample(c(2:dim(T_train)[1]), 80)){
-  lines(r_fit$unique.death.times, r_fit$survival[n,], type = "l", col = cols[n])
-}
-lines(death_times, avg_prob, lwd = 2)
-legend(1000, 0.7, legend = c('Average = black'))
+# 
+# ten_cancer_sites
+# 
+# T_split<-sample.split(Thai_Surv_test,SplitRatio = 0.3)
+# 
+# T_train=subset(Thai_Surv_test,
+#                T_split==TRUE)
+# T_test=subset(Thai_Surv_test,
+#               T_split==FALSE)
+# 
+# 
+# 
+# 
+# r_fit <- ranger(Surv(surv_yydd,event1) ~ age_cat,
+#                 data = T_train,
+#                 mtry = 1,
+#                 importance = "permutation",
+#                 splitrule = "extratrees",
+#                 verbose = TRUE,
+#                 num.trees = 100)
+# 
+# # Average the survival models
+# death_times <- r_fit$unique.death.times
+# avg_prob <- sapply(surv_prob,mean)
+# 
+# # Plot the survival models for each patient
+# plot(r_fit$unique.death.times,r_fit$survival[1,],
+#      type = "l",
+#      ylim = c(0,1),
+#      xlim=c(0,5),
+#      col = "red",
+#      xlab = "Years",
+#      ylab = "survival",
+#      main = "Cancer Survranger Survival Curves")
+# 
+# #
+# 
+# cols <- colors()
+# for (n in sample(c(2:dim(T_train)[1]), 80)){
+#   lines(r_fit$unique.death.times, r_fit$survival[n,], type = "l", col = cols[n])
+# }
+# lines(death_times, avg_prob, lwd = 2)
+# legend(1000, 0.7, legend = c('Average = black'))
 
 #Kaplan Meier Curves for OS
 
-library(survival)
-library(ggplot2)
-library(ggfortify)
-library(survminer)
+# library(survival)
+# library(ggplot2)
+# library(ggfortify)
+# library(survminer)
 
-Plotting Survival Curves Using ggplot2 and ggfortify:
-
-Y = Surv(Thai_Surv_test$surv_yy, Thai_Surv_test$event1 == 1)
-xlim=c(0,5)
-
-kmfit = survfit(Y ~ 1)
-
-summary(kmfit, times = c(seq(0, 5, by = 100)))
-
-plot(kmfit, xlim=c(0,5),
-     lty = c("solid", "dashed"),
-     col = c("black", "grey"),
-     xlab = "Survival Time In Years",
-     ylab = "Survival Probabilities")
-
-title("Pancreas Cancer Survival Kaplan Meier")
-
-
-model_fit <- survfit(Surv(surv_yydd, event=event1) ~ cancer, data = Thai_Surv)
-
-ggsurvplot(model_fit, xlim = c(0, 5))+
-  labs(x = " Survival Time (years) ",
-       y = "Survival Probabilities",
-       title = "Kaplan Meier Of Breast Cancer Patients in Thailand")
+#Plotting Survival Curves Using ggplot2 and ggfortify:
+# 
+# Y = Surv(Thai_Surv_test$surv_yy, Thai_Surv_test$event1 == 1)
+# xlim=c(0,5)
+# 
+# kmfit = survfit(Y ~ 1)
+# 
+# summary(kmfit, times = c(seq(0, 5, by = 100)))
+# 
+# plot(kmfit, xlim=c(0,5),
+#      lty = c("solid", "dashed"),
+#      col = c("black", "grey"),
+#      xlab = "Survival Time In Years",
+#      ylab = "Survival Probabilities")
+# 
+# title("Pancreas Cancer Survival Kaplan Meier")
+# 
+# 
+# model_fit <- survfit(Surv(surv_yydd, event=event1) ~ cancer, data = Thai_Surv)
+# 
+# ggsurvplot(model_fit, xlim = c(0, 5))+
+#   labs(x = " Survival Time (years) ",
+#        y = "Survival Probabilities",
+#        title = "Kaplan Meier Of Breast Cancer Patients in Thailand")
 
   # theme(plot.title = element_text(hjust = 0.5), 
   #       axis.title.x = element_text(face="bold", colour="#FF7A33", size = 12),

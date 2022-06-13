@@ -1,4 +1,3 @@
-
 ###############################################
 #
 # Net survival and Avoidable deaths - Simulated data Thailand Example
@@ -95,8 +94,6 @@ countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. No
   select(-region)
 
   
-  
-
 Countries_modelled <-countries_5y%>%
   filter(country_name=="Thailand")%>%
   mutate(
@@ -110,7 +107,6 @@ Countries_modelled <-countries_5y%>%
   summarize(country_code,country_name, cancer_code, cancer_label,age,
             age_cat,rel_surv,mx)%>%as.data.frame()
 
-
 # Countries_modelled_Overall<-Countries_modelled%>%
 #   mutate(age_cat="Overall")%>%
 #   group_by(country_name,cancer_label)%>%
@@ -119,15 +115,16 @@ Countries_modelled <-countries_5y%>%
 
 
 simulated_overall<-Countries_modelled%>%
- # full_join(Countries_modelled_Overall)%>% 
+ #full_join(Countries_modelled_Overall)%>% 
   as.data.frame()%>%
   droplevels()%>%
   group_by(country_name,cancer_label, age)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,rel_surv,mx,
+  summarize(country_code,country_name, 
+            cancer_code, cancer_label,rel_surv,mx,
             age_cat, age)%>%
   distinct()%>%
   arrange(cancer_label,
-          age_cat)
+          age)
 
 
 
@@ -219,7 +216,8 @@ Simulated_Data_PAF_1<-simulated_overall%>%
             country_label, 
             cancer_code, cancer_label,
             age_cat, age, total_overall,
-            af.comb,
+            af.comb= case_when(total_overall!=0 ~ sum(cases.prev)/sum(cases),
+                               total_overall==0 ~ af.comb),
             rel_surv= case_when(total_overall!=0 ~ sum(rel_surv*cases)/sum(cases),
                                 total_overall==0 ~ rel_surv),
             Expected_5_year_surv=case_when(total_overall!=0 ~ sum(ES*cases)/sum(cases),
@@ -346,7 +344,7 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
  # filter(total_overall<AD_sum)%>%
-  as.data.frame()
+  as.data.frame()%>%distinct()
 
 
 Avoidable_Deaths_modelled 
