@@ -272,13 +272,9 @@ save(ES_dt, file="ES_dt.RData")
 
 countries<-p%>%summarize(country_code,country_label)%>%distinct()
 
-<<<<<<< HEAD
+
 SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =3515)
 SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =3515)
-=======
-SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow =18*186)
-SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow =18*186)
->>>>>>> 270b88ed5036a87c7a25e5b5370745191d823de1
 
 
 SurvExpNew_age_cats_men[1, ]
@@ -287,22 +283,22 @@ SurvExpNew_age_cats_men[1, ]
 ES_dt
 # fix formula so it indexes correctly
 # shouldn't be necessary now with ES_dt
-<<<<<<< HEAD
 
 2*185*19
 
   for(i in 1:(7030/3)){
      SurvExpNew_age_cats_men[i, ]<-c(mod(i-1,19),ES_dt[1000,i*2-1])
      SurvExpNew_age_cats_women[i, ]<-c(mod(i-1,19),ES_dt[2000,i*2-1])
-=======
+     }
+
+     
 for (j in 1:18){
   for(i in 1:185){
     SurvExpNew_age_cats_men[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][1000])
     SurvExpNew_age_cats_women[((j)*185)+i, ]<-c(j,ES_list[[i]][[j+1]][["SurvExpNew"]][2000])
->>>>>>> 270b88ed5036a87c7a25e5b5370745191d823de1
   }
 mod(i-1,19)
-
+}
 
 
 SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
