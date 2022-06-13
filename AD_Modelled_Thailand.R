@@ -164,9 +164,18 @@ PAFs_age_Cat<-PAFs%>%
             age, age_cat, cases=sum(cases),
             cases.prev=sum(cases.prev), 
             cases.notprev=sum(cases.notprev),
+<<<<<<< Updated upstream
             af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
                                cases==0 ~ af.comb),
             ES)%>% #Summarizing by sex. This is a bit crude but won't be used in calcs anyways
+=======
+            af.comb,
+            ES)%>%
+  mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+                       cases==0 ~ ES))%>%
+    mutate(af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
+                              cases==0  ~    af.comb))%>%
+>>>>>>> Stashed changes
   distinct()%>%
   group_by(country_label,cancer_label, age)%>%
   mutate(total_overall=sum(cases))
@@ -211,11 +220,22 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
  # left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
+<<<<<<< Updated upstream
   group_by(cancer_code,age)%>%
+=======
+  group_by(cancer_code,age_cat, age)%>%
+  mutate(Expected_5_year_surv=case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+                       cases==0 ~ ES))%>%
+  mutate(af.comb=case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+                           cases==0  ~    0))%>%
+  mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases)/sum(cases),
+                           cases==0  ~    rel_surv))%>%
+>>>>>>> Stashed changes
   summarize(country_code, 
             country_label, 
             cancer_code, cancer_label,
             age_cat, age, total_overall,
+<<<<<<< Updated upstream
             af.comb= case_when(total_overall!=0 ~ sum(cases.prev)/sum(cases),
                                total_overall==0 ~ af.comb),
             rel_surv= case_when(total_overall!=0 ~ sum(rel_surv*cases)/sum(cases),
@@ -224,6 +244,11 @@ Simulated_Data_PAF_1<-simulated_overall%>%
             total_overall==0 ~ ES),
             # = case_when(total_overall!=0 ~ sum(ES*cases)/sum(cases),
             #                                 total_overall==0 ~ ES),
+=======
+            rel_surv,
+            af.comb,
+            Expected_5_year_surv,
+>>>>>>> Stashed changes
             total_overall)%>%
   droplevels()%>%
  # select(-age)%>%

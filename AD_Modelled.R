@@ -115,6 +115,7 @@ PAFs_age_Cat<-PAFs%>%
   droplevels()%>%
   left_join(ES2, by=c("country_code","age","sex"))%>% 
   group_by(country_code,cancer_label, age_cat,age)%>%
+<<<<<<< Updated upstream
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
                        cases==0 ~ ES))%>%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
@@ -123,6 +124,17 @@ PAFs_age_Cat<-PAFs%>%
             age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
             cases.notprev=sum(cases.notprev),
             af.comb, ES)%>%
+=======
+  # mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+  #                      cases==0 ~ ES))%>%
+  mutate(af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
+                            cases==0  ~    af.comb))%>%
+  summarize(country_code,country_label, cancer_code, cancer_label,
+            age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
+            cases.notprev=sum(cases.notprev),
+            af.comb)%>%
+  
+>>>>>>> Stashed changes
   distinct()%>%
   group_by(country_label,cancer_label, age)%>%
   mutate(total_overall=sum(cases))
@@ -167,12 +179,21 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
   ungroup()%>%
   group_by(country_code,cancer_code, age)%>%
+<<<<<<< Updated upstream
   # mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
   #                      cases==0 ~ ES))%>%
   # mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev*cases)/sum(cases),
   #                           af_comb~    af.comb))%>%
   # mutate(rel_surv= case_when(cases!=0 ~ sum(rel_surv*cases)/sum(cases),
   #                            cases==0 ~    rel_surv))%>%
+=======
+  # mutate(Expected_5_year_surv=case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+  #                                       cases==0 ~ ES))%>%
+  mutate(af.comb=case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+                           cases==0  ~    0))%>%
+  mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases)/sum(cases),
+                            cases==0  ~    rel_surv))%>%
+>>>>>>> Stashed changes
   summarize(country_code, 
             country_label, 
             cancer_code, cancer_label,
@@ -180,7 +201,11 @@ Simulated_Data_PAF_1<-simulated_overall%>%
             rel_surv,
             af.comb,
             rel_surv,
+<<<<<<< Updated upstream
             ES,
+=======
+            Expected_5_year_surv_mx,
+>>>>>>> Stashed changes
             total_overall)%>%
   droplevels()%>%
   #select(-age)%>%
