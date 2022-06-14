@@ -199,7 +199,7 @@ Thai_Surv<-Thai_Surv3%>%left_join(Thai_Surv11)#%>%ungroup()%>%
 
 
 #age categories
-Thai_Surv_overall <- Thai_Surv %>% mutate(age_cat == "Overall")
+Thai_Surv_overall <- Thai_Surv %>% mutate(age_cat = "Overall")
 Thai_Surv_Lower <- Thai_Surv %>% filter(age_cat == "15-64")
 Thai_Surv_Upper <- Thai_Surv %>% filter(age_cat == "65-99")
 
@@ -682,14 +682,16 @@ for (i in 1:nrow(NS_OS_PAF)){
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
   AD_treat <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * (NS_OS_PAF[i,]$af.comb.agecat) * 
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
+    Expected_5_year_surv_mx *(1 - NS_OS_PAF[i,]$af.comb.agecat) *
     NS_OS_PAF[i,]$total_overall
   AD_treat_Lower <-
     (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
     Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
     NS_OS_PAF[i,]$total_overall
   AD_treat_Upper <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * 
+    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
     NS_OS_PAF[i,]$total_overall
   
   #Deaths not avoidable
@@ -734,13 +736,18 @@ colnames(Avoidable_Deaths) <- c("age_cat",
     "AD_unavoid_Upper",
     "total")
 
+MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
+  filter(country_label=="Thailand")%>%
+  select(-country_label, - country_code, -cancer_label, -X)
+
 Avoidable_Deaths<-Avoidable_Deaths%>%
-#  mutate(AD_treat=as.numeric(AD_treat))%>%
- # mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
-#  mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
- # mutate(AD_treatprev=AD_treat+AD_prev+AD_unavoid)%>%
+  mutate(AD_treat=as.numeric(AD_treat))%>%
+  mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
+  mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
+  mutate(AD_sum=AD_treat+AD_prev+AD_unavoid)%>%
  # filter(total<AD_treatprev)%>%
-  mutate(cancer_code=as.numeric(cancer_code))
+  mutate(cancer_code=as.numeric(cancer_code))%>%
+  left_join(MIR_Age_Cats_Thailand, by=c("cancer_code", "age_cat"))
 
 NS_OS_PAF
 
@@ -775,7 +782,8 @@ write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 # #https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/
 # 
 # #creating training and test datasets
-# Thai_Surv_test<-Thai_Surv%>%filter(cancer_code==13)
+Thai_Surv_test<-Thai_Surv%>%full_join(Thai_Surv_overall)%>%
+filter(cancer_code==20)
 # 
 # ten_cancer_sites
 # 
@@ -828,33 +836,37 @@ write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 # library(survminer)
 
 #Plotting Survival Curves Using ggplot2 and ggfortify:
-# 
-# Y = Surv(Thai_Surv_test$surv_yy, Thai_Surv_test$event1 == 1)
-# xlim=c(0,5)
-# 
-# kmfit = survfit(Y ~ 1)
-# 
-# summary(kmfit, times = c(seq(0, 5, by = 100)))
-# 
-# plot(kmfit, xlim=c(0,5),
-#      lty = c("solid", "dashed"),
-#      col = c("black", "grey"),
-#      xlab = "Survival Time In Years",
-#      ylab = "Survival Probabilities")
-# 
-# title("Pancreas Cancer Survival Kaplan Meier")
-# 
-# 
-# model_fit <- survfit(Surv(surv_yydd, event=event1) ~ cancer, data = Thai_Surv)
-# 
-# ggsurvplot(model_fit, xlim = c(0, 5))+
-#   labs(x = " Survival Time (years) ",
-#        y = "Survival Probabilities",
-#        title = "Kaplan Meier Of Breast Cancer Patients in Thailand")
+#
+Y = Surv(Thai_Surv_test$surv_yy, Thai_Surv_test$event1 == 1)
+xlim=c(0,5)
 
-  # theme(plot.title = element_text(hjust = 0.5), 
+
+kmfit = survfit(Y ~ 1)
+
+summary(kmfit, times = c(seq(0, 5, by = 100)))
+
+plot(kmfit, xlim=c(0,5),
+     lty = c("solid", "dashed"),
+     col = c("black", "grey"),
+     xlab = "Survival Time In Years",
+     ylab = "Survival Probabilities")
+
+title("Breast Cancer Survival Kaplan Meier")
+
+#First setup survival object
+km <- Surv(time =Thai_Surv_test$surv_yydd , event = Thai_Surv_test$event1)
+#Fit Kaplan Meier, stratifying by treatment
+km_breast_cancer<-survfit(km~age_cat, data=Thai_Surv_test,type='kaplan-meier',conf.type='log')
+
+library(survminer)
+
+ggsurvplot(km_breast_cancer, xlim = c(0, 5))+
+  labs(x = " Survival Time (years) ",
+       y = "Survival Probabilities",
+       title = "Kaplan Meier Of Breast Cancer Patients in Thailand")
+
+  # theme(plot.title = element_text(hjust = 0.5),
   #       axis.title.x = element_text(face="bold", colour="#FF7A33", size = 12),
   #       axis.title.y = element_text(face="bold", colour="#FF7A33", size = 12),
   #       legend.title = element_text(face="bold", size = 10))
-
 

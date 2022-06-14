@@ -26,10 +26,11 @@ lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
  # filter(hdi_group%in% c(1,2))%>%
   filter(!hdi_group%in%c(3,4))
 
+
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
 
-Thai_pop<-Thailand_pop%>%mutate(
-  age = case_when(
+Thai_pop<-Thailand_pop%>%
+  mutate(age = case_when(
   age=="0 to 4 years" ~ 1,
   age=="5 to 9 years"  ~ 2,
   age=="10 to 14 years"~ 3,
@@ -48,7 +49,7 @@ Thai_pop<-Thailand_pop%>%mutate(
   age==  "75 to 79 years"  ~ 16,
   age== "80 to 84 years" ~ 17,
   age== "85 years and over"~ 18
-))%>%
+  ))%>%
   mutate(sex=replace(sex,sex=="Male",1))%>%
   mutate(sex=replace(sex,sex=="Female",2))%>%
   as.data.frame()%>%
@@ -82,15 +83,19 @@ Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about t
     age>=85 ~ 18
   ))%>%
   left_join(Thai_pop,by=c("country_code","sex","year","age"))%>%
-  summarize(mx=sum(pop*mx)/sum(pop), prob=sum(prob*pop)/sum(pop),region, country_code)%>% 
-     as.data.frame()%>%distinct()
+  summarize(mx=sum(pop*mx)/sum(pop), 
+            prob=sum(prob*pop)/sum(pop),
+            region, 
+            country_code)%>% 
+     as.data.frame()%>%
+  distinct()
 
 
 
 countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. Not sure why
   full_join(hvh_HDI)%>%
   arrange(country_name)%>%
-  left_join(Thailand_popmort2015,by=c("age"="age","country_code"="country_code"))%>%
+  left_join(Thailand_popmort2015, by=c("age"="age","country_code"="country_code"))%>%
   select(-region)
 
   
@@ -166,15 +171,12 @@ PAFs_age_Cat<-PAFs%>%
             cases.notprev=sum(cases.notprev),
             af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
                                cases==0 ~ af.comb),
+            total_overall=sum(cases),
             ES)%>% #Summarizing by sex. This is a bit crude but won't be used in calcs anyways
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
                        cases==0 ~ ES))%>%
-    mutate(af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
-                              cases==0  ~    af.comb))%>%
   distinct()%>%
-  group_by(country_label,cancer_label, age)%>%
-  mutate(total_overall=sum(cases))
-
+  group_by(country_label,cancer_label, age)
 
 
 # PAFS_Overall<-PAFs_age_Cat%>%mutate(age_cat="Overall")%>%
@@ -216,12 +218,6 @@ Simulated_Data_PAF_1<-simulated_overall%>%
  # left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
   group_by(cancer_code,age_cat, age)%>%
-  mutate(Expected_5_year_surv=case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
-                       cases==0 ~ ES))%>%
-  mutate(af.comb=case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
-                           cases==0  ~    0))%>%
-  mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases)/sum(cases),
-                           cases==0  ~    rel_surv))%>%
   summarize(country_code, 
             country_label, 
             cancer_code, cancer_label,
@@ -348,6 +344,16 @@ colnames(Avoidable_Deaths_modelled)<-c("age_cat","age", "cancer_code","cancer", 
                             #  "AD_unavoid_Upper",
                             "total_overall")
 
+#Mortality incidence ratios modified here. 
+MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
+  filter(country_label=="Thailand")%>%
+  select(-country_label, - country_code, -cancer_label, -X)
+
+MIR_Globocan_Thailand<-MIR_Globocan%>%
+  filter(country_label=="Thailand")%>%
+  select(-country_label,- country_code, -cancer_label, -X)
+
+
 
 Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   as.data.frame()%>%
@@ -355,9 +361,14 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   mutate(total_overall=as.numeric(as.character(total_overall)))%>%
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
+  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
  # filter(total_overall<AD_sum)%>%
   as.data.frame()%>%distinct()
+
+Avoidable_Deaths_modelled2<-Avoidable_Deaths_modelled%>%
+  left_join(MIR_Globocan_Thailand)
+  
 
 Avoidable_Deaths_modelled_overall<-Avoidable_Deaths_modelled%>%
   mutate(age_cat="Overall")%>%
@@ -380,17 +391,21 @@ Avoidable_Deaths_modelled_age_cat<-Avoidable_Deaths_modelled%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
   distinct()%>%
   arrange(cancer, age_cat)%>%
-  as.data.frame()
+  as.data.frame()%>%
+  left_join(MIR_Age_Cats_Thailand, by=c("cancer_code", "age_cat"))
 
 
 
 
 
-Avoidable_Deaths_modelled 
+Avoidable_Deaths_modelled2
+  
+  
 Avoidable_Deaths_modelled_age_cat
 
 
-write.csv(Avoidable_Deaths_modelled, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
+write.csv(Avoidable_Deaths_modelled2, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
+write.csv(Avoidable_Deaths_modelled_age_cat, "~/Documents/R_Projects/Data/Thai_AD_Modelled_More_age_Cats.csv")
 write.csv(Simulated_Data_PAF, "~/Documents/R_Projects/Data/Thai_NS_Modelled.csv")
 
 

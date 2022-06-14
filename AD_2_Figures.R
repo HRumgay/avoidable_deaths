@@ -125,10 +125,6 @@ ggsave("CHARTS/bars/AD_barplot_prev.png",AD_barplot_prev, height=10, width=10)
 ggsave("CHARTS/bars/AD_barplot_unavoid.png",AD_barplot_unavoid, height=10, width=10)
 
 
-<<<<<<< HEAD
-
-
-=======
 AD_plotable %>% 
   pivot_longer(cols = starts_with("AD_"),
                names_to = "type",
@@ -216,5 +212,4 @@ AD_plotable_L %>%
     text = element_text(size = 7)
   )
 ggsave("CHARTS/bars/AD_barplot_6599.pdf", height=10, width=10)
->>>>>>> 4588909e5c0bed0e3fbb8cb513463c850ca20119
 
