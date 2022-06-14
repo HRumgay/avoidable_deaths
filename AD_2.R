@@ -58,6 +58,16 @@ popmort<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort2.dta")%>%as.data.
 p<-read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
     as.data.frame()
 
+MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
+  as.data.frame()%>%select(-mortality,-incidence)%>%
+  mutate(MIR=replace(MIR,MIR==Inf, NA))
+  
+#same file but Globocan age groups for modeled data 
+MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
+  as.data.frame()%>%
+  select(-mortality,-incidence)%>%
+  mutate(MIR=replace(MIR,MIR==Inf, NA))
+
   
 Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
 
@@ -76,6 +86,8 @@ Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Surv
           rel_surv)%>%
   rename("surv_ref"="rel_surv")%>%
   distinct()
+
+
 
 
 load("~/Documents/R_Projects/Data/ES_dt.RData")
