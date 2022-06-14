@@ -90,7 +90,7 @@ country_codes <-
 ten_cancer_sites <-
   Cancer_codes %>% 
   filter(cancer_code %in% c(6, 7, 11, 13, 15, 20, 23, 27, 30, 38))%>%
-  mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","colorectal"))
+  mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
 
 
 
@@ -154,8 +154,8 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   filter(!is.na(mx)) %>% 
   droplevels() %>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))%>%
-  mutate(cancer = replace(cancer, cancer == "Colon (C18)", "colorectal")) %>%
-  mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "colorectal")) %>%
+  mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
+  mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
   filter(cancer_code %in% ten_cancer_sites$cancer_code)
 
  Thai_Surv3 <- Thai_Survcan2%>%
