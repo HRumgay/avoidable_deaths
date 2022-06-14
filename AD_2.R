@@ -28,12 +28,11 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Pros
   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
-  group_by(country_code,sex, cancer_code, age)%>%
+  group_by(country_code, sex, 
+           cancer_code, age)%>%
   filter(sex!=0)%>%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~    af.comb))%>%
-  mutate(af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
-                            cases==0  ~    af.comb))%>%
   mutate(cases.prev=sum(cases.prev))%>%
   mutate(cases.notprev=sum(cases.notprev))%>%
   mutate(cases=sum(cases))%>%
