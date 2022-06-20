@@ -1,18 +1,81 @@
-Avoidable_Deaths2 <- Avoidable_Deaths %>% mutate(Scenario = "RWD")%>%
-  select(-cancer)
-  
-  
-Avoidable_Deaths_Simulated2 <-
-  Avoidable_Deaths_Simulated %>% mutate(Scenario = "Modeled")%>%
-  select(-cancer)
+# Avoidable_Deaths2 <- Avoidable_Deaths %>% mutate(Scenario = "RWD")%>%
+#   select(-cancer)
+#   
+#   
+# Avoidable_Deaths_Simulated2 <-
+#   Avoidable_Deaths_Simulated %>% mutate(Scenario = "Modeled")%>%
+#   select(-cancer)
+# 
+# 
+# 
+# AD_plotable <-
+#   Avoidable_Deaths2 %>% full_join(Avoidable_Deaths_Simulated2)%>%
+#   mutate(cancer_code=as.integer(cancer_code))%>%
+#   mutate_if(is.numeric, replace_na, 0)%>%left_join(Cancer_codes, by="cancer_code")%>%
+#   filter(!is.na(AD_treat))
+# 
 
+AD_by_cancer_site <- Avoidable_Deaths_Simulated_All%>%
+  select(country_code, country_label, cancer, cancer_code, AD_treat, AD_prev, 
+         AD_unavoid, AD_sum, total_overall)%>%
+  mutate(AD_treat=as.numeric(AD_treat))%>%
+  mutate(AD_prev=as.numeric(AD_prev))%>%
+  mutate(AD_unavoid=as.numeric(AD_unavoid))%>%
+  mutate(cancer_code=as.numeric(cancer_code))%>%
+  filter(!is.na(AD_treat))%>%
+as.data.frame()%>%
+  select(-country_code,-country_label, -total_overall)%>%
+  ungroup()%>%
+  group_by(cancer_code)%>%
+  mutate(AD_treat=sum(AD_treat))%>%
+  mutate(AD_prev=sum(AD_prev))%>%
+  mutate(AD_unavoid=sum(AD_unavoid))%>%
+  mutate(AD_sum=sum(AD_sum))  %>%
+  ungroup()%>%
+  distinct()
 
+AD_by_cancer_site_3<-AD_by_cancer_site%>%
+  select(cancer, cancer_code, AD_treat)%>%
+  rename("AD"="AD_treat")%>%
+  mutate(AD_cat="Treatable")
 
-AD_plotable <-
-  Avoidable_Deaths2 %>% full_join(Avoidable_Deaths_Simulated2)%>%
-  mutate(cancer_code=as.integer(cancer_code))%>%
-  mutate_if(is.numeric, replace_na, 0)%>%left_join(Cancer_codes, by="cancer_code")%>%
-  filter(!is.na(AD_treat))
+AD_by_cancer_site_2<-AD_by_cancer_site%>%
+  select(cancer, cancer_code, AD_prev)%>%
+  rename("AD"="AD_prev")%>%
+  mutate(AD_cat="Preventable")
+
+AD_by_cancer_site_1<-AD_by_cancer_site%>%
+  select(cancer, cancer_code, AD_unavoid)%>%
+  rename("AD"="AD_unavoid")%>%
+  mutate(AD_cat="Unavoidable")%>%
+  full_join(AD_by_cancer_site_2)%>%
+  full_join(AD_by_cancer_site_3)
+
+# Figure 4 - Global burden of cancer by cancer site pie chart 
+
+library(ggrepel)
+
+Figure_4 <- AD_by_cancer_site_1%>%
+  ungroup()%>%
+  arrange(desc(AD)) %>%
+  mutate(  wght = runif(length(AD)))%>%
+  mutate(wght = wght/sum(wght))%>%
+  mutate(pos = (cumsum(c(0, wght)) + c(wght / 2, .01))[1:nrow(AD_by_cancer_site_1)])%>%
+  ggplot(aes(x="", y=wght, fill = AD_cat)) +
+  geom_col(color = 'black', 
+           position = position_stack(reverse = TRUE), 
+           show.legend = TRUE) +
+  geom_text_repel(aes(x = 1.4, y = pos, label = cancer), 
+                  nudge_x = .3, 
+                  segment.size = .7, 
+                  show.legend = TRUE) +
+  scale_fill_discrete(name = "Type of avoidable deaths", 
+                      labels = c("Preventable", "Treatable", "Unavoidable")) +
+  coord_polar("y", start=0) +
+  labs(title="Preventable and treatable avoidable deaths globally by cancer site")+
+  theme_void()
+
+Figure_4
 
 
 # AD_plotable %>% ggplot(aes(x = "", y = value, fill = group)) +
@@ -212,4 +275,8 @@ AD_plotable_L %>%
     text = element_text(size = 7)
   )
 ggsave("CHARTS/bars/AD_barplot_6599.pdf", height=10, width=10)
+
+
+
+
 

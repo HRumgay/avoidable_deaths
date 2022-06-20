@@ -848,7 +848,8 @@ filter(cancer_code==20)
 # library(survminer)
 
 #Plotting Survival Curves Using ggplot2 and ggfortify:
-#
+
+
 Y = Surv(Thai_Surv_test$surv_yy, Thai_Surv_test$event1 == 1)
 xlim=c(0,5)
 
