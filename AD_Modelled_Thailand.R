@@ -396,15 +396,12 @@ Avoidable_Deaths_modelled_age_cat<-Avoidable_Deaths_modelled%>%
   left_join(MIR_Age_Cats_Thailand, by=c("cancer_code", "age_cat"))
 
 
-
-
+#The AD by age groups (larger vs smaller age categories)
 
 Avoidable_Deaths_modelled2
-  
-  
 Avoidable_Deaths_modelled_age_cat
 
-
+#Writing the export files
 write.csv(Avoidable_Deaths_modelled2, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
 write.csv(Avoidable_Deaths_modelled_age_cat, "~/Documents/R_Projects/Data/Thai_AD_Modelled_More_age_Cats.csv")
 write.csv(Simulated_Data_PAF, "~/Documents/R_Projects/Data/Thai_NS_Modelled.csv")
