@@ -70,6 +70,17 @@ countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. No
   
   
 Countries_Simulated <-countries_5y%>%
+  mutate(age = case_when(
+    age==4~ 4,
+    age>4 & age<=9~ 9,
+    age==10~ 10,
+    age==11~ 11,
+    age==12~ 12,
+    age==13~ 13,
+    age==14~ 14,
+    age==15~ 15,
+    age>=16 ~ 16,
+  ))%>%
   mutate(
     age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
@@ -105,32 +116,43 @@ simulated_overall<-Countries_Simulated%>%
 #PAF combinations
 
 PAFs_age_Cat<-PAFs%>%
+  mutate(age = case_when(
+    age==4~ 4,
+    age>4 & age<=9~ 9,
+    age==10~ 10,
+    age==11~ 11,
+    age==12~ 12,
+    age==13~ 13,
+    age==14~ 14,
+    age==15~ 15,
+    age>=16 ~ 16,
+  ))%>%
   mutate(
     age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
       age>=14 ~ "65-99",
-      FALSE ~"0-15"
+      age<4 ~"0-15"
     ))%>%
   filter(age_cat!="0-15")%>%
   droplevels()%>%
   left_join(ES2, by=c("country_code","age","sex"))%>% 
-  group_by(country_code,cancer_label, age_cat,age)%>%
+  group_by(country_label,cancer_label, age) %>%
+  mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+                       cases==0 ~ ES)) %>%
+  summarize(country_code,country_label, cancer_code, cancer_label,
+            age, age_cat, 
+            cases=sum(cases),
+            cases.prev=sum(cases.prev), 
+            cases.notprev=sum(cases.notprev),
+            # af.comb= sum(cases.prev)/sum(cases),
+            af.comb= case_when(cases!=0 ~  sum(cases.prev)/sum(cases),
+                               cases.prev==0 ~ 0),
+            total_overall=sum(cases),
+            ES)%>% #Summarizing by sex. This is a bit crude but won't be used in calcs anyways
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
                        cases==0 ~ ES))%>%
-  mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
-                            cases==0 ~    af.comb))%>%
-  summarize(country_code,country_label, cancer_code, cancer_label,
-            age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
-            cases.notprev=sum(cases.notprev),
-            af.comb, ES)%>%
-  # mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
-  #                      cases==0 ~ ES))%>%
-  af.comb= case_when(cases!=0 ~  sum(cases.prev)/sum(cases),
-                     cases==0 ~ 0)),
   distinct()%>%
-  group_by(country_label,cancer_label, age)%>%
-  mutate(total_overall=sum(cases))
-
+  group_by(country_label,cancer_label, age)
 
 
 # PAFS_Overall<-PAFs_age_Cat%>%mutate(age_cat="Overall")%>%
@@ -310,27 +332,68 @@ colnames(Avoidable_Deaths_Simulated_All)<-c("country_code","country_label","age_
                             "AD_unavoid",
                             # "AD_unavoid_Lower",
                             #  "AD_unavoid_Upper",
-                            "total",
+                            "total_overall",
                             "af.comb"
                             )
 
-Avoidable_Deaths_Simulated_All<-Avoidable_Deaths_Simulated_All%>%
-  as.data.frame()%>%
-  mutate(cancer_code=as.numeric(cancer_code))%>%
-  as_tibble()
 
 
 #The sum of the total deaths are more than the total number of cases in some places
-Avoidable_Deaths_Simulated_All <- Avoidable_Deaths_Simulated_All%>%
+
+#Mortality incidence ratios modified here. 
+MIR_Age_Cats_2 <-MIR_Age_Cats%>%
+  select( -cancer_label, -X)
+
+
+MIR_Globocan_2 <-MIR_Globocan%>%
+  select( -cancer_label, -X)
+
+
+
+Avoidable_Deaths_Simulated_All<-Avoidable_Deaths_Simulated_All%>%
+  as.data.frame()%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
+  mutate(total_overall=as.numeric(as.character(total_overall)))%>%
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
-  mutate(AD_sum=AD_prev+AD_treat)%>%
-  mutate(total=as.numeric(total))%>%
-  #filter(total<AD_sum)%>%
-  arrange(country_label,cancer_code,age_cat)%>%
+  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+  mutate(cancer_code=as.numeric(cancer_code))%>%
+  # filter(total_overall<AD_sum)%>%
+  as.data.frame()%>%distinct()
+
+Avoidable_Deaths_simulated_All2<-Avoidable_Deaths_Simulated_All%>%
+  left_join(MIR_Globocan )
+
+
+Avoidable_Deaths_Simulated_All_overall<-Avoidable_Deaths_Simulated_All%>%
+  mutate(age_cat="Overall")%>%
+  group_by(cancer_code, age_cat)%>%
+  mutate(total_overall=sum(total_overall))%>%
+  mutate(AD_prev= sum(AD_prev))%>%
+  mutate(AD_treat = sum(AD_treat))%>%
+  mutate(AD_unavoid = sum(AD_unavoid))%>%
+  distinct()%>%
   as.data.frame()
 
+Avoidable_Deaths_Simulated_All_age_cat<-Avoidable_Deaths_Simulated_All%>%
+  group_by(cancer_code, age_cat)%>%
+  mutate(AD_prev= sum(AD_prev))%>%
+  mutate(AD_treat = sum(AD_treat))%>%
+  mutate(AD_unavoid = sum(AD_unavoid))%>%
+  mutate(total_overall=sum(total_overall))%>%
+  full_join(Avoidable_Deaths_Simulated_All_overall)%>%
+  select(-age)%>%
+  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+  distinct()%>%
+  arrange(cancer, age_cat)%>%
+  as.data.frame()%>%
+  left_join(MIR_Age_Cats , by=c("cancer_code", "age_cat"))
+
+
+#The AD by age groups (larger vs smaller age categories)
+
+Avoidable_Deaths_Simulated_All2
+Avoidable_Deaths_Simulated_All_age_cat
 
 
 
