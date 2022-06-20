@@ -637,15 +637,14 @@ PAFs2 <- PAFs_age_Cat %>%
   droplevels()%>%
   group_by(country_label, cancer_label, age_cat) %>%
   mutate(total_age_prev = sum(cases.prev)) %>%
-  as.data.frame() %>%
-  mutate(af.comb.agecat = total_age_prev / total_overall) %>%
+  mutate(af.comb.agecat = sum(cases.prev) / sum(cases)) %>%
   summarize(country_code,
     country_label,
     cancer_code,
     cancer_label,
     age_cat,
     af.comb.agecat,
-    total_overall
+    total_overall=sum(cases)
   ) %>%
   distinct() %>%
   arrange(cancer_label, age_cat)
@@ -657,7 +656,8 @@ NS_OS_PAF <- NS_OS %>%
   left_join(PAFs2, by = c("cancer_code" = "cancer_code", "age_cat" ="age_cat")) %>% 
   left_join(Reference_Survival_Survcan,by=c("age_cat","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
   droplevels()%>%
-  mutate(cancer=as.character(cancer))
+  mutate(cancer=as.character(cancer))%>%
+  distinct()
 
 #Three AD calcs
 
@@ -674,10 +674,10 @@ for (i in 1:nrow(NS_OS_PAF)){
     (1 - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
     Expected_5_year_surv_mx
   AD_prev_Lower <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
-    (1 - NS_OS_PAF[i,]$NS_Lower_CI) *
+    (1 - NS_OS_PAF[i,]$NS_Upper_CI) *
     Expected_5_year_surv_mx
   AD_prev_Upper <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall *
-    (1 - NS_OS_PAF[i,]$NS_Upper_CI) *
+    (1 - NS_OS_PAF[i,]$NS_Lower_CI) *
     Expected_5_year_surv_mx
   
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
@@ -687,11 +687,11 @@ for (i in 1:nrow(NS_OS_PAF)){
     Expected_5_year_surv_mx *(1 - NS_OS_PAF[i,]$af.comb.agecat) *
     NS_OS_PAF[i,]$total_overall
   AD_treat_Lower <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * 
     Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
     NS_OS_PAF[i,]$total_overall
   AD_treat_Upper <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * 
+    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
     Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
     NS_OS_PAF[i,]$total_overall
   
@@ -700,9 +700,9 @@ for (i in 1:nrow(NS_OS_PAF)){
   AD_unavoid <-
     (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv * Expected_5_year_surv_mx)
   AD_unavoid_Lower <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
-  AD_unavoid_Upper <-
     (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
+  AD_unavoid_Upper <-
+    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
   
   Avoidable_Deaths[i, ] <- c(
     NS_OS_PAF[i, ]$age_cat,
@@ -736,6 +736,7 @@ colnames(Avoidable_Deaths) <- c("age_cat",
     "AD_unavoid_Lower",
     "AD_unavoid_Upper",
     "total")
+
 
 MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
   filter(country_label=="Thailand")%>%

@@ -126,7 +126,7 @@ PAFs_age_Cat<-PAFs%>%
   # mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
   #                      cases==0 ~ ES))%>%
   af.comb= case_when(cases!=0 ~  sum(cases.prev)/sum(cases),
-                     cases==0 ~ 0),
+                     cases==0 ~ 0)),
   distinct()%>%
   group_by(country_label,cancer_label, age)%>%
   mutate(total_overall=sum(cases))
