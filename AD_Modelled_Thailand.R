@@ -117,7 +117,7 @@ Countries_modelled <-countries_5y%>%
     age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
       age>=14 ~ "65-99",
-      FALSE ~"0-15"
+      age<4 ~"0-15"
     ))%>%
   filter(age_cat!="0-15")%>%
   group_by(country_name,cancer_label,age)%>%
@@ -377,7 +377,7 @@ MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
 
 MIR_Globocan_Thailand<-MIR_Globocan%>%
   filter(country_label=="Thailand")%>%
-  select(-country_label,- country_code, -cancer_label, -X)
+  select(-country_label,- country_code, -cancer_label)
 
 
 
@@ -411,7 +411,6 @@ Avoidable_Deaths_modelled_age_cat<-Avoidable_Deaths_modelled%>%
   mutate(AD_prev= sum(AD_prev))%>%
   mutate(AD_treat = sum(AD_treat))%>%
   mutate(AD_unavoid = sum(AD_unavoid))%>%
-  mutate(total_overall=sum(total_overall))%>%
   full_join(Avoidable_Deaths_modelled_overall)%>%
   select(-age)%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%

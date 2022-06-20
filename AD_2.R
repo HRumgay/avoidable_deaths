@@ -63,12 +63,22 @@ MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
   mutate(MIR=replace(MIR,MIR==Inf, NA))
   
 #same file but Globocan age groups for modeled data 
-MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
+MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR.csv")%>%
   as.data.frame()%>%
-  select(-mortality,-incidence)%>%
-  mutate(MIR=replace(MIR,MIR==Inf, NA))
+  select(-mortality,
+         -incidence)%>%
+  mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
+  mutate(age_cat = case_when(
+      age>=4 & age<14 ~ "15-64",
+      age>=14 ~ "65-99",
+      age<4 ~"0-15"))%>%
+  select(-sex, -X)%>%
+  group_by(country_code, cancer_code, age)%>%
+  mutate(MIR=sum(MIR*py)/sum(py))%>%
+  mutate(py=sum(py))%>%distinct()%>%
+  ungroup()
 
-  
+
 Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
 
 Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv")%>%
