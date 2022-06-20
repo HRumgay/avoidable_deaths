@@ -62,7 +62,8 @@ Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about t
   filter(sex!=0)%>%
   rename("year"="X_year")%>%
   rename("age"="X_age")%>%
-   distinct()%>%mutate(   age = case_when(
+   distinct()%>%
+  mutate(age = case_when(
     age>=0 & age<=4 ~ 1,
     age>=5 & age<=9 ~ 2,
     age>=10 & age<=14 ~ 3,
@@ -157,20 +158,22 @@ PAFs_age_Cat<-PAFs%>%
     age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
       age>=14 ~ "65-99",
-      FALSE ~"0-15"
+      age<4 ~"0-15"
     ))%>%
   filter(age_cat!="0-15")%>%
   droplevels()%>%
   left_join(Thailand_expected_Survival2, by=c("age","sex"))%>%
-  group_by(country_label,cancer_label, age)%>%
+  group_by(country_label,cancer_label, age) %>%
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
-                       cases==0 ~ ES))%>%
+                       cases==0 ~ ES)) %>%
   summarize(country_code,country_label, cancer_code, cancer_label,
-            age, age_cat, cases=sum(cases),
+            age, age_cat, 
+            cases=sum(cases),
             cases.prev=sum(cases.prev), 
             cases.notprev=sum(cases.notprev),
-            af.comb= case_when(cases!=0 ~ sum(af.comb*cases)/sum(cases),
-                               cases==0 ~ af.comb),
+            # af.comb= sum(cases.prev)/sum(cases),
+            af.comb= case_when(cases!=0 ~  sum(cases.prev)/sum(cases),
+                               cases.prev==0 ~ 0),
             total_overall=sum(cases),
             ES)%>% #Summarizing by sex. This is a bit crude but won't be used in calcs anyways
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
@@ -192,13 +195,13 @@ PAFs_age_Cat<-PAFs%>%
 #   mutate(total_overall=sum(cases))
 
 PAFs2<-PAFs_age_Cat%>%
- # full_join(PAFS_Overall)%>%
+ #full_join(PAFS_Overall)%>%
   as.data.frame()%>%
   droplevels()%>%
   group_by(country_code,cancer_code, age_cat,age)%>%
   mutate(total_age_prev=sum(cases.prev))%>%
   as.data.frame()%>%
-  #mutate(af.comb.agecat=total_age_prev/total_overall)%>%
+ #mutate(af.comb.agecat=total_age_prev/total_overall)%>%
   group_by(country_code,cancer_code,age)%>%
   summarize(country_label, cancer_label,
             age_cat,  total_overall,cases,
@@ -210,16 +213,14 @@ PAFs2<-PAFs_age_Cat%>%
   select(-cancer_label)
 
 
-
 Simulated_Data_PAF_1<-simulated_overall%>%
   ungroup()%>%
   filter(age_cat!="Overall")%>%
   left_join(PAFs2,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
- # left_join(Thailand_expected_Survival2, by=c("a"))%>%
+ #left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
   group_by(cancer_code,age_cat, age)%>%
-  summarize(country_code, 
-            country_label, 
+  summarize(country_code, country_label,
             cancer_code, cancer_label,
             age_cat, age, total_overall,
             af.comb= case_when(total_overall!=0 ~ sum(cases.prev)/sum(cases),
@@ -227,7 +228,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
             rel_surv= case_when(total_overall!=0 ~ sum(rel_surv*cases)/sum(cases),
                                 total_overall==0 ~ rel_surv),
             Expected_5_year_surv=case_when(total_overall!=0 ~ sum(ES*cases)/sum(cases),
-            total_overall==0 ~ ES),
+                                           total_overall==0 ~ ES),
             # = case_when(total_overall!=0 ~ sum(ES*cases)/sum(cases),
             #                                 total_overall==0 ~ ES),
             rel_surv,

@@ -33,10 +33,10 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Pros
   filter(sex!=0)%>%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~    af.comb))%>%
-  mutate(cases.prev=sum(cases.prev))%>%
-  mutate(cases.notprev=sum(cases.notprev))%>%
-  mutate(cases=sum(cases))%>%
-  ungroup()%>%
+  # mutate(cases.prev=sum(cases.prev))%>%
+  # mutate(cases.notprev=sum(cases.notprev))%>%
+  # mutate(cases=sum(cases))%>%
+   ungroup()%>%
   as.data.frame()
 
 survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Data/survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
@@ -590,7 +590,7 @@ PAFs_age_Cat <- PAFs %>%
   filter(country_label == "Thailand") %>%
   mutate(age_cat = case_when(age >= 4 & age < 14 ~ "15-64",
                              age >= 14 ~ "65-99",
-                             FALSE ~ "0-15")) %>%
+                             age<4 ~ "0-15")) %>%
   filter(age_cat != "0-15") %>%
   group_by(country_label, cancer_label, age_cat) %>%
   summarize(
@@ -625,9 +625,10 @@ PAFS_Overall <- PAFs_age_Cat %>%
     af.comb,
     cases.prev,
     cases.notprev,
-    py,
-    total_overall = sum(cases)) %>% 
-  as.data.frame()
+    total_overall = sum(cases)
+  ) %>% 
+  as.data.frame()%>%
+  droplevels()
 
 
 PAFs2 <- PAFs_age_Cat %>%
