@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+
 # load libraries needed for some charts
 library(tidyverse)
 library(data.table)
@@ -21,24 +21,21 @@ library(Rcan)
 #   mutate(cancer_code=as.integer(cancer_code))%>%
 #   mutate_if(is.numeric, replace_na, 0)%>%left_join(Cancer_codes, by="cancer_code")%>%
 #   filter(!is.na(AD_treat))
-# 
-=======
->>>>>>> Stashed changes
+
 
 #Creating a plotable object comparing Thailand simulated and RWD
 
-Avoidable_Deaths2 <- Avoidable_Deaths %>% mutate(Scenario = "RWD")%>%
-  select(-cancer)
+Avoidable_Deaths2 <- Avoidable_Deaths %>% mutate(Scenario = "RWD")
 
 
 Avoidable_Deaths_Simulated2 <-
-  Avoidable_Deaths_modelled_age_cat %>% mutate(Scenario = "Simulated")%>%
-  select(-cancer)
+  Avoidable_Deaths_modelled_age_cat %>% mutate(Scenario = "Simulated")
 
 AD_plotable <-
   Avoidable_Deaths2 %>% full_join(Avoidable_Deaths_Simulated2)%>%
   mutate(cancer_code=as.integer(cancer_code))%>%
-  mutate_if(is.numeric, replace_na, 0)%>%left_join(Cancer_codes, by="cancer_code")%>%
+  mutate_if(is.numeric, replace_na, 0)%>%
+  left_join(Cancer_codes, by="cancer_code")%>%
   filter(!is.na(AD_treat))
 
 #Data by cancer site prep
@@ -103,20 +100,24 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   labs(title="Preventable and treatable avoidable deaths globally by cancer site")+
   theme_void()
 
+Figure_4_1
+
 Figure_4_2 <- AD_by_cancer_site_1%>%
   group_by(AD_cat)%>%
   summarize(AD=sum(AD))%>%
+  distinct()%>%
   ungroup()%>%
   mutate(wght = runif(length(AD)))%>%
   mutate(wght = wght/sum(wght))%>%
   mutate(pos = (cumsum(c(0, wght)) + c(wght / 2, .01))[1:3])%>%
   group_by(AD_cat)%>%
   arrange(desc(AD), .by_group = TRUE) %>%
-  ggplot(aes(x="", y=wght, fill = AD_cat)) +
+  
+  ggplot(aes(x="", y=pos, fill = AD_cat)) +
   geom_col(color = 'black', 
            position = position_stack(reverse = TRUE), 
            show.legend = TRUE) +
-  geom_text_repel(aes(x = 1.4, y = pos, label = AD_cat), 
+  geom_text_repel(aes(x = 1.4, y = wght, label = AD_cat), 
                   nudge_x = .3, 
                   segment.size = .7, 
                   show.legend = TRUE) +
@@ -160,8 +161,9 @@ AD_barplot_treat <- AD_plotable %>%
   ) +
   xlab("Cancer Site") +
   ylab("AD") +
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("AD due to treatment") +
-  geom_bar(stat = "identity", alpha = 0.4,
+  geom_bar(stat = "identity", 
            position = "dodge") +
   coord_flip() +
   # geom_errorbar(
@@ -170,7 +172,7 @@ AD_barplot_treat <- AD_plotable %>%
   #   alpha = 0.9,
   #   size = 1.3
   # ) +
-facet_grid(. ~ Scenario,drop=FALSE,scales = "free_x")
+facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
 
 
 
@@ -189,7 +191,8 @@ AD_barplot_prev <- AD_plotable %>%
   xlab("Cancer Site") +
   ylab("AD") +
   ggtitle("AD Preventable due to Risk Factors") +
-  geom_bar(stat = "identity", alpha = 0.4,
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
+  geom_bar(stat = "identity", 
            position = "dodge") +
   coord_flip() +
   # geom_errorbar(
@@ -198,7 +201,7 @@ AD_barplot_prev <- AD_plotable %>%
   #   alpha = 0.9,
   #   size = 1.3
   # ) +
-  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_x")
+  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
 
 AD_barplot_unavoid <- AD_plotable %>%
   group_by(cancer_label)%>%
@@ -213,8 +216,9 @@ AD_barplot_unavoid <- AD_plotable %>%
   ) +
   xlab("Cancer Site") +
   ylab("AD") +
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("AD Unavoidable") +
-  geom_bar(stat = "identity", alpha = 0.4,
+  geom_bar(stat = "identity",
            position = "dodge") +
   coord_flip() +
   # geom_errorbar(
@@ -223,7 +227,7 @@ AD_barplot_unavoid <- AD_plotable %>%
   #   alpha = 0.9,
   #   size = 1.3
   # ) +
-  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_x")
+  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
 
 
 
@@ -240,6 +244,117 @@ ggsave("CHARTS/bars/AD_barplot_treat.png",AD_barplot_treat, height=10, width=10)
 ggsave("CHARTS/bars/AD_barplot_prev.png",AD_barplot_prev, height=10, width=10)
 ggsave("CHARTS/bars/AD_barplot_unavoid.png",AD_barplot_unavoid, height=10, width=10)
 
+# By HDI and region
+
+
+
+AD_by_HDI_3<-AD_by_HDI%>%
+  select(hdi_group, cancer, cancer_code, AD_treat)%>%
+  rename("AD"="AD_treat")%>%
+  mutate(AD_cat="Treatable")
+
+AD_by_HDI_2<-AD_by_HDI%>%
+  select(hdi_group, cancer, cancer_code, AD_prev)%>%
+  rename("AD"="AD_prev")%>%
+  mutate(AD_cat="Preventable")
+
+AD_by_HDI_1<-AD_by_HDI%>%
+  select(hdi_group, cancer, cancer_code, AD_unavoid)%>%
+  rename("AD"="AD_unavoid")%>%
+  mutate(AD_cat="Unavoidable")%>%
+  full_join(AD_by_HDI_2)%>%
+  full_join(AD_by_HDI_3)
+
+
+
+AD_by_HDI_Plot<- AD_by_HDI %>%
+  group_by(cancer_label,hdi_group)%>%
+  ggplot(
+    aes(cancer_label, AD,  
+        ymin = min(AD),
+        ymax = max(AD)),
+    mapping = aes(
+      reorder(cancer_label, AD),AD,
+      fill = Scenario,drop=FALSE
+    )
+  ) +
+  xlab("Cancer Site") +
+  ylab("AD") +
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
+  ggtitle("AD") +
+  geom_bar(stat = "identity",
+           position = "dodge") +
+  coord_flip() +
+  # geom_errorbar(
+  #   aes(x = cancer_label, ymin = AD_treat_Lower, ymax = AD_treat_Upper),
+  #   width = 0.4,
+  #   alpha = 0.9,
+  #   size = 1.3
+  # ) +
+  facet_grid(. ~ hdi_group, drop=FALSE,scales = "free_y")
+
+
+
+#World maps - ggmap 
+
+library(ggmap)
+library(map.data)
+
+citation("ggmap") #for citation
+
+Avoidable_Deaths_Simulated_All_age_cat2<-Avoidable_Deaths_Simulated_All_age_cat%>%
+  mutate(country=replace(country,country=="United States of America","USA"))%>%
+  mutate(country=replace(country,country=="Russian Federation","Russia"))%>%
+  mutate(country=replace(country,country=="Democratic People Republic of Congo","Democratic Republic of the Congo"))%>%
+  mutate(country=replace(country,country=="Tanzania (United Republic of)","Tanzania"))%>%
+  mutate(country=replace(country,country=="Bolivia (Plurinational State of)","Bolivia"))%>%
+  mutate(country=replace(country,country=="Congo","Republic of Congo"))%>%
+  mutate(country=replace(country,country=="United Kingdom","UK"))%>%
+  mutate(country=replace(country,country=="Venezuela (Bolivarian Republic of)","Venezuela"))%>%
+  mutate(country=replace(country,country=="Viet Nam","Vietnam"))%>%
+  mutate(country=replace(country,country=="Lao People's Democratic Republic","Laos"))%>%
+  mutate(country=replace(country,country=="Czechia","Czech Republic"))%>%
+  mutate(country=replace(country,country=="Syrian Arab Republic" ,"Syria"))%>%
+  mutate(country=replace(country,country== "Lao People Democratic Republic"  ,"Laos"))%>%
+  mutate(country=replace(country,country==   "France (metropolitan)" ,"France"))%>%
+  mutate(country=replace(country,country==   "Islamic Republic of Iran" ,"Iran"))%>%
+  mutate(country=replace(country,country== "Republic of Korea", "South Korea"  ))%>%
+  mutate(country=replace(country,country== "Cote d Ivoire", "Cote d'Ivoire"  ))
+
+world<-map_data("world")
+world_AD<-world%>% 
+  left_join(country_codes, by=c("region"="country_label"))%>%
+  left_join(Avoidable_Deaths_Simulated_All_age_cat,by=c("country_code"))
+
+a<-world_AD%>%select(c(region,country_label, country_code))%>%
+  distinct()%>%mutate(same= if_else(region == country_label, 1, 0))%>%
+  filter(same==0 | is.na(same) )
+
+
+
+Avoidable_Deaths_Simulated_All_age_cat%>%select(country_label)%>%
+  distinct()%>%
+  arrange()
+
+AD_Map <-world%>%
+  ggplot()+
+  geom_map(data=world_AD, map=world_AD,
+                                   aes(x=long,y=lat, 
+                                       map_id=region, 
+                                       fill=AD_treat))+
+  scale_fill_gradient2(low="gray50",high="red")+
+  ggtitle("Avoidable deaths Globally for all ten cancer sites")
+
+
+
+AD_Map
+
+
+
+
+
+
+
 
 #--- code for horizontal two-sided stacked bar charts----
 #convert data to long format
@@ -248,12 +363,7 @@ AD_plotable %>%
                names_to = "type",
                values_to = "deaths") -> AD_plotable_L
 
-<<<<<<< Updated upstream
-# create stacked bar for overall ages combined
-=======
 
-
->>>>>>> Stashed changes
 AD_plotable_L %>% 
   filter(age_cat=="Overall", type %in% c("AD_treat", "AD_prev", "AD_unavoid")) %>% 
   ggplot(
@@ -279,7 +389,9 @@ AD_plotable_L %>%
     strip.text.y = element_text(angle = 0),
     text = element_text(size = 7)
   )
+
 ggsave("CHARTS/bars/AD_barplot_overall.pdf", height=10, width=10)
+
 
 # create stacked bar for age 15-64 
 AD_plotable_L %>% 
@@ -339,6 +451,8 @@ ggsave("CHARTS/bars/AD_barplot_6599.pdf", height=10, width=10)
 
 
 
+
+
 #--- example code for horizontal two-sided stacked bar charts ----
 #make sure data are in long format for stacked bars
 #in this code the variable 'level' is being stacked, so could change this to scenario (prev, treat, unavoid) or age?
@@ -350,6 +464,7 @@ pafsplit_subregion2 %>%
   mutate(pafplot = case_when(sex == 1 ~ grptotpaf * -1,  #create negative values to plot left of y axis
                              sex == 2 ~ grptotpaf)) -> pafsplit_subregion2t
 pafsplit_subregion2t <- as.data.table(pafsplit_subregion2t)
+
 #order world regions by proportion or ASR
 dt_label_order3 <- setkeyv(unique(pafs_subregion2[cancer_label == "All cancers but non-melanoma skin cancer_M" & sex==1, c("subregion_label_2", "grptotpaf"), with=FALSE]), c("grptotpaf"))
 pafsplit_subregion2t$subregion_label_2 <- factor(pafsplit_subregion2t$subregion_label_2, levels = unique(dt_label_order3$subregion_label_2,fromLast=TRUE))

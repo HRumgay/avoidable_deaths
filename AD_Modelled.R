@@ -409,3 +409,35 @@ Avoidable_Deaths_Simulated_All_age_cat
 write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
 write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
 write.csv(Avoidable_Deaths_Simulated_All_age_cat, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries_age_cat.csv")
+
+
+#HDI 
+
+HDI2<-HDI%>%select(country_code, country_label,hdi_group, by=c(country_code))
+
+#Data by country, HDI, etc
+
+AD_by_HDI<- Avoidable_Deaths_Simulated_All_age_cat%>%
+  left_join(HDI)%>%
+  select(hdi_group, country_code, country_label, cancer, cancer_code, AD_treat, AD_prev, 
+         AD_unavoid, AD_sum, total_overall, age_cat)%>%
+ mutate(AD_treat=as.numeric(AD_treat))%>%
+  mutate(AD_prev=as.numeric(AD_prev))%>%
+  mutate(AD_unavoid=as.numeric(AD_unavoid))%>%
+  mutate(cancer_code=as.numeric(cancer_code))%>%
+  filter(!is.na(AD_treat))%>%
+  as.data.frame()%>%
+  select(-country_code,-country_label, -total_overall)%>%
+  ungroup()%>%
+  group_by(cancer_code, hdi_group)%>%
+  mutate(AD_treat=sum(AD_treat))%>%
+  mutate(AD_prev=sum(AD_prev))%>%
+  mutate(AD_unavoid=sum(AD_unavoid))%>%
+  mutate(AD_sum=sum(AD_sum))  %>%
+  ungroup()%>%
+  distinct()
+
+
+
+
+
