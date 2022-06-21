@@ -82,9 +82,13 @@ AD_by_cancer_site_1<-AD_by_cancer_site%>%
 
 library(ggrepel)
 
+Figure_4_1 <- AD_by_cancer_site_1%>%
   ungroup()%>%
+  mutate(wght = runif(length(AD)))%>%
   mutate(wght = wght/sum(wght))%>%
   mutate(pos = (cumsum(c(0, wght)) + c(wght / 2, .01))[1:nrow(AD_by_cancer_site_1)])%>%
+  group_by(AD_cat)%>%
+  arrange(desc(AD), .by_group = TRUE) %>%
   ggplot(aes(x="", y=wght, fill = AD_cat)) +
   geom_col(color = 'black', 
            position = position_stack(reverse = TRUE), 
@@ -99,7 +103,32 @@ library(ggrepel)
   labs(title="Preventable and treatable avoidable deaths globally by cancer site")+
   theme_void()
 
-Figure_4
+Figure_4_2 <- AD_by_cancer_site_1%>%
+  group_by(AD_cat)%>%
+  summarize(AD=sum(AD))%>%
+  ungroup()%>%
+  mutate(wght = runif(length(AD)))%>%
+  mutate(wght = wght/sum(wght))%>%
+  mutate(pos = (cumsum(c(0, wght)) + c(wght / 2, .01))[1:3])%>%
+  group_by(AD_cat)%>%
+  arrange(desc(AD), .by_group = TRUE) %>%
+  ggplot(aes(x="", y=wght, fill = AD_cat)) +
+  geom_col(color = 'black', 
+           position = position_stack(reverse = TRUE), 
+           show.legend = TRUE) +
+  geom_text_repel(aes(x = 1.4, y = pos, label = AD_cat), 
+                  nudge_x = .3, 
+                  segment.size = .7, 
+                  show.legend = TRUE) +
+  scale_fill_discrete(name = "Type of avoidable deaths", 
+                      labels = c("Preventable", "Treatable", "Unavoidable")) +
+  coord_polar("y", start=0) +
+  labs(title="Preventable and treatable avoidable deaths globally for ten cancer sites")+
+  theme_void()
+
+
+
+Figure_4_2
 
 
 # AD_plotable %>% ggplot(aes(x = "", y = value, fill = group)) +
