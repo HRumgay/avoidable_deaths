@@ -376,13 +376,22 @@ MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
   select(-country_label, - country_code, -cancer_label, -X)
 
 MIR_Globocan_Thailand<-MIR_Globocan%>%
+  ungroup()%>%
+  filter(age>=4)%>%
+  group_by(country_code, cancer_code, age)%>%
+  mutate(MIR=sum(MIR*py)/sum(py))%>%
+  mutate(py=sum(py))%>%distinct()%>%
   filter(country_label=="Thailand")%>%
-  select(-country_label,- country_code, -cancer_label)
+  ungroup()%>%
+  select(-country_label, -country_code, -cancer_label)
+
+
 
 
 
 Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   as.data.frame()%>%
+  group_by(cancer_code,age)%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   mutate(total_overall=as.numeric(as.character(total_overall)))%>%
@@ -393,8 +402,8 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   as.data.frame()%>%distinct()
 
 Avoidable_Deaths_modelled2<-Avoidable_Deaths_modelled%>%
+  mutate(age=as.numeric(age))%>%
   left_join(MIR_Globocan_Thailand)
-  
 
 Avoidable_Deaths_modelled_overall<-Avoidable_Deaths_modelled%>%
   mutate(age_cat="Overall")%>%
@@ -414,6 +423,7 @@ Avoidable_Deaths_modelled_age_cat<-Avoidable_Deaths_modelled%>%
   full_join(Avoidable_Deaths_modelled_overall)%>%
   select(-age)%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+  mutate(total_overall=sum(total_overall))%>%
   distinct()%>%
   arrange(cancer, age_cat)%>%
   as.data.frame()%>%

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # load libraries needed for some charts
 library(tidyverse)
 library(data.table)
@@ -21,7 +22,26 @@ library(Rcan)
 #   mutate_if(is.numeric, replace_na, 0)%>%left_join(Cancer_codes, by="cancer_code")%>%
 #   filter(!is.na(AD_treat))
 # 
+=======
+>>>>>>> Stashed changes
 
+#Creating a plotable object comparing Thailand simulated and RWD
+
+Avoidable_Deaths2 <- Avoidable_Deaths %>% mutate(Scenario = "RWD")%>%
+  select(-cancer)
+
+
+Avoidable_Deaths_Simulated2 <-
+  Avoidable_Deaths_modelled_age_cat %>% mutate(Scenario = "Simulated")%>%
+  select(-cancer)
+
+AD_plotable <-
+  Avoidable_Deaths2 %>% full_join(Avoidable_Deaths_Simulated2)%>%
+  mutate(cancer_code=as.integer(cancer_code))%>%
+  mutate_if(is.numeric, replace_na, 0)%>%left_join(Cancer_codes, by="cancer_code")%>%
+  filter(!is.na(AD_treat))
+
+#Data by cancer site prep
 AD_by_cancer_site <- Avoidable_Deaths_Simulated_All%>%
   select(country_code, country_label, cancer, cancer_code, AD_treat, AD_prev, 
          AD_unavoid, AD_sum, total_overall)%>%
@@ -62,10 +82,7 @@ AD_by_cancer_site_1<-AD_by_cancer_site%>%
 
 library(ggrepel)
 
-Figure_4 <- AD_by_cancer_site_1%>%
   ungroup()%>%
-  arrange(desc(AD)) %>%
-  mutate(  wght = runif(length(AD)))%>%
   mutate(wght = wght/sum(wght))%>%
   mutate(pos = (cumsum(c(0, wght)) + c(wght / 2, .01))[1:nrow(AD_by_cancer_site_1)])%>%
   ggplot(aes(x="", y=wght, fill = AD_cat)) +
@@ -202,7 +219,12 @@ AD_plotable %>%
                names_to = "type",
                values_to = "deaths") -> AD_plotable_L
 
+<<<<<<< Updated upstream
 # create stacked bar for overall ages combined
+=======
+
+
+>>>>>>> Stashed changes
 AD_plotable_L %>% 
   filter(age_cat=="Overall", type %in% c("AD_treat", "AD_prev", "AD_unavoid")) %>% 
   ggplot(

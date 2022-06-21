@@ -68,6 +68,17 @@ MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR.csv")%>%
   select(-mortality,
          -incidence)%>%
   mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
+  mutate(age = case_when(
+    age==4~ 4,
+    age>4 & age<=9~ 9,
+    age==10~ 10,
+    age==11~ 11,
+    age==12~ 12,
+    age==13~ 13,
+    age==14~ 14,
+    age==15~ 15,
+    age>=16 ~ 16,
+  ))%>%
   mutate(age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
       age>=14 ~ "65-99",
@@ -673,7 +684,7 @@ NS_OS_PAF <- NS_OS %>%
 
 
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
-Avoidable_Deaths <- matrix(ncol = 13, nrow = nrow(NS_OS_PAF)) #AD(t)
+Avoidable_Deaths <- matrix(ncol = 11, nrow = nrow(NS_OS_PAF)) #AD(t)
 
 for (i in 1:nrow(NS_OS_PAF)){
   Expected_5_year_surv_mx <-
@@ -708,12 +719,12 @@ for (i in 1:nrow(NS_OS_PAF)){
   #Deaths not avoidable
   
   AD_unavoid <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv * Expected_5_year_surv_mx)
-  AD_unavoid_Lower <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
-  AD_unavoid_Upper <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
-  
+    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (1-NS_OS_PAF[i,]$surv_ref  * Expected_5_year_surv_mx)
+  # AD_unavoid_Lower <-
+  #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
+  # AD_unavoid_Upper <-
+  #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
+  # 
   Avoidable_Deaths[i, ] <- c(
     NS_OS_PAF[i, ]$age_cat,
     NS_OS_PAF[i, ]$cancer_code,
@@ -725,8 +736,8 @@ for (i in 1:nrow(NS_OS_PAF)){
     AD_prev_Lower,
     AD_prev_Upper,
     AD_unavoid,
-    AD_unavoid_Lower,
-    AD_unavoid_Upper,
+   # AD_unavoid_Lower,
+  #  AD_unavoid_Upper,
     NS_OS_PAF[i,]$total_overall
  )
 }
@@ -743,8 +754,8 @@ colnames(Avoidable_Deaths) <- c("age_cat",
     "AD_prev_Lower",
     "AD_prev_Upper",
     "AD_unavoid",
-    "AD_unavoid_Lower",
-    "AD_unavoid_Upper",
+   # "AD_unavoid_Lower",
+  #  "AD_unavoid_Upper",
     "total")
 
 
