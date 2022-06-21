@@ -195,7 +195,7 @@ ggsave("CHARTS/bars/AD_barplot_prev.png",AD_barplot_prev, height=10, width=10)
 ggsave("CHARTS/bars/AD_barplot_unavoid.png",AD_barplot_unavoid, height=10, width=10)
 
 
-#--- code for horizontal two-sided stacked bar charts
+#--- code for horizontal two-sided stacked bar charts----
 #convert data to long format
 AD_plotable %>% 
   pivot_longer(cols = starts_with("AD_"),
@@ -329,7 +329,7 @@ pafsplit_subregion2t %>%
   geom_bar(stat = 'identity', colour = 'black', size = .1)+
   geom_hline(yintercept = 0, size=1)+
   coord_flip(ylim = c(tick_minor_list[1]-(tick_space*0.25),tick_minor_list[length(tick_minor_list)]+(tick_space*0.25)), expand = FALSE)+
-  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) +
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   labs(x = 'World Region', y = 'Population Attributable Fraction (%)', fill = 'Consumption level\n         (g/day)') +
   scale_y_continuous(breaks=tick_major_list,
                      minor_breaks = tick_minor_list,
