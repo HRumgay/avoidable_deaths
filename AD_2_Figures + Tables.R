@@ -249,17 +249,17 @@ ggsave("CHARTS/bars/AD_barplot_unavoid.png",AD_barplot_unavoid, height=10, width
 
 
 AD_by_HDI_3<-AD_by_HDI%>%
-  select(hdi_group, cancer, cancer_code, AD_treat)%>%
+  select(age_cat, hdi_group, cancer, cancer_code, AD_treat)%>%
   rename("AD"="AD_treat")%>%
   mutate(AD_cat="Treatable")
 
 AD_by_HDI_2<-AD_by_HDI%>%
-  select(hdi_group, cancer, cancer_code, AD_prev)%>%
+  select(age_cat, hdi_group, cancer, cancer_code, AD_prev)%>%
   rename("AD"="AD_prev")%>%
   mutate(AD_cat="Preventable")
 
 AD_by_HDI_1<-AD_by_HDI%>%
-  select(hdi_group, cancer, cancer_code, AD_unavoid)%>%
+  select(age_cat, hdi_group, cancer, cancer_code, AD_unavoid)%>%
   rename("AD"="AD_unavoid")%>%
   mutate(AD_cat="Unavoidable")%>%
   full_join(AD_by_HDI_2)%>%
@@ -269,13 +269,14 @@ AD_by_HDI_1<-AD_by_HDI%>%
 
 AD_by_HDI_Plot<- AD_by_HDI %>%
   group_by(cancer_label,hdi_group)%>%
+  geom_bar(stat = 'identity', colour = 'black', size = .1)+
   ggplot(
-    aes(cancer_label, AD,  
+    aes(cancer, AD,  
         ymin = min(AD),
         ymax = max(AD)),
     mapping = aes(
-      reorder(cancer_label, AD),AD,
-      fill = Scenario,drop=FALSE
+      reorder(cancer, AD),AD,
+      fill =factor(AD_cat, levels = c("","20-60","<20")),drop=FALSE
     )
   ) +
   xlab("Cancer Site") +
