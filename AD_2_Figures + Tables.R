@@ -36,7 +36,10 @@ AD_plotable <-
   mutate(cancer_code=as.integer(cancer_code))%>%
   mutate_if(is.numeric, replace_na, 0)%>%
   left_join(Cancer_codes, by="cancer_code")%>%
-  filter(!is.na(AD_treat))
+  filter(!is.na(AD_treat))%>%
+  mutate(AD_treat_prop=AD_treat/AD_sum*100)%>%
+  mutate(AD_prev_prop=AD_prev/AD_sum*100)%>%
+  mutate(AD_unavoid_prop=AD_unavoid/AD_sum*100)
 
 #Data by cancer site prep
 AD_by_cancer_site <- Avoidable_Deaths_Simulated_All%>%
@@ -230,6 +233,87 @@ AD_barplot_unavoid <- AD_plotable %>%
   facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
 
 
+AD_barplot_treat_prop <- AD_plotable %>%
+  group_by(cancer_label)%>%
+  ggplot(
+    aes(cancer_label, AD_treat_prop,  
+        ymin = min(AD_treat_prop),
+        ymax = max(AD_treat_prop)),
+    mapping = aes(
+      reorder(cancer_label, AD_treat_prop),AD_treat_prop,
+      fill = age_cat,drop=FALSE,na.rm = TRUE
+    )
+  ) +
+  xlab("Cancer Site") +
+  ylab("AD") +
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
+  ggtitle("AD due to treatment  (%)") +
+  geom_bar(stat = "identity", 
+           position = "dodge") +
+  coord_flip() +
+  # geom_errorbar(
+  #   aes(x = cancer_label, ymin = AD_treat_prop_Lower, ymax = AD_treat_prop_Upper),
+  #   width = 0.4,
+  #   alpha = 0.9,
+  #   size = 1.3
+  # ) +
+  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
+
+
+
+
+AD_barplot_prev_prop <- AD_plotable %>%
+  group_by(cancer_label)%>%
+  ggplot(
+    aes(cancer_label, AD_prev_prop,  
+        ymin = min(AD_prev_prop),
+        ymax = max(AD_prev_prop)),
+    mapping = aes(
+      reorder(cancer_label, AD_prev_prop),AD_prev_prop,
+      fill = age_cat,drop=FALSE
+    )
+  ) +
+  xlab("Cancer Site") +
+  ylab("AD") +
+  ggtitle("AD Preventable due to Risk Factors  (%)") +
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
+  geom_bar(stat = "identity", 
+           position = "dodge") +
+  coord_flip() +
+  # geom_errorbar(
+  #   aes(x = cancer_label, ymin = AD_treat_prop_Lower, ymax = AD_treat_prop_Upper),
+  #   width = 0.4,
+  #   alpha = 0.9,
+  #   size = 1.3
+  # ) +
+  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
+
+AD_barplot_unavoid_prop <- AD_plotable %>%
+  group_by(cancer_label)%>%
+  ggplot(
+    aes(cancer_label, AD_unavoid_prop,  
+        ymin = min(AD_unavoid_prop),
+        ymax = max(AD_unavoid_prop)),
+    mapping = aes(
+      reorder(cancer_label, AD_unavoid_prop),AD_unavoid_prop,
+      fill = age_cat,drop=FALSE
+    )
+  ) +
+  xlab("Cancer Site") +
+  ylab("AD") +
+  scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
+  ggtitle("AD Unavoidable (%)") +
+  geom_bar(stat = "identity",
+           position = "dodge") +
+  coord_flip() +
+  # geom_errorbar(
+  #   aes(x = cancer_label, ymin = AD_treat_prop_Lower, ymax = AD_treat_prop_Upper),
+  #   width = 0.4,
+  #   alpha = 0.9,
+  #   size = 1.3
+  # ) +
+  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
+
 
 #Calling the plots 
 
@@ -239,10 +323,19 @@ AD_barplot_prev
 
 AD_barplot_unavoid
 
+AD_barplot_treat_prop
 
-ggsave("CHARTS/bars/AD_barplot_treat.png",AD_barplot_treat, height=10, width=10)
-ggsave("CHARTS/bars/AD_barplot_prev.png",AD_barplot_prev, height=10, width=10)
-ggsave("CHARTS/bars/AD_barplot_unavoid.png",AD_barplot_unavoid, height=10, width=10)
+AD_barplot_prev_prop
+
+AD_barplot_unavoid_prop
+
+
+ggsave("~/Documents/R Figures/AD_barplot_treat.png",AD_barplot_treat, height=10, width=10)
+ggsave("~/Documents/R Figures/AD_barplot_prev.png",AD_barplot_prev, height=10, width=10)
+ggsave("~/Documents/R Figures/AD_barplot_unavoid.png",AD_barplot_unavoid, height=10, width=10)
+ggsave("~/Documents/R Figures/AD_barplot_treat_prop.png",AD_barplot_treat, height=10, width=10)
+ggsave("~/Documents/R Figures/AD_barplot_prev_prop.png",AD_barplot_prev, height=10, width=10)
+ggsave("~/Documents/R Figures/AD_barplot_unavoid_prop.png",AD_barplot_unavoid, height=10, width=10)
 
 # By HDI and region
 
@@ -267,22 +360,24 @@ AD_by_HDI_1<-AD_by_HDI%>%
 
 
 
-AD_by_HDI_Plot<- AD_by_HDI %>%
-  group_by(cancer_label,hdi_group)%>%
-  geom_bar(stat = 'identity', colour = 'black', size = .1)+
+AD_by_HDI_Plot<- AD_by_HDI_1 %>%
+  as.data.frame()%>%
+  #mutate(hdi_group = replace_na(hdi_group, "NA"))%>%
+  group_by(cancer,hdi_group)
   ggplot(
-    aes(cancer, AD,  
+    aes(cancer, AD,
         ymin = min(AD),
         ymax = max(AD)),
     mapping = aes(
-      reorder(cancer, AD),AD,
-      fill =factor(AD_cat, levels = c("","20-60","<20")),drop=FALSE
+      reorder(cancer_label, AD),AD,
+      fill = age_cat,drop=FALSE
     )
   ) +
-  xlab("Cancer Site") +
+  geom_bar(stat = 'identity', colour = 'black', size = .1)
+  xlab("HDI group") +
   ylab("AD") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
-  ggtitle("AD") +
+  ggtitle("AD by HDI group") +
   geom_bar(stat = "identity",
            position = "dodge") +
   coord_flip() +
@@ -294,7 +389,39 @@ AD_by_HDI_Plot<- AD_by_HDI %>%
   # ) +
   facet_grid(. ~ hdi_group, drop=FALSE,scales = "free_y")
 
-
+  AD_by_HDI_overall_plot<-  AD_by_HDI_overall %>%
+    as.data.frame()%>%
+    #mutate(hdi_group = replace_na(hdi_group, "NA"))%>%
+    group_by(cancer,hdi_group)
+  ggplot(
+    aes(cancer, AD_treat,
+        ymin = min(AD_treat),
+        ymax = max(AD_treat)),
+    mapping = aes(
+      reorder(cancer, AD_treat),AD_treat,
+      fill = age_cat,drop=FALSE
+    )
+  ) +
+    geom_bar(stat = 'identity', colour = 'black', size = .1)
+  xlab("HDI group") +
+    ylab("AD") +
+    scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
+    ggtitle("AD by HDI group") +
+    geom_bar(stat = "identity",
+             position = "dodge") +
+    coord_flip() +
+    # geom_errorbar(
+    #   aes(x = cancer_label, ymin = AD_treat_Lower, ymax = AD_treat_Upper),
+    #   width = 0.4,
+    #   alpha = 0.9,
+    #   size = 1.3
+    # ) +
+    facet_grid(. ~ hdi_group, drop=FALSE,scales = "free_y")
+  
+  
+    
+    
+  AD_by_HDI_ten_plot<-  AD_by_HDI_ten
 
 #World maps - ggmap 
 
@@ -360,6 +487,9 @@ AD_Map
 #--- code for horizontal two-sided stacked bar charts----
 #convert data to long format
 AD_plotable %>% 
+  select(-c(AD_treat_Lower, AD_treat_Upper,
+            AD_prev_Lower,AD_prev_Upper
+            ))%>%
   pivot_longer(cols = starts_with("AD_"),
                names_to = "type",
                values_to = "deaths") -> AD_plotable_L
@@ -420,7 +550,7 @@ AD_plotable_L %>%
     strip.text.y = element_text(angle = 0),
     text = element_text(size = 7)
   )
-ggsave("CHARTS/bars/AD_barplot_1564.pdf", height=10, width=10)
+ggsave("~/Documents/R Figures/AD_barplot_1564.pdf", height=10, width=10)
 
 # create stacked bar for age 65-99
 AD_plotable_L %>% 
@@ -448,7 +578,35 @@ AD_plotable_L %>%
     strip.text.y = element_text(angle = 0),
     text = element_text(size = 7)
   )
-ggsave("CHARTS/bars/AD_barplot_6599.pdf", height=10, width=10)
+ggsave("~/Documents/R Figures/AD_barplot_6599.pdf", height=10, width=10)
+
+# create stacked bar for age Overall
+AD_plotable_L %>% 
+  filter(age_cat=="Overall", type %in% c("AD_treat", "AD_prev", "AD_unavoid")) %>% 
+  ggplot(
+    aes(
+      x = cancer_label,
+      y = deaths,
+      fill = factor(type, levels = c("AD_prev", "AD_treat",  "AD_unavoid"))
+    )
+  ) + 
+  geom_bar(stat = 'identity', position = position_fill(reverse = TRUE), colour = 'black', size = .1) +
+  #    geom_text(aes(label=paste0(sprintf("%1.1f", count.value))))+
+  coord_flip() +
+  labs(x = '', y = '', fill = '') +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c('#fc8d59','#ffffbf',  '#99d594')) +
+  #facet_grid(REGION_LABEL ~ SEX_LABEL, scales = 'free_y', space = 'free',  labeller = label_wrap_gen(width = 10, multi_line = TRUE)) +
+  facet_wrap(~Scenario, nrow = 1, drop = TRUE, scales = 'free_y') +
+  theme_minimal() +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+    panel.grid.major = element_blank(),
+    strip.text.y = element_text(angle = 0),
+    text = element_text(size = 7)
+  )
+ggsave("~/Documents/R Figures/AD_barplot_Overall.pdf", height=10, width=10)
 
 
 

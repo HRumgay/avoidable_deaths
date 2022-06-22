@@ -742,7 +742,8 @@ for (i in 1:nrow(NS_OS_PAF)){
  )
 }
 
-Avoidable_Deaths <- Avoidable_Deaths %>% as.data.frame()
+Avoidable_Deaths <- Avoidable_Deaths %>% as.data.frame()%>%
+  mutate_if(AD_treat<0,0)
 
 colnames(Avoidable_Deaths) <- c("age_cat",
     "cancer_code",

@@ -438,6 +438,19 @@ AD_by_HDI<- Avoidable_Deaths_Simulated_All_age_cat%>%
   distinct()
 
 
+AD_by_HDI_overall<-AD_by_HDI%>%filter(age_cat=="Overall")%>%select(-age_cat)
 
+
+AD_by_HDI_ten<-AD_by_HDI_overall%>%group_by(hdi_group)%>%
+  mutate(AD_treat=sum(AD_treat))%>%
+  mutate(AD_prev=sum(AD_prev))%>%
+  mutate(AD_unavoid=sum(AD_unavoid))%>%
+  mutate(AD_sum=sum(AD_sum))  %>%
+  mutate(cancer="Ten Cancer Sites")%>%
+  mutate(cancer_code=1000)%>%
+  ungroup()%>%
+  distinct()
+  
+AD_by_HDI
 
 

@@ -8,19 +8,23 @@ library(ggrepel)
 library(rgdal)
 library(pastecs)
 
+
 # load AD results
 
 Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_age_cat%>%
-  filter(age_cat=="Overall")
+  filter(age_cat=="Overall")%>%
+  group_by(country_code,cancer_code)%>%
+  
+  
 
-AD <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
+AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
 
 # load id for each country
 dict_id <-  as.data.table(read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_map.csv", sep=","))
 dict_id %>% dplyr::select(-country_label)-> dict_id
 
 # merge paf data with dict_id
-AD <- merge(AD, dict_id, by = c("country_code"), all.x = T) 
+AD_Map <- merge(AD_Map, dict_id, by = c("country_code"), all.x = T) 
 
 #------ map shape ------------------
 
@@ -97,9 +101,9 @@ colors_red_GCO <- c("#99000d","#cb181d","#ef3b2c","#fb6a4a", "#fc9272", "#fcbba1
 
 allc <- AD[sex == 1,][type==1,]
 
-break_quantile <- quantile(allc$asr, probs = seq(0, 1, by = 0.125), na.rm = T)
+break_quantile <- quantile(allc$AD_treat, probs = seq(0, 1, by = 0.125), na.rm = T)
 
-allc$cutpoint <- cut(allc$asr, breaks = rev(break_quantile), include.lowest = TRUE)
+allc$cutpoint <- cut(allc$AD_treat, breaks = rev(break_quantile), include.lowest = TRUE)
 table(allc$cutpoint)
 allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
 
@@ -169,7 +173,7 @@ ggplot() +
         legend.position =c(0.085, 0),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "ASR (World) per 100 000",
+  scale_fill_manual(name = "AD_treat (World) per 100 000",
                     values= colors_blue_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -184,9 +188,9 @@ ggsave("map_male_all_cancers.pdf",width = 40, height = 30, pointsize = 12)
 
 allc <- AD[sex == 2,][type==1,]
 
-break_quantile <- quantile(allc$asr, probs = seq(0, 1, by = 0.125), na.rm = T)
+break_quantile <- quantile(allc$AD_treat, probs = seq(0, 1, by = 0.125), na.rm = T)
 
-allc$cutpoint <- cut(allc$asr, breaks = rev(break_quantile), include.lowest = TRUE)
+allc$cutpoint <- cut(allc$AD_treat, breaks = rev(break_quantile), include.lowest = TRUE)
 table(allc$cutpoint)
 allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
 
@@ -256,7 +260,7 @@ ggplot() +
         legend.position =c(0.085, 0),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "ASR (World) per 100 000",
+  scale_fill_manual(name = "AD_treat (World) per 100 000",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -269,11 +273,11 @@ ggsave("map_female_all_cancers.pdf",width = 40, height = 30, pointsize = 12)
 
 #--- maps for AD mortality in both sexes ----
 
-allc <- AD[sex == 0,][type==1,]
+allc <- AD
 
-break_quantile <- quantile(allc$asr, probs = seq(0, 1, by = 0.125), na.rm = T)
+break_quantile <- quantile(allc$AD_treat, probs = seq(0, 1, by = 0.125), na.rm = T)
 
-allc$cutpoint <- cut(allc$asr, breaks = rev(break_quantile), include.lowest = TRUE)
+allc$cutpoint <- cut(allc$AD_treat, breaks = rev(break_quantile), include.lowest = TRUE)
 table(allc$cutpoint)
 allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
 
@@ -334,18 +338,18 @@ ggplot() +
   #      labs(title = paste0(cancer,", ",gender))+
   coord_equal() + 
   theme_opts +
-  theme(legend.key.width= unit(2.6, "cm"), #1.5 before
-        legend.key.height= unit(1.4, "cm"),
-        legend.direction= "vertical",
-        legend.text = element_text(size=28),
-        legend.title = element_text(size=28, hjust = 1),
-        legend.title.align=0.5,
-        legend.position =c(0.085, 0),
-        legend.background = element_rect(fill="transparent"),
+   theme(legend.key.width= unit(2.6, "cm"), #1.5 before
+  #       legend.key.height= unit(1.4, "cm"),
+  #       legend.direction= "vertical",
+  #       legend.text = element_text(size=28),
+  #       legend.title = element_text(size=28, hjust = 1),
+  #       legend.title.align=0.5,
+  #       legend.position =c(0.085, 0),
+  #       legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "ASR (World) per 100 000",
+  scale_fill_manual(name = "Treatable AD for all ten Cancer sites (number)",
                     values= colors_red_GCO,
-                    labels= labels_leg, 
+                   #labels= labels_leg, 
                     na.value = "#cccccc",
                     drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
