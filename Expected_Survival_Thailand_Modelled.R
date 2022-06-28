@@ -84,14 +84,13 @@ for (j in 0:20){
 
   
   DataTemp2 <- expand.grid(age=((j*5):(5*(j+1)-1)),year=2009:2014)   #
-  DataTemp2$year <- as.Date(paste0(DataTemp2$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
+  DataTemp2$year <- as.Date(paste0(DataTemp2$year,"-01-01"), origin="1960-01-01", format="%Y-%m-%d")
   DataTemp2$cens <- 0 ## actually, not used in the calculations...
   DataTemp2$timeFix <- 0
   DataTemp2$sex <- 2
   DataTemp2$w <- 1/dim(DataTemp2)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
   
   for (i in 1000:1000){
-
     DataTemp$timeFix <- Time[i]
     Temp <- calcExpect(time="timeFix",
                        event="cens", 

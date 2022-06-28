@@ -51,11 +51,11 @@ Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.c
   left_join(country_codes, by = c("region" = "country_label"))
 Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
 
-popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()
-popmort<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort2.dta")%>%as.data.frame()
+popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()%>%
   left_join(country_codes)
+popmort<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort2.dta")%>%as.data.frame()
 
-p<-read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
+p <- read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
     as.data.frame()
 
 MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
