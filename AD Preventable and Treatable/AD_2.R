@@ -23,6 +23,12 @@ library(ggplot2)
 library(relsurv)
 
 #Reading all the variables
+# GCO_country_info.csv has correct country_label variable to match with pop_mort2
+country_codes <-
+  read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
+  filter(country_code<900) %>% 
+  select(country_code, country_label)
+
 PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Prostate.csv")%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
@@ -142,11 +148,7 @@ ES2<-ES_dt%>%
 # 
 
 
-# GCO_country_info.csv has correct country_label variable to match with pop_mort2
-country_codes <-
-  read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
-  filter(country_code<900) %>% 
-  select(country_code, country_label)
+
 
 ten_cancer_sites <-
   Cancer_codes %>% 
