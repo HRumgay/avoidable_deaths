@@ -177,7 +177,7 @@ PAFs_age_Cat2<-PAFs_simulated%>%
     age==13~ 13,
     age==14~ 14,
     age==15~ 15,
-    age>=16 ~ 16,
+    age>=16 ~ 16
   ))%>%
   mutate(
     age_cat = case_when(
