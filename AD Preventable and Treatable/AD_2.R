@@ -914,7 +914,9 @@ title("Breast Cancer Survival Kaplan Meier")
 #First setup survival object
 km <- Surv(time =Thai_Surv_test$surv_yydd , event = Thai_Surv_test$event1)
 #Fit Kaplan Meier, stratifying by treatment
-km_breast_cancer<-survfit(km~age_cat, data=Thai_Surv_test,type='kaplan-meier',conf.type='log')
+km_breast_cancer<-survfit(km~age_cat, 
+                          data=Thai_Surv_test,
+                          type='kaplan-meier',conf.type='log')
 
 library(survminer)
 
