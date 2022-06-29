@@ -255,7 +255,7 @@ Thai_Surv<-Thai_Surv3%>%left_join(Thai_Surv11)#%>%ungroup()%>%
 Thai_Surv_Lower <- Thai_Surv %>% filter(age_cat == "15-64")
 Thai_Surv_Upper <- Thai_Surv %>% filter(age_cat == "65-99")
 
-Thai_Surv_age_cats <- Thai_Surv_overall %>% full_join(Thai_Surv)
+Thai_Surv_age_cats <- Thai_Surv #Thai_Surv_overall %>% full_join(Thai_Surv)
 
 
 is.na(Thai_Surv$mx) #60 people have ages above 100 but were between 15-99 years at age of diagnosis. Should they be excluded?
@@ -436,30 +436,30 @@ for (i in 1:nrow(cancer_codes_tibble)) {
 
 Net_Survival_Five_Year_age_1 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
 Net_Survival_Five_Year_age_2 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
-Net_Survival_Five_Year_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
+# Net_Survival_Five_Year_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
 
 
 
 All_Cause_Survival_age_1 <- matrix(ncol = 5, nrow = nrow(cancer_codes))    #S(t)
 All_Cause_Survival_age_2 <- matrix(ncol = 5, nrow = nrow(cancer_codes) )    #S(t)
-All_Cause_Survival_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes) )    #S(t)
+# All_Cause_Survival_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes) )    #S(t)
 
 for (i in 1:nrow(cancer_codes_tibble)) {
   s <-  Predictions_Cubic_Net_age_1[[i]]$results
   s <-  s %>% filter(time.pts == 5)
   s2 <-  Predictions_Cubic_Net_age_2[[i]]$results
   s2 <-  s2 %>% filter(time.pts == 5)
-  s3 <-  Predictions_Cubic_Net_age_3[[i]]$results
-  s3 <-  s3 %>% filter(time.pts == 5)
-  
+  # s3 <-  Predictions_Cubic_Net_age_3[[i]]$results
+  # s3 <-  s3 %>% filter(time.pts == 5)
+  # 
   
   sp <- Predictions_Cubic_All_Cause_age_1[[i]]$results
   sp <-  sp %>% filter(time.pts == 5)
   sp2 <- Predictions_Cubic_All_Cause_age_2[[i]]$results
   sp2 <-  sp2 %>% filter(time.pts == 5)
-  sp3 <- Predictions_Cubic_All_Cause_age_3[[i]]$results
-  sp3 <-  sp3 %>% filter(time.pts == 5)
-  
+  # sp3 <- Predictions_Cubic_All_Cause_age_3[[i]]$results
+  # sp3 <-  sp3 %>% filter(time.pts == 5)
+  # 
   
   Net_Survival_Five_Year_age_1[i,] <-
     c(ten_cancer_sites[i,1],
@@ -471,12 +471,12 @@ for (i in 1:nrow(cancer_codes_tibble)) {
       s2$surv,
       s2$surv.inf,
       s2$surv.sup)
-  Net_Survival_Five_Year_age_3[i,] <-
-    c(ten_cancer_sites[i,1],
-      ten_cancer_sites[i,2],
-      s3$surv,
-      s3$surv.inf,
-      s3$surv.sup)
+  # Net_Survival_Five_Year_age_3[i,] <-
+  #   c(ten_cancer_sites[i,1],
+  #     ten_cancer_sites[i,2],
+  #     s3$surv,
+  #     s3$surv.inf,
+  #     s3$surv.sup)
   
   All_Cause_Survival_age_1[i,] <-
     c(ten_cancer_sites[i,1],
@@ -490,12 +490,12 @@ for (i in 1:nrow(cancer_codes_tibble)) {
       sp2$surv,
       sp2$surv.inf,
       sp2$surv.sup)
-  All_Cause_Survival_age_3[i,] <-
-    c(ten_cancer_sites[i,1],
-      ten_cancer_sites[i,2],
-      sp3$surv,
-      sp3$surv.inf,
-      sp3$surv.sup)
+  # All_Cause_Survival_age_3[i,] <-
+  #   c(ten_cancer_sites[i,1],
+  #     ten_cancer_sites[i,2],
+  #     sp3$surv,
+  #     sp3$surv.inf,
+  #     sp3$surv.sup)
 }
 
 #
@@ -506,12 +506,12 @@ Net_Survival_Five_Year_age_1 <-
   as.data.frame(Net_Survival_Five_Year_age_1)
 Net_Survival_Five_Year_age_2 <-
   as.data.frame(Net_Survival_Five_Year_age_2)
-Net_Survival_Five_Year_age_3 <-
-  as.data.frame(Net_Survival_Five_Year_age_3)
+# Net_Survival_Five_Year_age_3 <-
+#   as.data.frame(Net_Survival_Five_Year_age_3)
 
 All_Cause_Survival_age_1 <- as.data.frame(All_Cause_Survival_age_1)
 All_Cause_Survival_age_2 <- as.data.frame(All_Cause_Survival_age_2)
-All_Cause_Survival_age_3 <- as.data.frame(All_Cause_Survival_age_3)
+# All_Cause_Survival_age_3 <- as.data.frame(All_Cause_Survival_age_3)
 
 colnames(Net_Survival_Five_Year_age_1) <-
   c("cancer_code",
@@ -525,12 +525,12 @@ colnames(Net_Survival_Five_Year_age_2) <-
     "Five_Year_Net_Surv",
     "NS_Lower_CI",
     "NS_Upper_CI")
-colnames(Net_Survival_Five_Year_age_3) <-
-  c("cancer_code",
-    "cancer",
-    "Five_Year_Net_Surv",
-    "NS_Lower_CI",
-    "NS_Upper_CI")
+# colnames(Net_Survival_Five_Year_age_3) <-
+#   c("cancer_code",
+#     "cancer",
+#     "Five_Year_Net_Surv",
+#     "NS_Lower_CI",
+#     "NS_Upper_CI")
 
 colnames(All_Cause_Survival_age_1) <-
   c("cancer_code",
@@ -544,12 +544,12 @@ colnames(All_Cause_Survival_age_2) <-
     "Five_Year_all_cause_Surv",
     "OS_Lower_CI",
     "OS_Upper_CI")
-colnames(All_Cause_Survival_age_3) <-
-  c("cancer_code",
-    "cancer",
-    "Five_Year_all_cause_Surv",
-    "OS_Lower_CI",
-    "OS_Upper_CI")
+# colnames(All_Cause_Survival_age_3) <-
+#   c("cancer_code",
+#     "cancer",
+#     "Five_Year_all_cause_Surv",
+#     "OS_Lower_CI",
+#     "OS_Upper_CI")
 
 
 
@@ -719,10 +719,10 @@ NS_OS_PAF <- NS_OS %>%
 
 
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
-Avoidable_Deaths <- matrix(ncol = 11, nrow = nrow(NS_OS_PAF)) #AD(t)
+Avoidable_Deaths <- matrix(ncol = 13, nrow = nrow(NS_OS_PAF)) #AD(t)
 
 for (i in 1:nrow(NS_OS_PAF)){
-  Expected_5_year_surv_mx <-ES
+  Expected_5_year_surv_mx <-NS_OS_PAF[i,]$ES
   #Preventable deaths
   AD_prev <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
     (1 - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
@@ -758,7 +758,8 @@ for (i in 1:nrow(NS_OS_PAF)){
   # AD_unavoid_Upper <-
   #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
   # 
-  Avoidable_Deaths[i, ] <- c(
+  Avoidable_Deaths[i, ] <- c(    NS_OS_PAF[i, ]$country_code,
+                                 NS_OS_PAF[i, ]$country_label,
     NS_OS_PAF[i, ]$age_cat,
     NS_OS_PAF[i, ]$cancer_code,
     NS_OS_PAF[i, ]$cancer_label,
@@ -777,9 +778,11 @@ for (i in 1:nrow(NS_OS_PAF)){
 
 
 
-colnames(Avoidable_Deaths) <- c("age_cat",
+colnames(Avoidable_Deaths) <- c("country_code",
+                                "country_label",
+  "age_cat",
     "cancer_code",
-    "cancer",
+    "cancer_label",
     "AD_treat",
     "AD_treat_Lower",
     "AD_treat_Upper",
@@ -794,17 +797,53 @@ colnames(Avoidable_Deaths) <- c("age_cat",
 
 MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
   filter(country_label=="Thailand")%>%
-  select(-country_label, - country_code, -cancer_label, -X)
+  select(-country_label, -cancer_label, -X)
 
 Avoidable_Deaths<-Avoidable_Deaths%>%
   as.data.frame()%>%
   mutate(AD_treat=as.numeric(AD_treat))%>%
+  mutate(AD_treat_Lower=as.numeric(as.character(AD_treat_Lower)))%>%
+  mutate(AD_treat_Upper=as.numeric(as.character(AD_treat_Upper)))%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
+  mutate(AD_prev_Lower=as.numeric(as.character(AD_prev_Lower)))%>%
+  mutate(AD_prev_Upper=as.numeric(as.character(AD_prev_Upper)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
+  mutate(total=as.numeric(as.character(total)))%>%
   mutate(AD_sum=AD_treat+AD_prev+AD_unavoid)%>%
+  mutate(country_code=as.numeric(as.character(country_code)))%>%
  # filter(total<AD_treatprev)%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
-  left_join(MIR_Age_Cats_Thailand, by=c("cancer_code", "age_cat"))
+  left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
+
+
+Avoidable_Deaths_overall<-Avoidable_Deaths%>%
+  mutate(age_cat="Overall")%>%
+  group_by(cancer_code, age_cat)%>%
+  mutate(total=sum(total))%>%
+  mutate(AD_prev= sum(AD_prev))%>%
+  mutate(AD_prev_Lower= sum(AD_prev_Lower))%>%
+  mutate(AD_prev_Upper= sum(AD_prev_Upper))%>%
+  mutate(AD_treat = sum(AD_treat))%>%
+  mutate(AD_treat_Lower= sum(AD_treat_Lower))%>%
+  mutate(AD_treat_Upper= sum(AD_treat_Upper))%>%
+  mutate(AD_unavoid = sum(AD_unavoid))%>%
+  mutate(AD_sum=AD_treat+AD_prev+AD_unavoid)%>%
+  mutate(MIR=sum(total*MIR)/sum(total))%>%
+  distinct()%>%
+  as.data.frame()
+
+Avoidable_Deaths_age_cat<-Avoidable_Deaths%>%
+  group_by(cancer_code, age_cat)%>%
+  mutate(AD_prev= sum(AD_prev))%>%
+  mutate(AD_treat = sum(AD_treat))%>%
+  mutate(AD_unavoid = sum(AD_unavoid))%>%
+  full_join(Avoidable_Deaths_overall)%>%
+#  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+#  mutate(total_overall=sum(total_overall))%>%
+  distinct()%>%
+ # arrange(cancer, age_cat)%>%
+  as.data.frame()#%>%
+  #left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
 
 
 
@@ -841,7 +880,8 @@ write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 # #https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/
 # 
 # #creating training and test datasets
-Thai_Surv_test<-Thai_Surv%>%full_join(Thai_Surv_overall)%>%
+Thai_Surv_test<-Thai_Surv%>%
+#full_join(Thai_Surv_overall)%>%
 filter(cancer_code==20)
 # 
 # ten_cancer_sites
