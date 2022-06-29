@@ -435,7 +435,7 @@ AD_by_HDI<- Avoidable_Deaths_Simulated_All_age_cat%>%
   mutate(AD_unavoid=sum(AD_unavoid))%>%
   mutate(AD_sum=sum(AD_sum))  %>%
   ungroup()%>%
-  distinct()
+  distinct()%>%as.data.frame()
 
 
 AD_by_HDI_overall<-AD_by_HDI%>%filter(age_cat=="Overall")%>%select(-age_cat)
