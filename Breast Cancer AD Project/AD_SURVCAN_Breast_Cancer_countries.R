@@ -75,7 +75,6 @@ library(relsurv)
 
 #Reading all the variables
 
-<<<<<<< HEAD
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
 country_codes <-
   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
@@ -86,34 +85,6 @@ PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\
 
 PAFs<-PAFs10%>%
     mutate(cancer_label=as.character(cancer_label))%>%
-=======
-###############################################
-#
-# Net survival and Avoidable deaths
-#  Date: 09/06/2022
-# Version 2.22
-#
-# Works for multiple cancer sites currently.
-#
-#Needs to be synced
-#
-###############################################
-
-
-#Avoidable Deaths due to Risk Factors for various Cancer sites
-library(readxl)
-library(dplyr)
-library(tidyverse)
-library(stringr)
-library(haven)
-library(mexhaz)
-library(readr)
-library(ggplot2)
-library(relsurv)
-
-#Reading all the variables
-PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Prostate.csv")%>%
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
@@ -129,7 +100,6 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Pros
   ungroup()%>%
   as.data.frame()
 
-<<<<<<< HEAD
 survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()
 Cancer_codes_Survcan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
@@ -148,37 +118,11 @@ p <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Olive
   as.data.frame()
 
 MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
-=======
-survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Data/survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
-Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
-Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
-
-Thailand <- read.csv("~/Documents/R_Projects/Data/survival_Thailand_anchor_ALL.csv") %>% as.data.frame()
-Israel <- read.csv("~/Documents/R_Projects/Data/survival_Israel_anchor_ALL.csv") %>% as.data.frame()
-HDI <-read.csv("~/Documents/R_Projects/Data/HDI_2019.csv") %>% as.data.frame()
-Thailand_Survcan <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()
-Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.csv") %>% as.data.frame() %>%
-  left_join(country_codes, by = c("region" = "country_label"))
-Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
-
-popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()%>%
-  left_join(country_codes)
-popmort<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort2.dta")%>%as.data.frame()
-
-p <- read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
-  as.data.frame()
-
-MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   as.data.frame()%>%select(-mortality,-incidence)%>%
   mutate(MIR=replace(MIR,MIR==Inf, NA))
 
 #same file but Globocan age groups for modeled data 
-<<<<<<< HEAD
 MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR.csv")%>%
-=======
-MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR.csv")%>%
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   as.data.frame()%>%
   select(-mortality,
          -incidence)%>%
@@ -205,15 +149,9 @@ MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR.csv")%>%
   ungroup()
 
 
-<<<<<<< HEAD
 Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
 
 Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.csv")%>%
-=======
-Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
-
-Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv")%>%
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   as.data.frame()%>%
   select( age, 
           cancer_code, 
@@ -221,11 +159,7 @@ Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv
   rename("surv_ref"="rel_surv")%>%
   distinct()
 
-<<<<<<< HEAD
 Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
-=======
-Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   as.data.frame()%>%
   select( age_cat, 
           cancer_code, 
@@ -236,11 +170,7 @@ Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Surv
 
 
 
-<<<<<<< HEAD
 load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\ES_dt.RData")
-=======
-load("~/Documents/R_Projects/Data/ES_dt.RData")
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
 
 ES2<-ES_dt%>%
   filter(time==1000)%>%
@@ -271,28 +201,15 @@ ES2<-ES_dt%>%
 # 
 
 
-<<<<<<< HEAD
-=======
-# GCO_country_info.csv has correct country_label variable to match with pop_mort2
-country_codes <-
-  read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
-  filter(country_code<900) %>% 
-  select(country_code, country_label)
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
 
 ten_cancer_sites <-
   Cancer_codes %>% 
   filter(cancer_code %in% c(6, 7, 11, 13, 15, 20, 23, 27, 30, 38))%>%
-<<<<<<< HEAD
   mutate(cancer_label=as.character(cancer_label))%>%
   mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
 
 Cancer_codes_Survcan<-Cancer_codes_Survcan%>%
   mutate(cancer=as.character(cancer))
-=======
-  mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
-
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
 
 
 #Checking cancer codes in various files
@@ -342,10 +259,7 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   droplevels()%>%
   mutate(last_FU_age = round(age + surv_dd/365.15)) %>% #creating variable for age of death
   mutate(last_FU_year = round(year + surv_dd/365.15))%>%  #creating variable for year of death
-<<<<<<< HEAD
   mutate(sex=as.character(sex))%>%
-=======
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   mutate(sex = replace(sex, sex == "Male", 1)) %>%
   mutate(sex = replace(sex, sex == "Female", 2)) %>%
   mutate(sex = as.integer(sex)) %>%
@@ -363,19 +277,6 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
   filter(cancer_code %in% ten_cancer_sites$cancer_code)
 
-<<<<<<< HEAD
-=======
-Thai_Surv3 <- Thai_Survcan2%>%
-  mutate(surv_yydd=surv_dd/365.15)%>%
-  mutate(event1=case_when(dead==1 &      surv_yydd<=5 ~ 1,
-                          dead==1 & surv_yydd>5 ~ 0,
-                          dead==0 ~ 0
-  ))
-
-#modifying so last five years of follow up
-
-
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
 
 Thai_Surv11<- Thai_Surv3%>%
   select(region_lab, country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
@@ -763,15 +664,9 @@ NS_OS$Five_Year_Net_Surv <- as.numeric(as.character(NS_OS$Five_Year_Net_Surv))
 NS_OS$NS_Lower_CI <- as.numeric(as.character(NS_OS$NS_Lower_CI))
 NS_OS$NS_Upper_CI <- as.numeric(as.character(NS_OS$NS_Upper_CI))
 NS_OS$Five_Year_all_cause_Surv <-
-<<<<<<< HEAD
   as.numeric(as.character(NS_OS$Five_Year_all_cause_Surv))
 NS_OS$OS_Lower_CI <- as.numeric(as.character(NS_OS$OS_Lower_CI))
 NS_OS$OS_Upper_CI <- as.numeric(as.character(NS_OS$OS_Upper_CI))
-=======
-  as.numeric(NS_OS$Five_Year_all_cause_Surv)
-NS_OS$OS_Lower_CI <- as.numeric(NS_OS$OS_Lower_CI)
-NS_OS$OS_Upper_CI <- as.numeric(NS_OS$OS_Upper_CI)
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
 NS_OS$cancer <- as.factor(as.character(NS_OS$cancer))
 NS_OS$age_cat <- as.factor(NS_OS$age_cat)
 
@@ -864,12 +759,9 @@ NS_OS_PAF <- NS_OS %>%
   left_join(Reference_Survival_Survcan,by=c("age_cat","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
   droplevels()%>%
   mutate(cancer=as.character(cancer))%>%
-<<<<<<< HEAD
   mutate(cancer_code=as.numeric(cancer_code))%>%
   mutate(country_label=as.character(country_label))%>%
   mutate(country_code=as.numeric(country_code))%>%
-=======
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   distinct()
 
 #Three AD calcs
@@ -958,11 +850,7 @@ MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
 
 Avoidable_Deaths<-Avoidable_Deaths%>%
   as.data.frame()%>%
-<<<<<<< HEAD
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
-=======
-  mutate(AD_treat=as.numeric(AD_treat))%>%
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
   mutate(AD_treat_Lower=as.numeric(as.character(AD_treat_Lower)))%>%
   mutate(AD_treat_Upper=as.numeric(as.character(AD_treat_Upper)))%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
@@ -1009,19 +897,4 @@ Avoidable_Deaths_age_cat<-Avoidable_Deaths%>%
 
 
 NS_OS_PAF
-<<<<<<< HEAD
-=======
-
-###############
-#
-#Exporting Results
-#
-###############
-
-
-write.csv(Avoidable_Deaths, "~/Documents/R_Projects/Data/Thai_AD.csv")
-write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
-
-
->>>>>>> b5741ea99b52058a9fe27f05d89bb65c9cea7504
 
