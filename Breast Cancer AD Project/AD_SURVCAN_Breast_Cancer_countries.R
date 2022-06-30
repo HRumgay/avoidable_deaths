@@ -23,6 +23,8 @@ library(readr)
 library(ggplot2)
 library(relsurv)
 library(readstata13)
+library(janitor)
+
 
 
 
@@ -30,7 +32,6 @@ library(readstata13)
 # 
 # 
 # #Data set imports
- life_file_list<-list.files('\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\lifetables\\Expanded_2018', full.names=TRUE)
 # #GLobocan
 # g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\Globocan.csv")
 # pops_g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\source\\Pops.csv")
@@ -41,42 +42,6 @@ library(readstata13)
 # prev<-read.dta13("\\\\Inti\\cin\\Studies\\Prevalence\\2020\\_data\\incidence\\prelim\\incident_mortality_asr-2020.dta")
 # HDI3<-read.csv("\\\\Inti\\cin\\Studies\\Prevalence\\2020\\_data\\hdi\\hdi_2020.csv")
 # 
-#Life tables - used for analysis
-#To clean all names from the _ symbol
- life<-plyr::ldply(life_file_list,read.dta13)
- life<-life%>%as.data.frame()%>%
-  clean_names()%>%
-  filter(!is.na(mx))
-
- Mauritius<-read.dta13(life_file_list[22])
-# Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
-
-life<-life%>%full_join(Mauritius)
-
-#Load mortality rates for survival analysis. Correct and use probability
-life_table<-life%>%filter(sex==2)%>%
-  select(region,year,age,mx,prob)%>%
-  mutate(region=replace(region,region=="Korea","South Korea"))%>%
-  mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
-  mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
-  mutate(region=replace(region,region=="Saudi_Arabia","Saudi Arabia"))%>%
-  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
-  mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
-  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
-  mutate(region=replace(region,region=="Ethiopy","Ethiopia"))
-
-# 
-# #adding the mortality rates of 2015 to the years 2016-2020
-# 
-life_table_2019<-life_table%>% filter(year==2015)%>%
-  mutate(year=replace(year,year==2015,2019))
-life_table_2020<-life_table%>% filter(year==2015)%>%
-  mutate(year=replace(year,year==2015,2020))
-
-life_table_complete<-life_table %>%
-  full_join(life_table_2019) %>%
-  full_join(life_table_2020)
-
 
 
 #Reading all the variables
