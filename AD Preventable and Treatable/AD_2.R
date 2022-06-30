@@ -13,6 +13,8 @@
 
 #Avoidable Deaths due to Risk Factors for various Cancer sites
 library(readxl)
+# library(data.table)
+# library(dtplyr)
 library(dplyr)
 library(tidyverse)
 library(stringr)
@@ -21,6 +23,7 @@ library(mexhaz)
 library(readr)
 library(ggplot2)
 library(relsurv)
+
 
 #Reading all the variables
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
