@@ -13,6 +13,7 @@
 
 #Avoidable Deaths due to Risk Factors for various Cancer sites
 library(readxl)
+library(plyr)
 library(dplyr)
 library(tidyverse)
 library(stringr)
@@ -21,21 +22,15 @@ library(mexhaz)
 library(readr)
 library(ggplot2)
 library(relsurv)
+library(readstata13)
 
 
-install.packages("readxl")
-install.packages("dplyr")
-install.packages("tidyverse")
-install.packages("stringr")
-install.packages("haven")
-install.packages("mexhaz")
-install.packages("readr")
-install.packages("ggplot2")
-install.packages("relsurv")
+
+
 # 
 # 
 # #Data set imports
-# life_file_list<-list.files('\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\lifetables\\Expanded_2018', full.names=TRUE)
+ life_file_list<-list.files('\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\lifetables\\Expanded_2018', full.names=TRUE)
 # #GLobocan
 # g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\Globocan.csv")
 # pops_g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\source\\Pops.csv")
@@ -46,41 +41,41 @@ install.packages("relsurv")
 # prev<-read.dta13("\\\\Inti\\cin\\Studies\\Prevalence\\2020\\_data\\incidence\\prelim\\incident_mortality_asr-2020.dta")
 # HDI3<-read.csv("\\\\Inti\\cin\\Studies\\Prevalence\\2020\\_data\\hdi\\hdi_2020.csv")
 # 
-# #Life tables - used for analysis
-# #To clean all names from the _ symbol
-# life<-plyr::ldply(life_file_list,read.dta13)
-# life<-life%>%as.data.frame()%>%
-#   clean_names()%>%
-#   filter(!is.na(mx))
-# 
-# Mauritius<-read.dta13(life_file_list[22])
+#Life tables - used for analysis
+#To clean all names from the _ symbol
+ life<-plyr::ldply(life_file_list,read.dta13)
+ life<-life%>%as.data.frame()%>%
+  clean_names()%>%
+  filter(!is.na(mx))
+
+ Mauritius<-read.dta13(life_file_list[22])
 # Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
-# 
-# life<-life%>%full_join(Mauritius)
-# 
-# #Load mortality rates for survival analysis. Correct and use probability
-# life_table<-life%>%filter(sex==2)%>%
-#   select(region,year,age,mx,prob)%>%
-#   mutate(region=replace(region,region=="Korea","South Korea"))%>%
-#   mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
-#   mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
-#   mutate(region=replace(region,region=="Saudi_Arabia","Saudi Arabia"))%>%
-#   mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
-#   mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
-#   mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
-#   mutate(region=replace(region,region=="Ethiopy","Ethiopia"))
-# 
+
+life<-life%>%full_join(Mauritius)
+
+#Load mortality rates for survival analysis. Correct and use probability
+life_table<-life%>%filter(sex==2)%>%
+  select(region,year,age,mx,prob)%>%
+  mutate(region=replace(region,region=="Korea","South Korea"))%>%
+  mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
+  mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
+  mutate(region=replace(region,region=="Saudi_Arabia","Saudi Arabia"))%>%
+  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
+  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  mutate(region=replace(region,region=="Ethiopy","Ethiopia"))
+
 # 
 # #adding the mortality rates of 2015 to the years 2016-2020
 # 
-# life_table_2019<-life_table%>% filter(year==2015)%>%
-#   mutate(year=replace(year,year==2015,2019))
-# life_table_2020<-life_table%>% filter(year==2015)%>%
-#   mutate(year=replace(year,year==2015,2020))
-# 
-# life_table_complete<-life_table %>%
-#   full_join(life_table_2019) %>%
-#   full_join(life_table_2020) 
+life_table_2019<-life_table%>% filter(year==2015)%>%
+  mutate(year=replace(year,year==2015,2019))
+life_table_2020<-life_table%>% filter(year==2015)%>%
+  mutate(year=replace(year,year==2015,2020))
+
+life_table_complete<-life_table %>%
+  full_join(life_table_2019) %>%
+  full_join(life_table_2020)
 
 
 
@@ -95,11 +90,11 @@ country_codes <-
 PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_08.06.2022_Prostate.csv")
 
 PAFs<-PAFs10%>%
-    mutate(cancer_label=as.character(cancer_label))%>%
+  mutate(cancer_label=as.character(cancer_label))%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
-  mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
-  mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
+  mutate(cancer_code  = replace(cancer_code, cancer_code == 8, 38))%>%
+  mutate(cancer_code  = replace(cancer_code, cancer_code == 9, 38))%>%
   group_by(country_code, sex, 
            cancer_code, age)%>%
   filter(sex!=0)%>%
@@ -116,10 +111,13 @@ Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research vi
 Cancer_codes_Survcan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
 
 HDI <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI_2019.csv") %>% as.data.frame()
-Thailand_Survcan <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()
+
+
+bcan_SURV <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\SURVCANALL_cc_breast_11May2022.csv")# %>% as.data.frame() Data\\Oliver_Langselius\\SURVCANALL_cc.csv
+
 Thailand_popmort <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\popmort_Thailand.csv") %>% as.data.frame() %>%
   left_join(country_codes, by = c("region" = "country_label"))
-Thailand_pop <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_pop.csv") %>% as.data.frame()
+
 
 popmort2<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort.dta")%>%as.data.frame()%>%
   left_join(country_codes)
@@ -160,15 +158,15 @@ MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visi
   ungroup()
 
 
-Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
+#Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
 
-Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.csv")%>%
-  as.data.frame()%>%
-  select( age, 
-          cancer_code, 
-          rel_surv)%>%
-  rename("surv_ref"="rel_surv")%>%
-  distinct()
+# Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.csv")%>%
+#   as.data.frame()%>%
+#   select( age, 
+#           cancer_code, 
+#           rel_surv)%>%
+#   rename("surv_ref"="rel_surv")%>%
+#   distinct()
 
 Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
   as.data.frame()%>%
@@ -227,7 +225,7 @@ b<-simulated_overall%>%
   ungroup()%>%
   summarize(cancer_code, cancer_label)%>%
   distinct()
-survcancancer<-Thai_Surv%>%
+survcancancer<-bSURV%>%
   ungroup()%>%
   summarize(cancer_code, cancer)%>%
   distinct()
@@ -253,7 +251,7 @@ Thailand_popmort2 <-
 
 
 #Prepping cancer real world data
-Thai_Survcan2 <- Thailand_Survcan %>%
+bcan_SURV2 <- bcan_SURV %>%
   filter(include == "Included") %>%
   filter(age >= 15) %>%
   filter(age <= 99) %>%
@@ -285,7 +283,7 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
   filter(cancer_code %in% ten_cancer_sites$cancer_code)
 
-Thai_Surv3 <- Thai_Survcan2%>%
+bcan_SURV3 <- bcan_SURV2%>%
   mutate(surv_yydd=surv_dd/365.15)%>%
   mutate(event1=case_when(dead==1 &      surv_yydd<=5 ~ 1,
                           dead==1 & surv_yydd>5 ~ 0,
@@ -296,33 +294,33 @@ Thai_Surv3 <- Thai_Survcan2%>%
 
 
 
-Thai_Surv11<- Thai_Surv3%>%
+bcan_SURV11<- bcan_SURV3%>%
   select(region_lab, country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
   group_by(region_lab,country,cancer_code)%>%
   summarize( end_FU=max(year))%>%
   as.data.frame()
 
 
-Thai_Surv<-Thai_Surv3%>%left_join(Thai_Surv11)#%>%ungroup()%>%
+bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)#%>%ungroup()%>%
 # filter(year>=end_FU-5)
 # mutate(surv_yy=case_when(surv_yy<=5 ~ 5
 # )
 # )
 
-#Thai_Surv$sex <- as.integer(Thai_Surv$sex)
+#bSURV$sex <- as.integer(bSURV$sex)
 
-#Thai_Surv_test<-Thai_Surv%>%filter(cancer_code==30)
+#survcan_test<-bSURV%>%filter(cancer_code==30)
 
 
 #age categories
-#Thai_Surv_overall <- Thai_Surv %>% mutate(age_cat = "Overall")
-Thai_Surv_Lower <- Thai_Surv %>% filter(age_cat == "15-64")
-Thai_Surv_Upper <- Thai_Surv %>% filter(age_cat == "65-99")
+#bSURV_overall <- bSURV %>% mutate(age_cat = "Overall")
+bSURV_Lower <- bSURV %>% filter(age_cat == "15-64")
+bSURV_Upper <- bSURV %>% filter(age_cat == "65-99")
 
-Thai_Surv_age_cats <- Thai_Surv #Thai_Surv_overall %>% full_join(Thai_Surv)
+bSURV_age_cats <- bSURV #bSURV_overall %>% full_join(bSURV)
 
 
-is.na(Thai_Surv$mx) #60 people have ages above 100 but were between 15-99 years at age of diagnosis. Should they be excluded?
+is.na(bSURV$mx) #60 people have ages above 100 but were between 15-99 years at age of diagnosis. Should they be excluded?
 
 
 
@@ -339,9 +337,9 @@ time <- seq(0, 5, le = 5001)
 
 #Names for countries, regions and age groups for next step
 #Removes empty age variables for model to be run properly
-Thai_Surv <- Thai_Surv %>% droplevels()
+bSURV <- bSURV %>% droplevels()
 
-cancer_types <- as_tibble(names(table(Thai_Surv$cancer))) #Needs to be tibble for predictions
+cancer_types <- as_tibble(names(table(bSURV$cancer))) #Needs to be tibble for predictions
 
 names(cancer_types)[names(cancer_types) == "value"] <- "cancer"
 cancer_types <-  as.data.frame(cancer_types) #For regression needs to be in this form
@@ -350,7 +348,7 @@ cancer_codes <- as_tibble(names(table(ten_cancer_sites$cancer_code))) #Needs to 
 names(cancer_codes)[names(cancer_codes) == "value"] <- "cancer_code"
 cancer_codes <- as.data.frame(cancer_codes) #For regression needs to be in this form
 
-sex <-as_tibble(names(table(Thai_Surv$sex))) #Needs to be tibble for predictions
+sex <-as_tibble(names(table(bSURV$sex))) #Needs to be tibble for predictions
 names(sex)[names(sex) == "value"] <- "sex"
 sex <- as.data.frame(sex) #For regression needs to be in this form
 
@@ -367,9 +365,9 @@ Cubic_age_2 <- list()
 #Cubic base model BY Cancer type
 
 for (i in 1:nrow(cancer_codes)) {
-  b1 <- Thai_Surv_Lower %>% filter(cancer_code == cancer_codes[i,])
-  b2 <- Thai_Surv_Upper %>% filter(cancer_code == cancer_codes[i,])
-  # b3 <- Thai_Surv_overall %>% filter(cancer_code == cancer_codes[i,])
+  b1 <- bSURV_Lower %>% filter(cancer_code == cancer_codes[i,])
+  b2 <- bSURV_Upper %>% filter(cancer_code == cancer_codes[i,])
+  # b3 <- bSURV_overall %>% filter(cancer_code == cancer_codes[i,])
   
   
   # k1<-c(1,2.5,4)
@@ -429,9 +427,9 @@ Cubic_Cancer_age_2 <- list()
 
 #Cubic excess hazard by country
 for (i in 1:nrow(cancer_codes)){
-  b1 <- Thai_Surv_Lower %>% filter(cancer_code == cancer_codes[i,])
-  b2 <- Thai_Surv_Upper %>% filter(cancer_code == cancer_codes[i,])
-  # b3 <- Thai_Surv_overall %>% filter(cancer_code == cancer_codes[i,])
+  b1 <- bSURV_Lower %>% filter(cancer_code == cancer_codes[i,])
+  b2 <- bSURV_Upper %>% filter(cancer_code == cancer_codes[i,])
+  # b3 <- bSURV_overall %>% filter(cancer_code == cancer_codes[i,])
   
   try(Cubic_Cancer_age_1[[i]] <-
         update(Cubic_age_1[[i]], expected = "mx",      numHess=TRUE,
@@ -656,15 +654,15 @@ NS_OS2 <-Net_Survival_Five_Year %>% left_join(
 
 NS_OS2$cancer_code <- as.numeric(as.character(NS_OS2$cancer_code))
 
-Thai_Surv$cancer_code <-
-  as.numeric(as.character(Thai_Surv$cancer_code))
+bSURV$cancer_code <-
+  as.numeric(as.character(bSURV$cancer_code))
 
 
 
 
 NS_OS <-
   NS_OS2 %>% left_join(
-    Thai_Surv_age_cats,
+    bSURV_age_cats,
     by = c(
       "cancer" = "cancer",
       "cancer_code" = "cancer_code",
@@ -703,7 +701,7 @@ NS_OS$age_cat <- as.factor(NS_OS$age_cat)
 
 
 PAFs_age_Cat <- PAFs %>%
-  filter(country_label == "Thailand") %>%
+#  filter(country_label == "Thailand") %>%
   mutate(age_cat = case_when(age >= 4 & age < 14 ~ "15-64",
                              age >= 14 ~ "65-99",
                              age<4 ~ "0-15")) %>%
@@ -859,8 +857,8 @@ colnames(Avoidable_Deaths) <- c("country_code",
                                 "total")
 
 
-MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
-  filter(country_label=="Thailand")%>%
+MIR_Age_Cats_Survcan<-MIR_Age_Cats%>%
+ # filter(country_label=="Thailand")%>%
   select(-country_label, -cancer_label, -X)
 
 Avoidable_Deaths<-Avoidable_Deaths%>%
@@ -877,7 +875,7 @@ Avoidable_Deaths<-Avoidable_Deaths%>%
   mutate(country_code=as.numeric(as.character(country_code)))%>%
   # filter(total<AD_treatprev)%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
-  left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
+  left_join(MIR_Age_Cats_Survcan, by=c("country_code","cancer_code", "age_cat"))
 
 
 Avoidable_Deaths_overall<-Avoidable_Deaths%>%
@@ -907,7 +905,7 @@ Avoidable_Deaths_age_cat<-Avoidable_Deaths%>%
   distinct()%>%
   # arrange(cancer, age_cat)%>%
   as.data.frame()#%>%
-#left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
+#left_join(MIR_Age_Cats_Survcan, by=c("country_code","cancer_code", "age_cat"))
 
 
 
