@@ -21,6 +21,17 @@ library(mexhaz)
 library(readr)
 library(ggplot2)
 library(relsurv)
+
+
+install.packages("readxl")
+install.packages("dplyr")
+install.packages("tidyverse")
+install.packages("stringr")
+install.packages("haven")
+install.packages("mexhaz")
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("relsurv")
 # 
 # 
 # #Data set imports
@@ -202,14 +213,12 @@ ES2<-ES_dt%>%
 
 
 
+
 ten_cancer_sites <-
   Cancer_codes %>% 
   filter(cancer_code %in% c(6, 7, 11, 13, 15, 20, 23, 27, 30, 38))%>%
-  mutate(cancer_label=as.character(cancer_label))%>%
   mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
 
-Cancer_codes_Survcan<-Cancer_codes_Survcan%>%
-  mutate(cancer=as.character(cancer))
 
 
 #Checking cancer codes in various files
@@ -259,7 +268,6 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   droplevels()%>%
   mutate(last_FU_age = round(age + surv_dd/365.15)) %>% #creating variable for age of death
   mutate(last_FU_year = round(year + surv_dd/365.15))%>%  #creating variable for year of death
-  mutate(sex=as.character(sex))%>%
   mutate(sex = replace(sex, sex == "Male", 1)) %>%
   mutate(sex = replace(sex, sex == "Female", 2)) %>%
   mutate(sex = as.integer(sex)) %>%
@@ -276,6 +284,16 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
   mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
   filter(cancer_code %in% ten_cancer_sites$cancer_code)
+
+Thai_Surv3 <- Thai_Survcan2%>%
+  mutate(surv_yydd=surv_dd/365.15)%>%
+  mutate(event1=case_when(dead==1 &      surv_yydd<=5 ~ 1,
+                          dead==1 & surv_yydd>5 ~ 0,
+                          dead==0 ~ 0
+  ))
+
+#modifying so last five years of follow up
+
 
 
 Thai_Surv11<- Thai_Surv3%>%
@@ -660,13 +678,13 @@ NS_OS <-
   ) %>%
   distinct()
 
-NS_OS$Five_Year_Net_Surv <- as.numeric(as.character(NS_OS$Five_Year_Net_Surv))
-NS_OS$NS_Lower_CI <- as.numeric(as.character(NS_OS$NS_Lower_CI))
-NS_OS$NS_Upper_CI <- as.numeric(as.character(NS_OS$NS_Upper_CI))
+NS_OS$Five_Year_Net_Surv <- as.numeric(NS_OS$Five_Year_Net_Surv)
+NS_OS$NS_Lower_CI <- as.numeric(NS_OS$NS_Lower_CI)
+NS_OS$NS_Upper_CI <- as.numeric(NS_OS$NS_Upper_CI)
 NS_OS$Five_Year_all_cause_Surv <-
-  as.numeric(as.character(NS_OS$Five_Year_all_cause_Surv))
-NS_OS$OS_Lower_CI <- as.numeric(as.character(NS_OS$OS_Lower_CI))
-NS_OS$OS_Upper_CI <- as.numeric(as.character(NS_OS$OS_Upper_CI))
+  as.numeric(NS_OS$Five_Year_all_cause_Surv)
+NS_OS$OS_Lower_CI <- as.numeric(NS_OS$OS_Lower_CI)
+NS_OS$OS_Upper_CI <- as.numeric(NS_OS$OS_Upper_CI)
 NS_OS$cancer <- as.factor(as.character(NS_OS$cancer))
 NS_OS$age_cat <- as.factor(NS_OS$age_cat)
 
@@ -759,9 +777,6 @@ NS_OS_PAF <- NS_OS %>%
   left_join(Reference_Survival_Survcan,by=c("age_cat","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
   droplevels()%>%
   mutate(cancer=as.character(cancer))%>%
-  mutate(cancer_code=as.numeric(cancer_code))%>%
-  mutate(country_label=as.character(country_label))%>%
-  mutate(country_code=as.numeric(country_code))%>%
   distinct()
 
 #Three AD calcs
@@ -850,7 +865,7 @@ MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
 
 Avoidable_Deaths<-Avoidable_Deaths%>%
   as.data.frame()%>%
-  mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
+  mutate(AD_treat=as.numeric(AD_treat))%>%
   mutate(AD_treat_Lower=as.numeric(as.character(AD_treat_Lower)))%>%
   mutate(AD_treat_Upper=as.numeric(as.character(AD_treat_Upper)))%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
@@ -897,4 +912,16 @@ Avoidable_Deaths_age_cat<-Avoidable_Deaths%>%
 
 
 NS_OS_PAF
+
+###############
+#
+#Exporting Results
+#
+###############
+
+
+write.csv(Avoidable_Deaths, "~/Documents/R_Projects/Data/Thai_AD.csv")
+write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
+
+
 
