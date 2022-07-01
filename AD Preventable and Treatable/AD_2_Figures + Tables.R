@@ -25,17 +25,23 @@ library(Rcan)
 
 #Creating a plotable object comparing Thailand simulated and RWD
 
-Avoidable_Deaths2 <- Avoidable_Deaths %>% mutate(Scenario = "RWD")
+Avoidable_Deaths2 <- Avoidable_Deaths_age_cat %>% mutate(Scenario = "RWD")
 
 
 Avoidable_Deaths_Simulated2 <-
   Avoidable_Deaths_modelled_age_cat %>% mutate(Scenario = "Simulated")
 
-AD_plotable <-
-  Avoidable_Deaths2 %>% full_join(Avoidable_Deaths_Simulated2)%>%
+Cancer_codes2<-
+  cancer_codes %>%select(cancer_code)
+
+AD_plotable <-  Avoidable_Deaths2 %>%
+  ungroup()%>%
+  select(-cancer_label)%>%
+  rename("total_overall"="total")%>%
+  full_join(Avoidable_Deaths_Simulated2)%>%
   mutate(cancer_code=as.integer(cancer_code))%>%
   mutate_if(is.numeric, replace_na, 0)%>%
-  left_join(Cancer_codes, by="cancer_code")%>%
+ left_join(ten_cancer_sites, by=c("cancer_code"))%>%
   filter(!is.na(AD_treat))%>%
   mutate(AD_treat_prop=AD_treat/AD_sum*100)%>%
   mutate(AD_prev_prop=AD_prev/AD_sum*100)%>%
@@ -369,7 +375,7 @@ AD_by_HDI_Plot<- AD_by_HDI_1 %>%
         ymin = min(AD),
         ymax = max(AD)),
     mapping = aes(
-      reorder(cancer_label, AD),AD,
+      reorder(cancer, AD),AD,
       fill = age_cat,drop=FALSE
     )
   ) +
@@ -382,7 +388,7 @@ AD_by_HDI_Plot<- AD_by_HDI_1 %>%
            position = "dodge") +
   coord_flip() +
   # geom_errorbar(
-  #   aes(x = cancer_label, ymin = AD_treat_Lower, ymax = AD_treat_Upper),
+  #   aes(x = cancer, ymin = AD_treat_Lower, ymax = AD_treat_Upper),
   #   width = 0.4,
   #   alpha = 0.9,
   #   size = 1.3
@@ -411,7 +417,7 @@ AD_by_HDI_Plot<- AD_by_HDI_1 %>%
              position = "dodge") +
     coord_flip() +
     # geom_errorbar(
-    #   aes(x = cancer_label, ymin = AD_treat_Lower, ymax = AD_treat_Upper),
+    #   aes(x = cancer, ymin = AD_treat_Lower, ymax = AD_treat_Upper),
     #   width = 0.4,
     #   alpha = 0.9,
     #   size = 1.3
@@ -499,7 +505,7 @@ AD_plotable_L %>%
   filter(age_cat=="Overall", type %in% c("AD_treat", "AD_prev", "AD_unavoid")) %>% 
   ggplot(
     aes(
-      x = cancer_label,
+      x = cancer,
       y = deaths,
       fill = factor(type, levels = c("AD_prev","AD_treat", "AD_unavoid"))
     )
@@ -529,7 +535,7 @@ AD_plotable_L %>%
   filter(age_cat=="15-64", type %in% c("AD_treat", "AD_prev", "AD_unavoid")) %>% 
   ggplot(
     aes(
-      x = cancer_label,
+      x = cancer,
       y = deaths,
       fill = factor(type, levels = c("AD_prev", "AD_treat",  "AD_unavoid"))
     )
@@ -557,7 +563,7 @@ AD_plotable_L %>%
   filter(age_cat=="65-99", type %in% c("AD_treat", "AD_prev", "AD_unavoid")) %>% 
   ggplot(
     aes(
-      x = cancer_label,
+      x = cancer,
       y = deaths,
       fill = factor(type, levels = c("AD_prev", "AD_treat",  "AD_unavoid"))
     )
@@ -585,7 +591,7 @@ AD_plotable_L %>%
   filter(age_cat=="Overall", type %in% c("AD_treat", "AD_prev", "AD_unavoid")) %>% 
   ggplot(
     aes(
-      x = cancer_label,
+      x = cancer,
       y = deaths,
       fill = factor(type, levels = c("AD_prev", "AD_treat",  "AD_unavoid"))
     )
@@ -625,20 +631,20 @@ pafsplit_subregion2 %>%
 pafsplit_subregion2t <- as.data.table(pafsplit_subregion2t)
 
 #order world regions by proportion or ASR
-dt_label_order3 <- setkeyv(unique(pafs_subregion2[cancer_label == "All cancers but non-melanoma skin cancer_M" & sex==1, c("subregion_label_2", "grptotpaf"), with=FALSE]), c("grptotpaf"))
+dt_label_order3 <- setkeyv(unique(pafs_subregion2[cancer == "All cancers but non-melanoma skin cancer_M" & sex==1, c("subregion_label_2", "grptotpaf"), with=FALSE]), c("grptotpaf"))
 pafsplit_subregion2t$subregion_label_2 <- factor(pafsplit_subregion2t$subregion_label_2, levels = unique(dt_label_order3$subregion_label_2,fromLast=TRUE))
 
 #remove unnecessary rows
 pafsplit_subregion2t %>% 
   filter(sex!=0) %>% 
   dplyr::select(-age_num, -grpaacasesage, -grppyage) %>% unique() %>% 
-  filter(cancer_label=="All cancers but non-melanoma skin cancer_M", level<4) -> pafsplit_subregion2t
+  filter(cancer=="All cancers but non-melanoma skin cancer_M", level<4) -> pafsplit_subregion2t
 
 #create lists of labels for axes
-tick_minor_list <- Rcan:::core.csu_tick_generator(max = max(pafs_subregion2[cancer_label == "All cancers but non-melanoma skin cancer_M" & sex==1]$grptotpaf, na.rm = TRUE ), 0)$tick_list
+tick_minor_list <- Rcan:::core.csu_tick_generator(max = max(pafs_subregion2[cancer == "All cancers but non-melanoma skin cancer_M" & sex==1]$grptotpaf, na.rm = TRUE ), 0)$tick_list
 nb_tick <- length(tick_minor_list) 
 tick_space <- tick_minor_list[nb_tick] - tick_minor_list[nb_tick-1]
-if ((tick_minor_list[nb_tick] -  max(pafs_subregion2[cancer_label == "All cancers but non-melanoma skin cancer_M" & sex==1]$grptotpaf))/tick_space < 1/4){
+if ((tick_minor_list[nb_tick] -  max(pafs_subregion2[cancer == "All cancers but non-melanoma skin cancer_M" & sex==1]$grptotpaf))/tick_space < 1/4){
   tick_minor_list[nb_tick+1] <- tick_minor_list[nb_tick] + tick_space
 }
 tick_major <- tick_minor_list[1:length(tick_minor_list) %% 2  == 1]

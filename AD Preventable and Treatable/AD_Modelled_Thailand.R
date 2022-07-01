@@ -83,11 +83,6 @@ Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about t
     age>=80 & age<=84 ~ 17,
     age>=85 ~ 18
   ))%>%
-  left_join(Thai_pop,by=c("country_code","sex","year","age"))%>%
-  summarize(mx=sum(pop*mx)/sum(pop), 
-            prob=sum(prob*pop)/sum(pop),
-            region, 
-            country_code)%>% 
      as.data.frame()%>%
   distinct()
 
@@ -121,13 +116,13 @@ Countries_modelled <-countries_5y%>%
     ))%>%
   filter(age_cat!="0-15")%>%
   group_by(country_name,cancer_label,age)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,age,
+  dplyr::summarize(country_code,country_name, cancer_code, cancer_label,age,
             age_cat,rel_surv)%>%as.data.frame()
 
 # Countries_modelled_Overall<-Countries_modelled%>%
 #   mutate(age_cat="Overall")%>%
 #   group_by(country_name,cancer_label)%>%
-#   summarize(country_code,country_name, cancer_code, cancer_label,age, 
+#   dplyr::summarize(country_code,country_name, cancer_code, cancer_label,age, 
 #             age_cat,rel_surv,mx)
 
 
@@ -136,7 +131,7 @@ simulated_overall<-Countries_modelled%>%
   as.data.frame()%>%
   droplevels()%>%
   group_by(country_name,cancer_label, age)%>%
-  summarize(country_code,country_name, 
+  dplyr::summarize(country_code,country_name, 
             cancer_code, cancer_label,rel_surv,
             age_cat, age)%>%
   distinct()%>%
@@ -160,7 +155,7 @@ Thailand_expected_Survival2<-Thailand_expected_Survival%>%
   #   ))%>%
   # filter(age_cat!="0-15")%>%
   # group_by(age_cat)%>%
-  # summarize(ES)
+  # dplyr::summarize(ES)
     
 PAFs_simulated<-PAFs
 
@@ -191,7 +186,7 @@ PAFs_age_Cat2<-PAFs_simulated%>%
   group_by(country_label,cancer_label, age) %>%
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
                        cases==0 ~ ES)) %>%
-  summarize(country_code,country_label, cancer_code, cancer_label,
+  dplyr::dplyr::summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat, 
             cases=sum(cases),
             cases.prev=sum(cases.prev), 
@@ -210,7 +205,7 @@ PAFs_age_Cat2<-PAFs_simulated%>%
 # PAFS_Overall<-PAFs_age_Cat2%>%mutate(age_cat="Overall")%>%
 #   droplevels()%>%
 #   group_by(country_label,cancer_label, age_cat,age)%>%
-#   summarize(country_code,country_label, cancer_code, cancer_label,
+#   dplyr::summarize(country_code,country_label, cancer_code, cancer_label,
 #             age, age_cat, cases=sum(cases),   cases.prev=sum(cases.prev), 
 #             cases.notprev=sum(cases.notprev),
 #             af.comb=sum(cases.prev)/cases,
@@ -228,7 +223,7 @@ PAFs3<-PAFs_age_Cat2%>%
   as.data.frame()%>%
  #mutate(af.comb.agecat=total_age_prev/total_overall)%>%
   group_by(country_code,cancer_code,age)%>%
-  summarize(country_label, cancer_label,
+  dplyr::summarize(country_label, cancer_label,
             age_cat,  total_overall,cases,
             cases.prev,
             ES,af.comb)%>%
@@ -245,7 +240,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
  #left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
   group_by(cancer_code,age_cat, age)%>%
-  summarize(country_code, country_label,
+  dplyr::summarize(country_code, country_label,
             cancer_code, cancer_label,
             age_cat, age, total_overall,
             af.comb= case_when(total_overall!=0 ~ sum(cases.prev)/sum(cases),
@@ -272,7 +267,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   #   left_join(PAFs3,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
   #   ungroup()%>%
   #   group_by(cancer_code,age_cat, age)%>%
-  #   summarize(country_code, 
+  #   dplyr::summarize(country_code, 
   #             country_label, 
   #             cancer_code, cancer_label,
   #             age_cat, age, total_overall,
@@ -403,31 +398,38 @@ Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
 
 Avoidable_Deaths_modelled2<-Avoidable_Deaths_modelled%>%
   mutate(age=as.numeric(age))%>%
-  left_join(MIR_Globocan_Thailand)
+  mutate(age_cat=as.character(age_cat))#%>%
+ # left_join(MIR_Globocan_Thailand)
 
-Avoidable_Deaths_modelled_overall<-Avoidable_Deaths_modelled%>%
+Avoidable_Deaths_modelled_overall<-Avoidable_Deaths_modelled2%>%
   mutate(age_cat="Overall")%>%
+ # ungroup()%>%
   group_by(cancer_code, age_cat)%>%
+  select(-age)%>%
   mutate(total_overall=sum(total_overall))%>%
   mutate(AD_prev= sum(AD_prev))%>%
   mutate(AD_treat = sum(AD_treat))%>%
   mutate(AD_unavoid = sum(AD_unavoid))%>%
+  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+  #mutate(total_overall=sum(total_overall))%>%
   distinct()%>%
   as.data.frame()
 
-Avoidable_Deaths_modelled_age_cat<-Avoidable_Deaths_modelled%>%
+Avoidable_Deaths_modelled_age_cat<-Avoidable_Deaths_modelled2%>%
+  ungroup()%>%
   group_by(cancer_code, age_cat)%>%
   mutate(AD_prev= sum(AD_prev))%>%
   mutate(AD_treat = sum(AD_treat))%>%
   mutate(AD_unavoid = sum(AD_unavoid))%>%
-  full_join(Avoidable_Deaths_modelled_overall)%>%
-  select(-age)%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
   mutate(total_overall=sum(total_overall))%>%
+  full_join(Avoidable_Deaths_modelled_overall)%>%
+  select(-age)%>%
+
   distinct()%>%
   arrange(cancer, age_cat)%>%
-  as.data.frame()%>%
-  left_join(MIR_Age_Cats_Thailand, by=c("cancer_code", "age_cat"))
+  as.data.frame()
+ # left_join(MIR_Age_Cats_Thailand, by=c("cancer_code", "age_cat"))
 
 
 #The AD by age groups (larger vs smaller age categories)

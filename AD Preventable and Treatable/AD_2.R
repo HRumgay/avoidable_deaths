@@ -53,8 +53,15 @@ survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Su
 Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()
 Cancer_codes_Survcan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
 
+Thailand <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_Thailand_anchor_ALL.csv") %>% as.data.frame()
+Israel <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_Israel_anchor_ALL.csv") %>% as.data.frame()
 HDI <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI_2019.csv") %>% as.data.frame()
-Thailand_Survcan <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()
+
+# Uncomment when rerunning. This takes forever to load
+# Thailand_Survcan <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\SURVCANALL_cc.csv")# %>% as.data.frame()Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_cc_Oliver.csv
+# Thailand_Survcan<-Thailand_Survcan %>% as.data.frame() %>%  filter(country=="Thailand")
+
+
 Thailand_popmort <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\popmort_Thailand.csv") %>% as.data.frame() %>%
   left_join(country_codes, by = c("region" = "country_label"))
 Thailand_pop <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_pop.csv") %>% as.data.frame()
@@ -258,19 +265,19 @@ ten_cancer_sites <-
 
 
 #Checking cancer codes in various files
-a<-PAFs%>%summarize(cancer_code,cancer_label)%>%distinct()%>%filter(cancer_code%in%ten_cancer_sites$cancer_code)
+a<-PAFs%>%dplyr::summarize(cancer_code,cancer_label)%>%distinct()%>%filter(cancer_code%in%ten_cancer_sites$cancer_code)
 b<-simulated_overall%>%
   ungroup()%>%
-  summarize(cancer_code, cancer_label)%>%
+  dplyr::summarize(cancer_code, cancer_label)%>%
   distinct()
 survcancancer<-Thai_Surv%>%
   ungroup()%>%
-  summarize(cancer_code, cancer)%>%
+  dplyr::summarize(cancer_code, cancer)%>%
   distinct()
 
 cancer_popmort<-Thailand_popmort2%>%
   ungroup()%>%
-  summarize(country_code, region)%>%
+  dplyr::summarize(country_code, region)%>%
   distinct()
   
 
@@ -290,6 +297,7 @@ Thailand_popmort2 <-
 
 #Prepping cancer real world data
 Thai_Survcan2 <- Thailand_Survcan %>%
+  #filter(surv_dd>0)%>%
   filter(include == "Included") %>%
   filter(age >= 15) %>%
   filter(age <= 99) %>%
@@ -335,7 +343,7 @@ Thai_Survcan2 <- Thailand_Survcan %>%
 Thai_Surv11<- Thai_Surv3%>%
   select(region_lab, country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
   group_by(region_lab,country,cancer_code)%>%
-  summarize( end_FU=max(year))%>%
+  dplyr::summarize( end_FU=max(year))%>%
   as.data.frame()
 
 
@@ -746,7 +754,7 @@ PAFs_age_Cat <- PAFs %>%
   filter(age_cat != "0-15") %>%
   left_join(ES2, by=c("country_code","age","sex"))%>% 
   group_by(country_label, cancer_label, age_cat) %>%
-  summarize(
+  dplyr::summarize(
     country_code,
     country_label,
     cancer_code,
@@ -768,7 +776,7 @@ PAFs_age_Cat <- PAFs %>%
 # PAFS_Overall <- PAFs_age_Cat %>% 
 #   mutate(age_cat = "Overall") %>%
 #   group_by(country_label, cancer_label, age_cat) %>%
-#   summarize(
+#   dplyr::summarize(
 #     country_code,
 #     country_label,
 #     cancer_code,
@@ -793,7 +801,7 @@ PAFs2 <- PAFs_age_Cat %>%
   mutate(total_age_prev = sum(cases.prev)) %>%
   mutate(af.comb.agecat = sum(cases.prev) / sum(cases)) %>%
   mutate(ES = sum(ES*cases) / sum(cases)) %>%
-  summarize(country_code,
+  dplyr::summarize(country_code,
     country_label,
     cancer_code,
     cancer_label,

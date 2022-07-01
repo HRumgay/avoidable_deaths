@@ -46,6 +46,11 @@ library(janitor)
 
 #Reading all the variables
 
+#life tables
+
+life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")
+
+
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
 country_codes <-
   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
