@@ -26,19 +26,23 @@ ES2<-ES_dt%>%
 
 #check country_code for China in HDI dataset and Thailand/Israel datasets match up
 
-hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
-  left_join(HDI, by="country_code")%>%
-  select(-c(country_label, hdi_rank, year, X))%>%
-  filter(hdi_group%in% c(3,4))
+# hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
+#   left_join(HDI, by="country_code")%>%
+#   select(-c(country_label, hdi_rank, year, X))%>%
+#   filter(hdi_group%in% c(3,4))
+# 
+# lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
+#   left_join(HDI, by="country_code")%>%
+#   select(-c(country_label, hdi_rank, year,X.1, X))%>%
+#   #filter(hdi_group%in% c(1,2))%>%
+#   filter(!hdi_group%in%c(3,4))
+# 
+# lm_HDI%>%summarize(country_name,country_code, hdi_group)%>%distinct()%>%
+#   filter(!hdi_group%in%c(3,4)) #includes low, medium and missing HDI groups
 
-lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
-  left_join(HDI, by="country_code")%>%
-  select(-c(country_label, hdi_rank, year,X.1, X))%>%
-  #filter(hdi_group%in% c(1,2))%>%
-  filter(!hdi_group%in%c(3,4))
+#new combined data set of survival
 
-lm_HDI%>%summarize(country_name,country_code, hdi_group)%>%distinct()%>%
-  filter(!hdi_group%in%c(3,4)) #includes low, medium and missing HDI groups
+Survival_Modelled
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
 
@@ -48,29 +52,31 @@ popmort<-popmort2%>%
   mutate(mx=1-prob)%>%
   mutate(country_code=as.numeric(country_code))%>%
   group_by(country_code,age,year)%>%
-  mutate(mx= case_when(cases!=0 ~ sum(mx*cases)/sum(cases),
-                            cases==0 ~    mx))%>%
-  mutate(prob= case_when(cases!=0 ~ sum(prob*cases)/sum(cases),
-                            cases==0 ~    prob))%>%
-  summarize(mx, 
-            prob,
-            country_label, 
+  # mutate(mx= case_when(cases!=0 ~ sum(mx*cases)/sum(cases),
+  #                           cases==0 ~    mx))%>%
+  # mutate(prob= case_when(cases!=0 ~ sum(prob*cases)/sum(cases),
+  #                           cases==0 ~    prob))%>%
+  summarize(country_label, 
             country_code,
             age_label)%>% #This needs to be adjusted with population weights
      as.data.frame()%>%
   distinct()
 
 
-countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. Not sure why
-  full_join(hvh_HDI)%>%
+countries_5y<-Survival_Modelled%>%
   arrange(country_name)%>%
-  left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
-  select(-country_label)
+  #left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
+  #select(-country_label)%>%
+  distinct()
 
   
   
 Countries_Simulated <-countries_5y%>%
   mutate(age = case_when(
+    age==0~ 0,
+    age==1~ 1,
+    age==2~ 2,
+    age==3~ 3,
     age==4~ 4,
     age>4 & age<=9~ 9,
     age==10~ 10,
@@ -91,7 +97,7 @@ Countries_Simulated <-countries_5y%>%
   group_by(country_name,cancer_label,age_cat)%>%
   summarize(country_code,country_name, cancer_code, cancer_label,
             age, age_cat,
-            rel_surv, mx)%>%as.data.frame()
+            rel_surv)%>%as.data.frame()
 
 
 # Countries_Simulated_Overall<-Countries_Simulated%>%
@@ -106,7 +112,7 @@ simulated_overall<-Countries_Simulated%>%
   as.data.frame()%>%
   droplevels()%>%
   group_by(country_name,cancer_label, age_cat,age)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,rel_surv,mx,
+  summarize(country_code,country_name, cancer_code, cancer_label,rel_surv,
             age_cat, age)%>%
   distinct()%>%
   arrange(cancer_label, age)
@@ -218,7 +224,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
             af.comb,
             rel_surv,
             ES,
-            Expected_5_year_surv_mx,
+         #   Expected_5_year_surv_mx,
             total_overall)%>%
   droplevels()%>%
   #select(-age)%>%
@@ -410,6 +416,7 @@ Avoidable_Deaths_Simulated_All
 Avoidable_Deaths_Simulated_All_age_cat%>%filter(total_overall<AD_sum)
 
 
+
 #writing the files
 write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
 write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
@@ -418,12 +425,12 @@ write.csv(Avoidable_Deaths_Simulated_All_age_cat, "~/Documents/R_Projects/Data/A
 
 #HDI 
 
-HDI2<-HDI%>%select(country_code, country_label,hdi_group, by=c(country_code))
+HDI2<-HDI%>%select(country_code,hdi_group)
 
 #Data by country, HDI, etc
 
 AD_by_HDI<- Avoidable_Deaths_Simulated_All_age_cat%>%
-  left_join(HDI)%>%
+  left_join(HDI2, by="country_code")%>%
   select(hdi_group, country_code, country_label, cancer, cancer_code, AD_treat, AD_prev, 
          AD_unavoid, AD_sum, total_overall, age_cat)%>%
  mutate(AD_treat=as.numeric(AD_treat))%>%
@@ -454,8 +461,21 @@ AD_by_HDI_ten<-AD_by_HDI_overall%>%group_by(hdi_group)%>%
   mutate(cancer="Ten Cancer Sites")%>%
   mutate(cancer_code=1000)%>%
   ungroup()%>%
-  distinct()
+  distinct()%>%
+  as.data.frame()
   
 AD_by_HDI
 
+AD_by_HDI_ten
 
+#Checking the HDI codes. Some differ between HDI and This data... (China has 156 and 160 respectively)
+Countries_HDI_Problems<-Avoidable_Deaths_Simulated_All_overall%>%
+  left_join(HDI2, by="country_code")%>%
+  select(country_label, country_code, hdi_group)%>%
+  filter(is.na(hdi_group))%>%
+  distinct()
+
+HDI
+
+
+#Calculating by region. Need a file that links countries to region 

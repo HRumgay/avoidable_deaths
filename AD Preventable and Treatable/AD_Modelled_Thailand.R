@@ -15,16 +15,19 @@
 
 #Combining datasets at the time point of interest 5 years and combining to HDI
 
-hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
-  left_join(HDI, by="country_code")%>%
-  select(-c(country_label, hdi_rank, year, X))%>%
-  filter(hdi_group%in% c(3,4))
+# hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
+#   left_join(HDI, by="country_code")%>%
+#   select(-c(country_label, hdi_rank, year, X))%>%
+#   filter(hdi_group%in% c(3,4))
+# 
+# lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
+#   left_join(HDI, by="country_code")%>%
+#   select(-c(country_label, hdi_rank, year,X.1, X))%>%
+#  # filter(hdi_group%in% c(1,2))%>%
+#   filter(!hdi_group%in%c(3,4))
 
-lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
-  left_join(HDI, by="country_code")%>%
-  select(-c(country_label, hdi_rank, year,X.1, X))%>%
- # filter(hdi_group%in% c(1,2))%>%
-  filter(!hdi_group%in%c(3,4))
+#New combined file
+Survival_Modelled
 
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
@@ -88,8 +91,7 @@ Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about t
 
 
 
-countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. Not sure why
-  full_join(hvh_HDI)%>%
+countries_5y<-Survival_Modelled%>%
   arrange(country_name)%>%
   left_join(Thailand_popmort2015, by=c("age"="age","country_code"="country_code"))%>%
   select(-region)
@@ -116,8 +118,8 @@ Countries_modelled <-countries_5y%>%
     ))%>%
   filter(age_cat!="0-15")%>%
   group_by(country_name,cancer_label,age)%>%
-  dplyr::summarize(country_code,country_name, cancer_code, cancer_label,age,
-            age_cat,rel_surv)%>%as.data.frame()
+  summarize(country_code,country_name, cancer_code, cancer_label,age,
+            age_cat,rel_surv)%>%as.data.frame()%>%distinct()
 
 # Countries_modelled_Overall<-Countries_modelled%>%
 #   mutate(age_cat="Overall")%>%

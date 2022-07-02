@@ -22,6 +22,8 @@ library(mexhaz)
 library(readr)
 library(ggplot2)
 library(relsurv)
+library(janitor)
+
 
 ########################
 #Comment from here
@@ -156,8 +158,14 @@ survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Dat
 Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
 Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
 
-Thailand <- read.csv("~/Documents/R_Projects/Data/survival_Thailand_anchor_ALL.csv") %>% as.data.frame()
-Israel <- read.csv("~/Documents/R_Projects/Data/survival_Israel_anchor_ALL.csv") %>% as.data.frame()
+Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.csv") %>% 
+  as.data.frame()%>%
+ mutate( country_name = str_remove(string = country_name, pattern = '`"'))%>%
+  mutate( country_name = str_remove(string = country_name, pattern = '\"\''))
+
+
+# Thailand <- read.csv("~/Documents/R_Projects/Data/survival_Thailand_anchor_ALL.csv") %>% as.data.frame()
+# Israel <- read.csv("~/Documents/R_Projects/Data/survival_Israel_anchor_ALL.csv") %>% as.data.frame()
 HDI <-read.csv("~/Documents/R_Projects/Data/HDI_2019.csv") %>% as.data.frame()
 Thailand_Survcan <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()
 Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.csv") %>% as.data.frame() %>%
