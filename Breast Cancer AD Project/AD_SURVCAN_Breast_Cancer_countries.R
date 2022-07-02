@@ -184,8 +184,8 @@ ES2<-ES_dt%>%
 
 ten_cancer_sites <-
   Cancer_codes %>% 
-  filter(cancer_code %in% c(6, 7, 11, 13, 15, 20, 23, 27, 30, 38))%>%
-  mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
+  filter(cancer_code %in% c(20))#%>%6, 7, 11, 13, 15, 20, 23, 27, 30, 38
+ # mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
 
 
 
@@ -200,24 +200,8 @@ survcancancer<-bSURV%>%
   summarize(cancer_code, cancer)%>%
   distinct()
 
-cancer_popmort<-Thailand_popmort2%>%
-  ungroup()%>%
-  summarize(country_code, region)%>%
-  distinct()
 
-
-
-#Thai example - first with SURVCAN data and then with real data, scaling with Thai incidence rather than globocan
-
-#expanding life table
-
-Thailand_popmort_2015 <-
-  Thailand_popmort %>% filter(X_year == 2015) %>%
-  mutate(X_year = replace(X_year, X_year == 2015, 2016))
-
-Thailand_popmort2 <-
-  Thailand_popmort %>% full_join(Thailand_popmort_2015)
-
+table(bcan_SURV2$country)
 
 
 #Prepping cancer real world data
@@ -239,13 +223,12 @@ bcan_SURV2 <- bcan_SURV %>%
   mutate(sex = replace(sex, sex == "Male", 1)) %>%
   mutate(sex = replace(sex, sex == "Female", 2)) %>%
   mutate(sex = as.integer(sex)) %>%
-  left_join(Thailand_popmort2, by = c(
-    "last_FU_age" = "X_age",
-    "last_FU_year" = "X_year",
-    "country" = "region",
-    "sex" = "sex")) %>%
+  left_join(life_table, by = c(
+    "last_FU_age" = "age",
+    "last_FU_year" = "year",
+    "country" = "region")) %>%
   droplevels()%>%
-  filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
+ # filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
   filter(!is.na(mx)) %>% 
   droplevels() %>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))%>%
@@ -271,8 +254,10 @@ bcan_SURV11<- bcan_SURV3%>%
   as.data.frame()
 
 
-bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)#%>%ungroup()%>%
-# filter(year>=end_FU-5)
+bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)%>%
+  ungroup()%>%
+  group_by(country)%>%
+ filter(year>=end_FU-5)
 # mutate(surv_yy=case_when(surv_yy<=5 ~ 5
 # )
 # )
@@ -309,6 +294,8 @@ time <- seq(0, 5, le = 5001)
 #Removes empty age variables for model to be run properly
 bSURV <- bSURV %>% droplevels()
 
+country_names_Survcan<-bSURV%>%select(country)%>%distinct()%>%as.data.frame()
+
 cancer_types <- as_tibble(names(table(bSURV$cancer))) #Needs to be tibble for predictions
 
 names(cancer_types)[names(cancer_types) == "value"] <- "cancer"
@@ -334,10 +321,10 @@ Cubic_age_2 <- list()
 
 #Cubic base model BY Cancer type
 
-for (i in 1:nrow(cancer_codes)) {
-  b1 <- bSURV_Lower %>% filter(cancer_code == cancer_codes[i,])
-  b2 <- bSURV_Upper %>% filter(cancer_code == cancer_codes[i,])
-  # b3 <- bSURV_overall %>% filter(cancer_code == cancer_codes[i,])
+for (i in 1:nrow(country_names_Survcan)) {
+  b1 <- bSURV_Lower %>% filter(country == country_names_Survcan[i,]$country)
+  b2 <- bSURV_Upper %>% filter(country == country_names_Survcan[i,]$country)
+  # b3 <- bSURV_overall %>% filter(country_code == country_codes[i,])
   
   
   # k1<-c(1,2.5,4)
@@ -396,17 +383,18 @@ Cubic_Cancer_age_2 <- list()
 #Cubic_Cancer_overall <- list()
 
 #Cubic excess hazard by country
-for (i in 1:nrow(cancer_codes)){
-  b1 <- bSURV_Lower %>% filter(cancer_code == cancer_codes[i,])
-  b2 <- bSURV_Upper %>% filter(cancer_code == cancer_codes[i,])
+for (i in 1:nrow(country_names_Survcan)){
+  b1 <- bSURV_Lower %>% filter(country == country_names_Survcan[i,])
+  b2 <- bSURV_Upper %>% filter(country == country_names_Survcan[i,])
   # b3 <- bSURV_overall %>% filter(cancer_code == cancer_codes[i,])
-  
-  try(Cubic_Cancer_age_1[[i]] <-
-        update(Cubic_age_1[[i]], expected = "mx",      numHess=TRUE,
-               fnoptim="optim"))
-  try(Cubic_Cancer_age_2[[i]] <-
-        update(Cubic_age_2[[i]], expected = "mx",      numHess=TRUE,
-               fnoptim="optim"))
+  # 
+   try(Cubic_Cancer_age_1[[i]] <-
+         update(Cubic_age_1[[i]], expected = "mx"#,      numHess=TRUE,
+               # fnoptim="optim"
+                ))
+   # try(Cubic_Cancer_age_2[[i]] <-
+   #       update(Cubic_age_2[[i]], expected = "mx",      numHess=TRUE,
+   #              fnoptim="optim"))
   # try(Cubic_Cancer_overall[[i]] <-
   #       update(Cubic_overall[[i]], expected = "mx",    numHess=TRUE,
   #              fnoptim="optim"))
@@ -427,6 +415,9 @@ Predictions_Cubic_Net_age_2 <- list()
 Predictions_Cubic_All_Cause_age_1 <- list()
 Predictions_Cubic_All_Cause_age_2 <- list()
 #Predictions_Cubic_All_Cause_age_3 <- list()
+
+
+
 
 cancer_types_tibble <-
   cancer_types %>% as_tibble() #predict only works with tibble data structure...
