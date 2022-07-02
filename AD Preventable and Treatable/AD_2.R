@@ -314,6 +314,7 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   mutate(last_FU_year = round(year + surv_dd/365.15))%>%  #creating variable for year of death
   mutate(sex = replace(sex, sex == "Male", 1)) %>%
   mutate(sex = replace(sex, sex == "Female", 2)) %>%
+  filter(surv_dd>0)%>%
   mutate(sex = as.integer(sex)) %>%
   left_join(Thailand_popmort2, by = c(
       "last_FU_age" = "X_age",
