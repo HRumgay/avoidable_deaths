@@ -387,6 +387,7 @@ MIR_Globocan_Thailand<-MIR_Globocan%>%
 Avoidable_Deaths_modelled<-Avoidable_Deaths_modelled%>%
   as.data.frame()%>%
   group_by(cancer_code,age)%>%
+  mutate(age=as.numeric(as.character(age)))%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   mutate(total_overall=as.numeric(as.character(total_overall)))%>%

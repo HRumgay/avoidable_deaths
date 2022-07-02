@@ -117,6 +117,10 @@ simulated_overall<-Countries_Simulated%>%
 
 PAFs_age_Cat<-PAFs%>%
   mutate(age = case_when(
+    age==0~ 0,
+    age==1~ 1,
+    age==2~ 2,
+    age==3~ 3,
     age==4~ 4,
     age>4 & age<=9~ 9,
     age==10~ 10,
@@ -135,7 +139,7 @@ PAFs_age_Cat<-PAFs%>%
     ))%>%
   filter(age_cat!="0-15")%>%
   droplevels()%>%
-  left_join(ES2, by=c("country_code","age","sex"))%>% 
+  left_join(ES2, by=c("country_code","age","sex"))%>%
   group_by(country_label,cancer_label, age) %>%
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
                        cases==0 ~ ES)) %>%
@@ -352,6 +356,7 @@ MIR_Globocan_2 <-MIR_Globocan%>%
 
 Avoidable_Deaths_Simulated_All<-Avoidable_Deaths_Simulated_All%>%
   as.data.frame()%>%
+  mutate(age=as.numeric(as.character(age)))%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   mutate(total_overall=as.numeric(as.character(total_overall)))%>%
@@ -402,7 +407,7 @@ Avoidable_Deaths_Simulated_All_age_cat <- Avoidable_Deaths_Simulated_All%>%
 
 
 Avoidable_Deaths_Simulated_All
-Avoidable_Deaths_Simulated_All_age_cat
+Avoidable_Deaths_Simulated_All_age_cat%>%filter(total_overall<AD_sum)
 
 
 #writing the files
@@ -429,7 +434,7 @@ AD_by_HDI<- Avoidable_Deaths_Simulated_All_age_cat%>%
   as.data.frame()%>%
   select(-country_code,-country_label, -total_overall)%>%
   ungroup()%>%
-  group_by(cancer_code, hdi_group)%>%
+  group_by(cancer_code, hdi_group,age_cat)%>%
   mutate(AD_treat=sum(AD_treat))%>%
   mutate(AD_prev=sum(AD_prev))%>%
   mutate(AD_unavoid=sum(AD_unavoid))%>%
