@@ -64,13 +64,13 @@ popmort<-popmort2%>%
 
 
 countries_5y<-Survival_Modelled%>%
-  arrange(country_name)%>%
+  arrange(country_label)%>%
   #left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
   #select(-country_label)%>%
   distinct()
 
   
-  
+
 Countries_Simulated <-countries_5y%>%
   mutate(age = case_when(
     age==0~ 0,
@@ -94,8 +94,8 @@ Countries_Simulated <-countries_5y%>%
       age<4 ~"0-15"
     ))%>%
   filter(age_cat!="0-15")%>%
-  group_by(country_name,cancer_label,age_cat)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,
+  group_by(country_label,cancer_label,age_cat)%>%
+  summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat,
             rel_surv)%>%as.data.frame()
 
@@ -111,8 +111,8 @@ simulated_overall<-Countries_Simulated%>%
  # full_join(Countries_Simulated_Overall)%>% 
   as.data.frame()%>%
   droplevels()%>%
-  group_by(country_name,cancer_label, age_cat,age)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,rel_surv,
+  group_by(country_label,cancer_label, age_cat,age)%>%
+  summarize(country_code,country_label, cancer_code, cancer_label,rel_surv,
             age_cat, age)%>%
   distinct()%>%
   arrange(cancer_label, age)
@@ -147,19 +147,19 @@ PAFs_age_Cat<-PAFs%>%
   droplevels()%>%
   left_join(ES2, by=c("country_code","age","sex"))%>%
   group_by(country_label,cancer_label, age) %>%
-  mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+  mutate(ES= case_when(cases!=0 ~ sum(ES*cases, na.rm=T)/sum(cases, na.rm=T),
                        cases==0 ~ ES)) %>%
   summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat, 
-            cases=sum(cases),
-            cases.prev=sum(cases.prev), 
-            cases.notprev=sum(cases.notprev),
+            cases=sum(cases, na.rm=T),
+            cases.prev=sum(cases.prev, na.rm=T), 
+            cases.notprev=sum(cases.notprev, na.rm=T),
             # af.comb= sum(cases.prev)/sum(cases),
-            af.comb= case_when(cases!=0 ~  sum(cases.prev)/sum(cases),
+            af.comb= case_when(cases!=0 ~  sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
                                cases.prev==0 ~ 0),
-            total_overall=sum(cases),
+            total_overall=sum(cases, na.rm=T),
             ES)%>% #Summarizing by sex
-  mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
+  mutate(ES= case_when(cases!=0 ~ sum(ES*cases, na.rm=T)/sum(cases, na.rm=T),
                        cases==0 ~ ES))%>%
   distinct()%>%
   group_by(country_label,cancer_label, age)
@@ -181,7 +181,7 @@ PAFs2<-PAFs_age_Cat%>%
   as.data.frame()%>%
   droplevels()%>%
   group_by(country_code,cancer_code,cancer_label, age_cat,age)%>%
-  mutate(total_age_prev=sum(cases.prev))%>%
+  mutate(total_age_prev=sum(cases.prev, na.rm=T))%>%
   as.data.frame()%>%
   #mutate(af.comb.agecat=total_age_prev/total_overall)%>%
   group_by(country_code,cancer_code,age)%>%
@@ -212,9 +212,9 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   #                            cases==0 ~    rel_surv))%>%
   # mutate(Expected_5_year_surv=case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
   #                                       cases==0 ~ ES))%>%
-  mutate(af.comb=case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+  mutate(af.comb=case_when(cases!=0 ~ sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
                            cases==0  ~    0))%>%
-  mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases)/sum(cases),
+  mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases, na.rm=T)/sum(cases, na.rm=T),
                             cases==0  ~    rel_surv))%>%
   summarize(country_code, 
             country_label, 
