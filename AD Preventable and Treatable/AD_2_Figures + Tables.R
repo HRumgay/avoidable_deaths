@@ -429,60 +429,6 @@ AD_by_HDI_Plot<- AD_by_HDI_1 %>%
     
   AD_by_HDI_ten_plot<-  AD_by_HDI_ten
 
-#World maps - ggmap 
-
-library(ggmap)
-library(map.data)
-
-citation("ggmap") #for citation
-
-Avoidable_Deaths_Simulated_All_age_cat2<-Avoidable_Deaths_Simulated_All_age_cat%>%
-  mutate(country=replace(country,country=="United States of America","USA"))%>%
-  mutate(country=replace(country,country=="Russian Federation","Russia"))%>%
-  mutate(country=replace(country,country=="Democratic People Republic of Congo","Democratic Republic of the Congo"))%>%
-  mutate(country=replace(country,country=="Tanzania (United Republic of)","Tanzania"))%>%
-  mutate(country=replace(country,country=="Bolivia (Plurinational State of)","Bolivia"))%>%
-  mutate(country=replace(country,country=="Congo","Republic of Congo"))%>%
-  mutate(country=replace(country,country=="United Kingdom","UK"))%>%
-  mutate(country=replace(country,country=="Venezuela (Bolivarian Republic of)","Venezuela"))%>%
-  mutate(country=replace(country,country=="Viet Nam","Vietnam"))%>%
-  mutate(country=replace(country,country=="Lao People's Democratic Republic","Laos"))%>%
-  mutate(country=replace(country,country=="Czechia","Czech Republic"))%>%
-  mutate(country=replace(country,country=="Syrian Arab Republic" ,"Syria"))%>%
-  mutate(country=replace(country,country== "Lao People Democratic Republic"  ,"Laos"))%>%
-  mutate(country=replace(country,country==   "France (metropolitan)" ,"France"))%>%
-  mutate(country=replace(country,country==   "Islamic Republic of Iran" ,"Iran"))%>%
-  mutate(country=replace(country,country== "Republic of Korea", "South Korea"  ))%>%
-  mutate(country=replace(country,country== "Cote d Ivoire", "Cote d'Ivoire"  ))
-
-world<-map_data("world")
-world_AD<-world%>% 
-  left_join(country_codes, by=c("region"="country_label"))%>%
-  left_join(Avoidable_Deaths_Simulated_All_age_cat,by=c("country_code"))
-
-a<-world_AD%>%select(c(region,country_label, country_code))%>%
-  distinct()%>%mutate(same= if_else(region == country_label, 1, 0))%>%
-  filter(same==0 | is.na(same) )
-
-
-
-Avoidable_Deaths_Simulated_All_age_cat%>%select(country_label)%>%
-  distinct()%>%
-  arrange()
-
-AD_Map <-world%>%
-  ggplot()+
-  geom_map(data=world_AD, map=world_AD,
-                                   aes(x=long,y=lat, 
-                                       map_id=region, 
-                                       fill=AD_treat))+
-  scale_fill_gradient2(low="gray50",high="red")+
-  ggtitle("Avoidable deaths Globally for all ten cancer sites")
-
-
-
-AD_Map
-
 
 
 

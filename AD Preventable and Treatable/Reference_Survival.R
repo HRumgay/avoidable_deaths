@@ -5,15 +5,19 @@
 ##########################################################
 #Combining datasets at the time point of interest 5 years and combining to HDI
 
-hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
-  left_join(HDI, by="country_code")%>%
-  select(-c(country_label, hdi_rank, year, X))%>%
-  filter(hdi_group%in% c(3,4))
+# hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
+#   left_join(HDI, by="country_code")%>%
+#   select(-c(country_label, hdi_rank, year, X))%>%
+#   filter(hdi_group%in% c(3,4))
+# 
+# lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
+#   left_join(HDI, by="country_code")%>%
+#   select(-c(country_label, hdi_rank, year,X.1, X))%>%
+#   filter(!hdi_group%in%c(3,4))
 
-lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
-  left_join(HDI, by="country_code")%>%
-  select(-c(country_label, hdi_rank, year,X.1, X))%>%
-  filter(!hdi_group%in%c(3,4))
+#updated file 
+
+Survival_Modelled
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
 
@@ -32,8 +36,7 @@ popmort<-popmort2%>%
   distinct()
 
 
-countries_5y<-lm_HDI%>% #seems like there is an issue with countries missing. Not sure why
-  full_join(hvh_HDI)%>%
+countries_5y<-Survival_Modelled%>%
   arrange(country_name)%>%
   left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
   select(-country_label)
