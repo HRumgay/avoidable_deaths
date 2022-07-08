@@ -199,6 +199,7 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   ungroup()%>%
   filter(age_cat!="Overall")%>%
   left_join(PAFs2,by=c("country_code"="country_code",
+                       "country_label"="country_label",
                        "cancer_code"="cancer_code",
                        "age_cat"="age_cat",
                        "age"="age"))%>%
