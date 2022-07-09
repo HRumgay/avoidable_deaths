@@ -25,6 +25,7 @@ library(relsurv)
 library(janitor)
 
 
+
 ########################
 #Comment from here
 # country_codes <-
@@ -138,6 +139,8 @@ country_codes <-
   filter(country_code<900) %>%
   select(country_code, country_label)
 
+
+
 PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Prostate.csv")%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
@@ -154,14 +157,20 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Pros
   ungroup()%>%
   as.data.frame()
 
-survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Data/survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
+
+
+#survival_merged_all_ages_missing_sites <- read_excel("~/Documents/R_Projects/Data/survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
 Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
+
 
 Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.csv") %>% 
   as.data.frame()%>%
  mutate( country_name = str_remove(string = country_name, pattern = '`"'))%>%
   mutate( country_name = str_remove(string = country_name, pattern = '\"\''))
+
+
+sapply(popmort, class)
 
 
 # Thailand <- read.csv("~/Documents/R_Projects/Data/survival_Thailand_anchor_ALL.csv") %>% as.data.frame()
