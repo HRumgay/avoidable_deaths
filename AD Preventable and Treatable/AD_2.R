@@ -170,7 +170,6 @@ Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_all
   mutate( country_name = str_remove(string = country_name, pattern = '\"\''))
 
 
-sapply(popmort, class)
 
 
 # Thailand <- read.csv("~/Documents/R_Projects/Data/survival_Thailand_anchor_ALL.csv") %>% as.data.frame()
@@ -221,6 +220,9 @@ MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR.csv")%>%
 
 
 Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
+
+
+sapply(Reference_Survival, class)
 
 Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv")%>%
   as.data.frame()%>%
@@ -534,7 +536,7 @@ for (i in 1:nrow(cancer_codes_tibble)) {
   try(AC2 <- predict(Cubic_age_2[[i]], time.pts = time, data.val = cancer_codes_tibble[i,]))
   # try(AC3 <- predict(Cubic_overall[[i]], time.pts = time, data.val = cancer_codes_tibble[i,]))
   
-  
+
   try(HP1 <- predict(Cubic_Cancer_age_1[[i]],
                      time.pts = time,
                      data.val = cancer_codes_tibble[i,]))
