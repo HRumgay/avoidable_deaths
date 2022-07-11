@@ -63,8 +63,8 @@ Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about t
   filter(X_year==2012)%>%
   group_by(X_age,X_year)%>%
   filter(sex!=0)%>%
-  rename("year"="X_year")%>%
-  rename("age"="X_age")%>%
+  dplyr::rename("year"="X_year")%>%
+  dplyr::rename("age"="X_age")%>%
    distinct()%>%
   mutate(age = case_when(
     age>=0 & age<=4 ~ 1,
@@ -92,13 +92,13 @@ Thailand_popmort2015<-Thailand_popmort%>% #need to fix this here... What about t
 
 
 countries_5y<-Survival_Modelled%>%
-  arrange(country_name)%>%
+  arrange(country_label)%>%
   left_join(Thailand_popmort2015, by=c("age"="age","country_code"="country_code"))%>%
   select(-region)
 
   
 Countries_modelled <-countries_5y%>%
-  filter(country_name=="Thailand")%>%
+  filter(country_label=="Thailand")%>%
   mutate(age = case_when(
     age==4~ 4,
     age>4 & age<=9~ 9,
@@ -117,8 +117,8 @@ Countries_modelled <-countries_5y%>%
       age<4 ~"0-15"
     ))%>%
   filter(age_cat!="0-15")%>%
-  group_by(country_name,cancer_label,age)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,age,
+  group_by(country_label,cancer_label,age)%>%
+  summarize(country_code,country_label, cancer_code, cancer_label,age,
             age_cat,rel_surv)%>%as.data.frame()%>%distinct()
 
 # Countries_modelled_Overall<-Countries_modelled%>%
@@ -132,8 +132,8 @@ simulated_overall<-Countries_modelled%>%
  #full_join(Countries_modelled_Overall)%>% 
   as.data.frame()%>%
   droplevels()%>%
-  group_by(country_name,cancer_label, age)%>%
-  dplyr::summarize(country_code,country_name, 
+  group_by(country_label,cancer_label, age)%>%
+  dplyr::summarize(country_code,country_label, 
             cancer_code, cancer_label,rel_surv,
             age_cat, age)%>%
   distinct()%>%
@@ -188,7 +188,7 @@ PAFs_age_Cat2<-PAFs_simulated%>%
   group_by(country_label,cancer_label, age) %>%
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases)/sum(cases),
                        cases==0 ~ ES)) %>%
-  dplyr::dplyr::summarize(country_code,country_label, cancer_code, cancer_label,
+  dplyr::summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat, 
             cases=sum(cases),
             cases.prev=sum(cases.prev), 
@@ -237,8 +237,11 @@ PAFs3<-PAFs_age_Cat2%>%
 
 Simulated_Data_PAF_1<-simulated_overall%>%
   ungroup()%>%
+  select(-country_label)%>%
   filter(age_cat!="Overall")%>%
-  left_join(PAFs3,by=c("country_code"="country_code","cancer_code"="cancer_code","age_cat"="age_cat","age"))%>%
+  
+  
+  left_join(PAFs3,by=c("country_code"="country_code","cancer_code"="cancer_code","age","age_cat"))%>%
  #left_join(Thailand_expected_Survival2, by=c("a"))%>%
   ungroup()%>%
   group_by(cancer_code,age_cat, age)%>%

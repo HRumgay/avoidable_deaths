@@ -843,18 +843,23 @@ Avoidable_Deaths<-Avoidable_Deaths%>%
 
 
 Avoidable_Deaths_overall<-Avoidable_Deaths%>%
+  as.data.frame()%>%
   mutate(age_cat="Overall")%>%
-  group_by(cancer_code, age_cat)%>%
-  mutate(total=sum(total))%>%
-  mutate(AD_prev= sum(AD_prev))%>%
-  mutate(AD_prev_Lower= sum(AD_prev_Lower))%>%
-  mutate(AD_prev_Upper= sum(AD_prev_Upper))%>%
-  mutate(AD_treat = sum(AD_treat))%>%
-  mutate(AD_treat_Lower= sum(AD_treat_Lower))%>%
-  mutate(AD_treat_Upper= sum(AD_treat_Upper))%>%
-  mutate(AD_unavoid = sum(AD_unavoid))%>%
-  mutate(AD_sum=AD_treat+AD_prev+AD_unavoid)%>%
-  mutate(MIR=sum(total*MIR)/sum(total))%>%
+  ungroup()%>%
+  group_by(country_code,cancer_label,age_cat)%>%
+  dplyr::summarise(country_code, country_label,
+                   cancer_code, cancer_label,
+                   total=sum(total),
+                   AD_prev= sum(AD_prev),
+                   AD_prev_Lower= sum(AD_prev_Lower),
+                   AD_prev_Upper= sum(AD_prev_Upper),
+                   AD_treat = sum(AD_treat),
+                   AD_treat_Lower= sum(AD_treat_Lower),
+                   AD_treat_Upper= sum(AD_treat_Upper),
+                   AD_unavoid = sum(AD_unavoid),
+                   AD_sum=sum(AD_sum),
+  )%>%
+  #  mutate(MIR=sum(total*MIR)/sum(total))%>%
   distinct()%>%
   as.data.frame()
 

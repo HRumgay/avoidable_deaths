@@ -120,7 +120,7 @@ Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Researc
   select( age,
           cancer_code,
           rel_surv)%>%
-  rename("surv_ref"="rel_surv")%>%
+  dplyr::rename("surv_ref"="rel_surv")%>%
   distinct()
 
 Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
@@ -128,7 +128,7 @@ Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\
   select( age_cat,
           cancer_code,
           rel_surv)%>%
-  rename("surv_ref"="rel_surv")%>%
+  dplyr::rename("surv_ref"="rel_surv")%>%
   distinct()
 
 
@@ -232,7 +232,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 #   select( age,
 #           cancer_code,
 #           rel_surv)%>%
-#   rename("surv_ref"="rel_surv")%>%
+#   dplyr::rename("surv_ref"="rel_surv")%>%
 #   distinct()
 # 
 # Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
@@ -240,7 +240,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 #   select( age_cat,
 #           cancer_code,
 #           rel_surv)%>%
-#   rename("surv_ref"="rel_surv")%>%
+#   dplyr::rename("surv_ref"="rel_surv")%>%
 #   distinct()
 # 
 # 
@@ -248,10 +248,15 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 # 
 # load("~/Documents/R_Projects/Data/ES_dt.RData")
 
-ES2<-ES_dt%>%as.data.frame()%>%
+ES2<-ES_dt%>%
+  as.data.frame()%>%
   filter(time==1000)%>%
   select(-time)%>%
-  rename("ES"="SurvExp")
+  dplyr::rename(ES="SurvExp")
+
+
+
+
 # 
 # ES_age_Cats<-ES2%>%  
 #   mutate(age = case_when(
@@ -319,7 +324,7 @@ Thailand_popmort2 <-
 
 #Prepping cancer real world data
 Thai_Survcan2 <- Thailand_Survcan %>%
-  #filter(surv_dd>0)%>%
+  filter(surv_dd>0)%>%
   filter(include == "Included") %>%
   filter(age >= 15) %>%
   filter(age <= 99) %>%
@@ -346,7 +351,6 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
   filter(!is.na(mx)) %>% 
   droplevels() %>%
-  filter(surv_dd<0)%>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))%>%
   mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
   mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
@@ -944,30 +948,43 @@ Avoidable_Deaths<-Avoidable_Deaths%>%
   mutate(country_code=as.numeric(as.character(country_code)))%>%
   # filter(total<AD_treatprev)%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
-  left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
+#  left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
+as.data.frame()
 
 
 Avoidable_Deaths_overall<-Avoidable_Deaths%>%
+  group_by(cancer_code,age_cat)%>%
   mutate(age_cat="Overall")%>%
-  group_by(cancer_code, age_cat)%>%
-  mutate(total=sum(total))%>%
-  mutate(AD_prev= sum(AD_prev))%>%
-  mutate(AD_prev_Lower= sum(AD_prev_Lower))%>%
-  mutate(AD_prev_Upper= sum(AD_prev_Upper))%>%
-  mutate(AD_treat = sum(AD_treat))%>%
-  mutate(AD_treat_Lower= sum(AD_treat_Lower))%>%
-  mutate(AD_treat_Upper= sum(AD_treat_Upper))%>%
-  mutate(AD_unavoid = sum(AD_unavoid))%>%
-  mutate(AD_sum=AD_treat+AD_prev+AD_unavoid)%>%
-  mutate(MIR=sum(total*MIR)/sum(total))%>%
+  mutate(total=sum(total))
+
+
+
+Avoidable_Deaths_overall<-Avoidable_Deaths%>%
+  as.data.frame()%>%
+  mutate(age_cat="Overall")%>%
+  ungroup()%>%
+  group_by(country_code,cancer_label,age_cat)%>%
+  dplyr::summarise(country_code, country_label,
+                   cancer_code, cancer_label,
+         total=sum(total),
+         AD_prev= sum(AD_prev),
+           AD_prev_Lower= sum(AD_prev_Lower),
+         AD_prev_Upper= sum(AD_prev_Upper),
+          AD_treat = sum(AD_treat),
+           AD_treat_Lower= sum(AD_treat_Lower),
+          AD_treat_Upper= sum(AD_treat_Upper),
+          AD_unavoid = sum(AD_unavoid),
+           AD_sum=sum(AD_sum),
+         )%>%
+#  mutate(MIR=sum(total*MIR)/sum(total))%>%
   distinct()%>%
   as.data.frame()
 
 Avoidable_Deaths_age_cat<-Avoidable_Deaths%>%
   group_by(cancer_code, age_cat)%>%
-  mutate(AD_prev= sum(AD_prev))%>%
-  mutate(AD_treat = sum(AD_treat))%>%
-  mutate(AD_unavoid = sum(AD_unavoid))%>%
+  # mutate(AD_prev= sum(AD_prev))%>%
+  # mutate(AD_treat = sum(AD_treat))%>%
+  # mutate(AD_unavoid = sum(AD_unavoid))%>%
   full_join(Avoidable_Deaths_overall)%>%
   #  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
   #  mutate(total_overall=sum(total_overall))%>%
