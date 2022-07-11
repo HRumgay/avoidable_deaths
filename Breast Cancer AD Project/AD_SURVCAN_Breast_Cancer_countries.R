@@ -231,6 +231,7 @@ bcan_SURV2 <- bcan_SURV %>%
  # filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
   filter(!is.na(mx)) %>% 
   droplevels() %>%
+  filter(surv_dd<0)%>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))%>%
   mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
   mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
@@ -294,7 +295,9 @@ time <- seq(0, 5, le = 5001)
 #Removes empty age variables for model to be run properly
 bSURV <- bSURV %>% droplevels()
 
-country_names_Survcan<-bSURV%>%select(country)%>%distinct()%>%as.data.frame()
+country_names_Survcan<-bSURV%>%select(country)%>%distinct()
+
+
 
 cancer_types <- as_tibble(names(table(bSURV$cancer))) #Needs to be tibble for predictions
 
@@ -384,8 +387,8 @@ Cubic_Cancer_age_2 <- list()
 
 #Cubic excess hazard by country
 for (i in 1:nrow(country_names_Survcan)){
-  b1 <- bSURV_Lower %>% filter(country == country_names_Survcan[i,])
-  b2 <- bSURV_Upper %>% filter(country == country_names_Survcan[i,])
+  b1 <- bSURV_Lower %>% filter(country == country_names_Survcan[i,]$country)
+  b2 <- bSURV_Upper %>% filter(country == country_names_Survcan[i,]$country)
   # b3 <- bSURV_overall %>% filter(cancer_code == cancer_codes[i,])
   # 
    try(Cubic_Cancer_age_1[[i]] <-
