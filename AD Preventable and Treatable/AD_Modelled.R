@@ -262,7 +262,9 @@ Simulated_Data_PAF_1<-simulated_overall%>%
     mutate(total_overall=as.double(total_overall))%>%
   #  full_join(Simulated_Data_PAF_2)%>%
     arrange(country_label,cancer_code,age_cat)%>%
-    left_join(Reference_Survival,by=c("age","cancer_code"))%>%
+    left_join(Reference_Survival %>% 
+                select(age,cancer_code,rel_surv) %>% 
+                rename(surv_ref=rel_surv),by=c("age","cancer_code"))%>%
     as_tibble()
   
 
@@ -304,7 +306,7 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
   
   AD_unavoid<-(1-Simulated_Data_PAF_All[i,]$af.comb)*
     Simulated_Data_PAF_All[i,]$total_overall*
-    (Simulated_Data_PAF_All[i,]$surv_ref-Simulated_Data_PAF_All[i,]$rel_surv*
+    (1-Simulated_Data_PAF_All[i,]$surv_ref*
        (ES))
   #AD_unavoid_Lower<-(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall*(1-Simulated_Data_PAF_All[i,]$NS_Lower_CI*ES)
   #AD_unavoid_Upper<-(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall*(1-Simulated_Data_PAF_All[i,]$NS_Upper_CI*ES)
