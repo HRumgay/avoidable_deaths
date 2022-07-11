@@ -383,11 +383,11 @@ Avoidable_Deaths_simulated_All2<-Avoidable_Deaths_Simulated_All%>%
 Avoidable_Deaths_Simulated_All_overall<-Avoidable_Deaths_Simulated_All%>%
   mutate(age_cat="Overall")%>%
   group_by(country_code, cancer_code, age_cat)%>%
-  mutate(total_overall=sum(total_overall))%>%
-  mutate(AD_prev= sum(AD_prev))%>%
-  mutate(AD_treat = sum(AD_treat))%>%
-  mutate(AD_unavoid = sum(AD_unavoid))%>%
-  mutate(AD_sum=sum(AD_sum))%>%
+  mutate(total_overall=sum(total_overall,na.rm=T))%>%
+  mutate(AD_prev= sum(AD_prev,na.rm=T))%>%
+  mutate(AD_treat = sum(AD_treat,na.rm=T))%>%
+  mutate(AD_unavoid = sum(AD_unavoid,na.rm=T))%>%
+  mutate(AD_sum=sum(AD_sum,na.rm=T))%>%
   select(-af.comb, -age)%>%
   distinct()%>%
   as.data.frame()
@@ -396,10 +396,10 @@ Avoidable_Deaths_Simulated_All_overall<-Avoidable_Deaths_Simulated_All%>%
 Avoidable_Deaths_Simulated_All_age_cat <- Avoidable_Deaths_Simulated_All%>%
   ungroup()%>%
   group_by(country_code, cancer_code, age_cat)%>%
-  mutate(AD_prev= sum(AD_prev))%>%
-  mutate(AD_treat = sum(AD_treat))%>%
-  mutate(AD_unavoid = sum(AD_unavoid))%>%
-  mutate(total_overall=sum(total_overall))%>%
+  mutate(AD_prev= sum(AD_prev,na.rm=T))%>%
+  mutate(AD_treat = sum(AD_treat,na.rm=T))%>%
+  mutate(AD_unavoid = sum(AD_unavoid,na.rm=T))%>%
+  mutate(total_overall=sum(total_overall,na.rm=T))%>%
   full_join(Avoidable_Deaths_Simulated_All_overall)%>%
   select(-age, -af.comb)%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
@@ -445,10 +445,10 @@ AD_by_HDI<- Avoidable_Deaths_Simulated_All_age_cat%>%
   select(-country_code,-country_label, -total_overall)%>%
   ungroup()%>%
   group_by(cancer_code, hdi_group,age_cat)%>%
-  mutate(AD_treat=sum(AD_treat))%>%
-  mutate(AD_prev=sum(AD_prev))%>%
-  mutate(AD_unavoid=sum(AD_unavoid))%>%
-  mutate(AD_sum=sum(AD_sum))  %>%
+  mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
+  mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
+  mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+  mutate(AD_sum=sum(AD_sum,na.rm=T))  %>%
   ungroup()%>%
   distinct()%>%as.data.frame()
 
@@ -457,10 +457,10 @@ AD_by_HDI_overall<-AD_by_HDI%>%filter(age_cat=="Overall")%>%select(-age_cat)
 
 
 AD_by_HDI_ten<-AD_by_HDI_overall%>%group_by(hdi_group)%>%
-  mutate(AD_treat=sum(AD_treat))%>%
-  mutate(AD_prev=sum(AD_prev))%>%
-  mutate(AD_unavoid=sum(AD_unavoid))%>%
-  mutate(AD_sum=sum(AD_sum))  %>%
+  mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
+  mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
+  mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+  mutate(AD_sum=sum(AD_sum,na.rm=T))  %>%
   mutate(cancer="Ten Cancer Sites")%>%
   mutate(cancer_code=1000)%>%
   ungroup()%>%
