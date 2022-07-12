@@ -48,15 +48,26 @@ library(janitor)
 
 
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
+missing_CC<-data.frame(c("Seychelles"), c(10001))
+colnames(missing_CC) <- c("country_label","country_code")
+
 country_codes <-
   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
   filter(country_code<900) %>% 
-  select(country_code, country_label)
+  mutate(country_label = replace(country_label, country_label == "Iran, Islamic Republic of", "Iran")) %>%
+  mutate(country_label = replace(country_label, country_label == "Korea, Republic of", "South Korea")) %>%
+  select(country_code, country_label)%>% 
+  full_join(missing_CC)
+  
+  #mutate(region = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
+  
 
 #life tables
 
 life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
-  left_join(country_codes, by = c("region"="country_label"))
+  left_join(country_codes, by = c("region"="country_label"))%>%
+dplyr::rename("country"="region")%>%
+  select(-country)
   
 
 PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_08.06.2022_Prostate.csv")
@@ -202,6 +213,7 @@ survcancancer<-bSURV%>%
   summarize(cancer_code, cancer)%>%
   distinct()
 
+country_codes
 
 a<-bcan_SURV2%>%select(country,country_code)%>%distinct()%>%as.data.frame()
 b<-life_table%>%select(region,country_code)%>%distinct()%>%as.data.frame()
@@ -222,6 +234,7 @@ bcan_SURV2 <- bcan_SURV %>%
     labels = c("<15", "15-64", "65-99")
   )) %>% #create age categories (to be adjusted)
   ungroup()%>%
+  mutate(country=replace(country,country=="Cote d'Ivoire", "Côte d'Ivoire"))%>%
   left_join(country_codes, by = c("country"="country_label"))%>%
   droplevels()%>%
   mutate(last_FU_age = round(age + surv_dd/365.15)) %>% #creating variable for age of death
@@ -302,15 +315,18 @@ time <- seq(0, 5, le = 5001)
 #Removes empty age variables for model to be run properly
 bSURV <- bSURV %>% droplevels()
 
-country_names_Survcan<- names(table(bSURV$country))%>%
-  as.data.frame() 
+country_names_Survcan<- as_tibble(names(table(bSURV$country)))
 names(country_names_Survcan)[names(country_names_Survcan) == "value"] <- "country"
 country_names_Survcan <- as.data.frame(country_names_Survcan)%>%#For regression needs to be in this form
-as.data.frame()
+as.data.frame()%>%
+  mutate(country=as.character(country))
+
+country_codes <- as_tibble(names(table(bSURV$country_code))) #Needs to be tibble for predictions
+names(country_codes)[names(country_codes) == "value"] <- "country_code"
+country_codes <- as.data.frame(country_codes) #For regression needs to be in this form
 
 
-cancer_types <- names(table(bSURV$cancer))%>%
-  as.data.frame() 
+cancer_types <- names(table(bSURV$cancer))%>%as.data.frame() 
 names(cancer_types)[names(cancer_types) == "value"] <- "cancer"
 cancer_types <-  as.data.frame(cancer_types) #For regression needs to be in this form
 
@@ -334,9 +350,9 @@ Cubic_age_2 <- list()
 
 #Cubic base model BY Cancer type
 
-for (i in 1:nrow(country_names_Survcan)) {
-  b1 <- bSURV_Lower %>% filter(country == country_names_Survcan[i,]$country)
-  b2 <- bSURV_Upper %>% filter(country == country_names_Survcan[i,]$country)
+for (i in 1:nrow(country_codes)) {
+  b1 <- bSURV_Lower %>% filter(country_code == country_codes[i,])
+  b2 <- bSURV_Upper %>% filter(country_code == country_codes[i,])
   # b3 <- bSURV_overall %>% filter(country_code == country_codes[i,])
   
   # k1<-c(1,2.5,4)
@@ -395,13 +411,13 @@ Cubic_Cancer_age_2 <- list()
 #Cubic_Cancer_overall <- list()
 
 #Cubic excess hazard by country
-for (i in 1:nrow(country_names_Survcan)){
-  b1 <- bSURV_Lower %>% filter(country == country_names_Survcan[i,]$country)
-  b2 <- bSURV_Upper %>% filter(country == country_names_Survcan[i,]$country)
+for (i in 1:nrow(country_codes)){
+  b1 <- bSURV_Lower %>% filter(country_code == country_codes[i,])
+  b2 <- bSURV_Upper %>% filter(country_code == country_codes[i,])
   # b3 <- bSURV_overall %>% filter(cancer_code == cancer_codes[i,])
   # 
-   try(Cubic_Cancer_age_1[[i]] <-
-         update(Cubic_age_1[[i]], expected = "mx"#,      numHess=TRUE,
+    try(Cubic_Cancer_age_1[[i]] <-
+          update(Cubic_age_1[[i]], expected = "mx"#,      numHess=TRUE,
                # fnoptim="optim"
                 ))
    # try(Cubic_Cancer_age_2[[i]] <-
