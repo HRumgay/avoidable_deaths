@@ -37,9 +37,9 @@ popmort<-popmort2%>%
 
 
 countries_5y<-Survival_Modelled%>%
-  arrange(country_name)%>%
-  left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
-  select(-country_label)
+  arrange(country_label)%>%
+  left_join(popmort,by=c("age"="age","country_code"="country_code","country_label"="country_label" ))#%>%
+#  select(-country_label)
 
 
 
@@ -51,8 +51,8 @@ Countries_Simulated <-countries_5y%>%
       FALSE ~"0-15"
     ))%>%
   filter(age_cat!="0-15")%>%
-  group_by(country_name,cancer_label,age_cat)%>%
-  summarize(country_code,country_name, cancer_code, cancer_label,
+  group_by(country_label,cancer_label,age_cat)%>%
+  summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat,
             rel_surv, mx)%>%as.data.frame()
 
@@ -119,6 +119,7 @@ PAFs2<-PAFs_age_Cat%>%
 
 R1<-Countries_Simulated%>%
   ungroup()%>%
+  select(-country_label)%>%
   left_join(PAFs2,by=c("country_code"="country_code",
                        "cancer_code"="cancer_code",
                        "age"="age",
@@ -156,7 +157,7 @@ R1<-Countries_Simulated%>%
 #   as.data.frame()
 
 
-Reference_Survival<-R1%>%select(country_name, country_code, 
+Reference_Survival<-R1%>%select(country_label, country_code, 
                                 cancer_label, cancer_code, 
                                 age, age_cat, rel_surv,cases)%>%
   arrange(cancer_label, age)
@@ -180,6 +181,8 @@ names(R1)
 write.csv(Reference_Survival,"~/Documents/R_Projects/Data/Reference_Survival.csv")
 write.csv(Reference_Survival_Survcan,"~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")
 
+write.csv(Reference_Survival,"\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.csv")
+write.csv(Reference_Survival_Survcan,"\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")
 
 
 
