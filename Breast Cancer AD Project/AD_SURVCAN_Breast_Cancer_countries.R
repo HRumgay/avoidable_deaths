@@ -13,7 +13,7 @@
 
 #Avoidable Deaths due to Risk Factors for various Cancer sites
 library(readxl)
-library(plyr)
+#library(plyr)
 library(dplyr)
 library(tidyverse)
 library(stringr)
@@ -46,16 +46,18 @@ library(janitor)
 
 #Reading all the variables
 
-#life tables
-
-life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")
-
 
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
 country_codes <-
   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
   filter(country_code<900) %>% 
   select(country_code, country_label)
+
+#life tables
+
+life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
+  left_join(country_codes, by = c("region"="country_label"))
+  
 
 PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_08.06.2022_Prostate.csv")
 
@@ -201,11 +203,14 @@ survcancancer<-bSURV%>%
   distinct()
 
 
-table(bcan_SURV2$country)
+a<-bcan_SURV2%>%select(country,country_code)%>%distinct()%>%as.data.frame()
+b<-life_table%>%select(region,country_code)%>%distinct()%>%as.data.frame()
 
+a%in%b
 
 #Prepping cancer real world data
 bcan_SURV2 <- bcan_SURV %>%
+  filter(surv_dd>0)%>%
   filter(include == "Included") %>%
   filter(age >= 15) %>%
   filter(age <= 99) %>%
@@ -217,6 +222,7 @@ bcan_SURV2 <- bcan_SURV %>%
     labels = c("<15", "15-64", "65-99")
   )) %>% #create age categories (to be adjusted)
   ungroup()%>%
+  left_join(country_codes, by = c("country"="country_label"))%>%
   droplevels()%>%
   mutate(last_FU_age = round(age + surv_dd/365.15)) %>% #creating variable for age of death
   mutate(last_FU_year = round(year + surv_dd/365.15))%>%  #creating variable for year of death
@@ -226,15 +232,14 @@ bcan_SURV2 <- bcan_SURV %>%
   left_join(life_table, by = c(
     "last_FU_age" = "age",
     "last_FU_year" = "year",
-    "country" = "region")) %>%
+    "country_code")) %>%
   droplevels()%>%
  # filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
-  filter(!is.na(mx)) %>% 
+  #filter(!is.na(mx)) %>% 
   droplevels() %>%
-  filter(surv_dd<0)%>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))%>%
-  mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
-  mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
+#  mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
+#  mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
   filter(cancer_code %in% ten_cancer_sites$cancer_code)
 
 bcan_SURV3 <- bcan_SURV2%>%
@@ -248,10 +253,10 @@ bcan_SURV3 <- bcan_SURV2%>%
 
 
 
-bcan_SURV11<- bcan_SURV3%>%
+bcan_SURV11 <- bcan_SURV3%>%
   select(region_lab, country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
-  group_by(region_lab,country,cancer_code)%>%
-  summarize( end_FU=max(year))%>%
+  group_by(region_lab, country, cancer_code)%>%
+  summarize(end_FU = max(year))%>%
   as.data.frame()
 
 
@@ -276,9 +281,11 @@ bSURV_Upper <- bSURV %>% filter(age_cat == "65-99")
 bSURV_age_cats <- bSURV #bSURV_overall %>% full_join(bSURV)
 
 
+
+
 is.na(bSURV$mx) #60 people have ages above 100 but were between 15-99 years at age of diagnosis. Should they be excluded?
 
-
+names(table(bcan_SURV2$country))
 
 #########################################
 #
@@ -295,12 +302,15 @@ time <- seq(0, 5, le = 5001)
 #Removes empty age variables for model to be run properly
 bSURV <- bSURV %>% droplevels()
 
-country_names_Survcan<-bSURV%>%select(country)%>%distinct()
+country_names_Survcan<- names(table(bSURV$country))%>%
+  as.data.frame() 
+names(country_names_Survcan)[names(country_names_Survcan) == "value"] <- "country"
+country_names_Survcan <- as.data.frame(country_names_Survcan)%>%#For regression needs to be in this form
+as.data.frame()
 
 
-
-cancer_types <- as_tibble(names(table(bSURV$cancer))) #Needs to be tibble for predictions
-
+cancer_types <- names(table(bSURV$cancer))%>%
+  as.data.frame() 
 names(cancer_types)[names(cancer_types) == "value"] <- "cancer"
 cancer_types <-  as.data.frame(cancer_types) #For regression needs to be in this form
 
@@ -328,7 +338,6 @@ for (i in 1:nrow(country_names_Survcan)) {
   b1 <- bSURV_Lower %>% filter(country == country_names_Survcan[i,]$country)
   b2 <- bSURV_Upper %>% filter(country == country_names_Survcan[i,]$country)
   # b3 <- bSURV_overall %>% filter(country_code == country_codes[i,])
-  
   
   # k1<-c(1,2.5,4)
   # k2<-c(1,2.5,4)

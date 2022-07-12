@@ -29,12 +29,15 @@ Avoidable_Deaths2 <- Avoidable_Deaths_age_cat %>% mutate(Scenario = "RWD")
 
 
 Avoidable_Deaths_Simulated2 <-
-  Avoidable_Deaths_modelled_age_cat %>% mutate(Scenario = "Simulated")
+  Avoidable_Deaths_modelled_age_cat %>% 
+  mutate(Scenario = "Simulated")%>%
+  filter(!is.na(AD_treat))
 
 Cancer_codes2<-
   cancer_codes %>%select(cancer_code)
 
 AD_plotable <-  Avoidable_Deaths2 %>%
+
   ungroup()%>%
   select(-cancer_label)%>%
   rename("total_overall"="total")%>%
@@ -42,10 +45,10 @@ AD_plotable <-  Avoidable_Deaths2 %>%
   mutate(cancer_code=as.integer(cancer_code))%>%
   mutate_if(is.numeric, replace_na, 0)%>%
  left_join(ten_cancer_sites, by=c("cancer_code"))%>%
-  filter(!is.na(AD_treat))%>%
   mutate(AD_treat_prop=AD_treat/AD_sum*100)%>%
   mutate(AD_prev_prop=AD_prev/AD_sum*100)%>%
-  mutate(AD_unavoid_prop=AD_unavoid/AD_sum*100)
+  mutate(AD_unavoid_prop=AD_unavoid/AD_sum*100)%>%
+  filter(!is.na(cancer_label))
 
 #Data by cancer site prep
 AD_by_cancer_site <- Avoidable_Deaths_Simulated_All%>%
@@ -139,6 +142,10 @@ Figure_4_2 <- AD_by_cancer_site_1%>%
 
 
 Figure_4_2
+
+
+
+
 
 
 # AD_plotable %>% ggplot(aes(x = "", y = value, fill = group)) +
