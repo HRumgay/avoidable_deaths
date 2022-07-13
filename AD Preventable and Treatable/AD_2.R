@@ -143,9 +143,9 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 #   read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>%
 #   filter(country_code<900) %>%
 #   select(country_code, country_label)
-
-
-
+# 
+# 
+# 
 # PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Prostate.csv")%>%
 #   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
 #   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
@@ -169,7 +169,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 # Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
 # 
 # 
-# Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.csv") %>% 
+# Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.csv") %>%
 #   as.data.frame()
 # 
 # 
