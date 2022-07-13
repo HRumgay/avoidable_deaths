@@ -260,7 +260,10 @@ bcan_SURV3 <- bcan_SURV2%>%
   mutate(event1=case_when(dead==1 &      surv_yydd<=5 ~ 1,
                           dead==1 & surv_yydd>5 ~ 0,
                           dead==0 ~ 0
-  ))
+  )) %>%
+  group_by(country,age_cat)%>%
+   mutate(max=max(surv_yydd))%>%
+   filter(max>=5)
 
 #modifying so last five years of follow up
 
@@ -277,6 +280,7 @@ bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)%>%
   ungroup()%>%
   group_by(country)%>%
  filter(year>=end_FU-5)
+
 # mutate(surv_yy=case_when(surv_yy<=5 ~ 5
 # )
 # )
@@ -317,7 +321,7 @@ bSURV <- bSURV %>% droplevels()
 
 country_names_Survcan<- as_tibble(names(table(bSURV$country)))
 names(country_names_Survcan)[names(country_names_Survcan) == "value"] <- "country"
-country_names_Survcan <- as.data.frame(country_names_Survcan)%>%#For regression needs to be in this form
+country_names_Survcan <- country_names_Survcan%>%#For regression needs to be in this form
 as.data.frame()%>%
   mutate(country=as.character(country))
 
@@ -412,21 +416,21 @@ Cubic_Cancer_age_2 <- list()
 
 #Cubic excess hazard by country
 for (i in 1:nrow(country_codes)){
-  b1 <- bSURV_Lower %>% filter(country_code == country_codes[i,])
-  b2 <- bSURV_Upper %>% filter(country_code == country_codes[i,])
-  # b3 <- bSURV_overall %>% filter(cancer_code == cancer_codes[i,])
-  # 
-    try(Cubic_Cancer_age_1[[i]] <-
-          update(Cubic_age_1[[i]], expected = "mx"#,      numHess=TRUE,
-               # fnoptim="optim"
-                ))
-   # try(Cubic_Cancer_age_2[[i]] <-
-   #       update(Cubic_age_2[[i]], expected = "mx",      numHess=TRUE,
-   #              fnoptim="optim"))
+  b1 <- bSURV_Lower %>% filter(country_code == country_codes[i,])%>%as.data.frame()
+  b2 <- bSURV_Upper %>% filter(country_code == country_codes[i,])%>%as.data.frame()
+  # b3 <- Thai_Surv_overall %>% filter(cancer_code == cancer_codes[i,])
+  
+  try(Cubic_Cancer_age_1[[i]] <-
+        update(Cubic_age_1[[i]], expected = "mx",      numHess=TRUE,
+               fnoptim="optim"))
+  try(Cubic_Cancer_age_2[[i]] <-
+        update(Cubic_age_2[[i]], expected = "mx",      numHess=TRUE,
+               fnoptim="optim"))
   # try(Cubic_Cancer_overall[[i]] <-
   #       update(Cubic_overall[[i]], expected = "mx",    numHess=TRUE,
   #              fnoptim="optim"))
 }
+
 
 
 ####################
@@ -445,7 +449,8 @@ Predictions_Cubic_All_Cause_age_2 <- list()
 #Predictions_Cubic_All_Cause_age_3 <- list()
 
 
-
+country_codes_tibble<-
+  country_codes %>% as_tibble()
 
 cancer_types_tibble <-
   cancer_types %>% as_tibble() #predict only works with tibble data structure...
@@ -455,18 +460,19 @@ cancer_codes_tibble <-
   mutate(cancer_code=as.integer(cancer_code))%>%
   as_tibble() #predict only works with tibble data structure...
 #Cubic predictions by country
-for (i in 1:nrow(cancer_codes_tibble)) {
-  try(AC1 <- predict(Cubic_age_1[[i]], time.pts = time, data.val = cancer_codes_tibble[i,]))
-  try(AC2 <- predict(Cubic_age_2[[i]], time.pts = time, data.val = cancer_codes_tibble[i,]))
+
+for (i in 1:nrow(country_codes_tibble)) {
+  try(AC1 <- predict(Cubic_age_1[[i]], time.pts = time, data.val = country_codes_tibble[i,]))
+  try(AC2 <- predict(Cubic_age_2[[i]], time.pts = time, data.val = country_codes_tibble[i,]))
   # try(AC3 <- predict(Cubic_overall[[i]], time.pts = time, data.val = cancer_codes_tibble[i,]))
   
   
   try(HP1 <- predict(Cubic_Cancer_age_1[[i]],
                      time.pts = time,
-                     data.val = cancer_codes_tibble[i,]))
+                     data.val = country_codes_tibble[i,]))
   try(HP2 <- predict(Cubic_Cancer_age_2[[i]],
                      time.pts = time,
-                     data.val = cancer_codes_tibble[i,]))
+                     data.val = country_codes_tibble[i,]))
   # try(HP3 <- predict(Cubic_Cancer_overall[[i]],
   #               time.pts = time,
   #               data.val = cancer_codes_tibble[i,]))
@@ -485,17 +491,17 @@ for (i in 1:nrow(cancer_codes_tibble)) {
 
 #Extracting prediction data five year avoidable deaths prediction and survival
 
-Net_Survival_Five_Year_age_1 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
-Net_Survival_Five_Year_age_2 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
+Net_Survival_Five_Year_age_1 <- matrix(ncol = 5, nrow = nrow(country_codes)) #R(t)
+Net_Survival_Five_Year_age_2 <- matrix(ncol = 5, nrow = nrow(country_codes)) #R(t)
 # Net_Survival_Five_Year_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
 
 
 
-All_Cause_Survival_age_1 <- matrix(ncol = 5, nrow = nrow(cancer_codes))    #S(t)
-All_Cause_Survival_age_2 <- matrix(ncol = 5, nrow = nrow(cancer_codes) )    #S(t)
+All_Cause_Survival_age_1 <- matrix(ncol = 5, nrow = nrow(country_codes))    #S(t)
+All_Cause_Survival_age_2 <- matrix(ncol = 5, nrow = nrow(country_codes) )    #S(t)
 # All_Cause_Survival_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes) )    #S(t)
 
-for (i in 1:nrow(cancer_codes_tibble)) {
+for (i in 1:nrow(country_codes_tibble)) {
   s <-  Predictions_Cubic_Net_age_1[[i]]$results
   s <-  s %>% filter(time.pts == 5)
   s2 <-  Predictions_Cubic_Net_age_2[[i]]$results
@@ -512,16 +518,16 @@ for (i in 1:nrow(cancer_codes_tibble)) {
   # sp3 <-  sp3 %>% filter(time.pts == 5)
   # 
   
-  Net_Survival_Five_Year_age_1[i,] <-
-    c(ten_cancer_sites[i,1],
-      ten_cancer_sites[i,2], 
-      s$surv, s$surv.inf, s$surv.sup)
-  Net_Survival_Five_Year_age_2[i,] <-
-    c(ten_cancer_sites[i,1],
-      ten_cancer_sites[i,2],
+  try(Net_Survival_Five_Year_age_1[i,] <-
+    c(country_codes[i,1],
+      country_names_Survcan[i,1],
+      s$surv, s$surv.inf, s$surv.sup))
+  try(Net_Survival_Five_Year_age_2[i,1] <-
+    c(country_codes[i,1],
+      country_names_Survcan[i,1],
       s2$surv,
       s2$surv.inf,
-      s2$surv.sup)
+      s2$surv.sup))
   # Net_Survival_Five_Year_age_3[i,] <-
   #   c(ten_cancer_sites[i,1],
   #     ten_cancer_sites[i,2],
@@ -529,18 +535,18 @@ for (i in 1:nrow(cancer_codes_tibble)) {
   #     s3$surv.inf,
   #     s3$surv.sup)
   
-  All_Cause_Survival_age_1[i,] <-
-    c(ten_cancer_sites[i,1],
-      ten_cancer_sites[i,2],
+  try( All_Cause_Survival_age_1[i,] <-
+    c(country_codes[i,1],
+      country_names_Survcan[i,1],
       sp$surv,
       sp$surv.inf,
-      sp$surv.sup)
-  All_Cause_Survival_age_2[i,] <-
-    c(ten_cancer_sites[i,1],
-      ten_cancer_sites[i,2],
+      sp$surv.sup))
+  try(All_Cause_Survival_age_2[i,] <-
+    c(country_codes[i,1],
+      country_names_Survcan[i,1], 
       sp2$surv,
       sp2$surv.inf,
-      sp2$surv.sup)
+      sp2$surv.sup))
   # All_Cause_Survival_age_3[i,] <-
   #   c(ten_cancer_sites[i,1],
   #     ten_cancer_sites[i,2],
