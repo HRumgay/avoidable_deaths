@@ -64,6 +64,8 @@ popmort<-popmort2%>%
 
 
 countries_5y<-Survival_Modelled%>%
+  rename("country_label"="country_name")%>%
+  clean_names(country_label)%>%
   arrange(country_label)%>%
   #left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
   #select(-country_label)%>%
