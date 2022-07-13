@@ -138,7 +138,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 
 
 #Reading all the variables
-# GCO_country_info.csv has correct country_label variable to match with pop_mort2
+#GCO_country_info.csv has correct country_label variable to match with pop_mort2
 # country_codes <-
 #   read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>%
 #   filter(country_code<900) %>%

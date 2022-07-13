@@ -65,7 +65,9 @@ popmort<-popmort2%>%
 
 countries_5y<-Survival_Modelled%>%
   rename("country_label"="country_name")%>%
-  clean_names(country_label)%>%
+  mutate(country_label = str_remove( country_label,'"'))%>%
+  mutate(country_label = str_remove( country_label,"'"))%>%
+  mutate(country_label = str_remove( country_label,"`"))%>%
   arrange(country_label)%>%
   #left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
   #select(-country_label)%>%
@@ -262,13 +264,10 @@ Simulated_Data_PAF_1<-simulated_overall%>%
   Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
     mutate(rel_surv=as.double(rel_surv))%>%
     mutate(af.comb=as.double(af.comb))%>% 
-    mutate(total_overall=as.double(total_overall))%>%
+    mutate(total_overall=as.double(total_overall))%>% 
   #  full_join(Simulated_Data_PAF_2)%>%
     arrange(country_label,cancer_code,age_cat)%>%
-    left_join(Reference_Survival %>% 
-                select(age,cancer_code,rel_surv) %>% 
-                rename(surv_ref=rel_surv),by=c("age","cancer_code"))%>%
-    as_tibble()
+    left_join(Reference_Survival, by=c("age","cancer_code")) 
   
 
 #Avoidable deaths
