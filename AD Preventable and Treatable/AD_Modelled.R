@@ -99,7 +99,8 @@ Countries_Simulated <-countries_5y%>%
   group_by(country_label,cancer_label,age_cat)%>%
   summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat,
-            rel_surv)%>%as.data.frame()
+            rel_surv)%>%
+  as.data.frame()
 
 
 # Countries_Simulated_Overall<-Countries_Simulated%>%
