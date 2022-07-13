@@ -10,12 +10,22 @@ life_file_list<-list.files('\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research 
 life<-plyr::ldply(life_file_list,read.dta13)
 life<-life%>%as.data.frame()%>%
   clean_names()%>%
-  filter(!is.na(mx))
+  filter(!is.na(mx))%>%
+  select(-country)%>%
+  filter(region!="Martinique")%>%
+  filter(region!="Mauritius")
 
-Mauritius<-read.dta13(life_file_list[22])
-# Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
 
-life<-life%>%full_join(Mauritius)
+Iran<-read.dta13(life_file_list[15])%>%as.data.frame()
+Iran<-Iran%>% clean_names()%>%rename("country"="region")
+
+Martinique<-read.dta13(life_file_list[21])%>%as.data.frame()
+Martinique<-Martinique%>%select(-country)%>% clean_names()%>%rename("country"="region")
+
+Mauritius<-read.dta13(life_file_list[22])%>%as.data.frame()
+ Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
+
+life<-life%>%full_join(Mauritius)%>%full_join(Martinique)
 
 #Load mortality rates for survival analysis. Correct and use probability
 life_table<-life%>%filter(sex==2)%>%
