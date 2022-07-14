@@ -25,19 +25,17 @@ library(Rcan)
 
 #Creating a plotable object comparing Thailand simulated and RWD
 
-Avoidable_Deaths2 <- Avoidable_Deaths_age_cat %>% mutate(Scenario = "RWD")
+Avoidable_Deaths2 <- Avoidable_Deaths_age_cat %>% 
+  mutate(Scenario = "RWD")
 
 
-Avoidable_Deaths_Simulated2 <-
-  Avoidable_Deaths_modelled_age_cat %>% 
+Avoidable_Deaths_Simulated2 <- Avoidable_Deaths_modelled_age_cat %>% 
   mutate(Scenario = "Simulated")%>%
   filter(!is.na(AD_treat))
 
-Cancer_codes2<-
-  cancer_codes %>%select(cancer_code)
+Cancer_codes2 <- cancer_codes %>%select(cancer_code)
 
 AD_plotable <-  Avoidable_Deaths2 %>%
-
   ungroup()%>%
   select(-cancer_label)%>%
   rename("total_overall"="total")%>%

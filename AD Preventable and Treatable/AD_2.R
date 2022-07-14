@@ -33,7 +33,7 @@ country_codes <-
   filter(country_code<900) %>%
   select(country_code, country_label)
 
-PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_08.06.2022_Prostate.csv")
+PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")
 
 PAFs<-PAFs10%>%
   mutate(cancer_label=as.character(cancer_label))%>%
@@ -146,7 +146,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 # 
 # 
 # 
-# PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_08.06.2022_Prostate.csv")%>%
+# PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
 #   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
 #   mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
 #   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
