@@ -357,7 +357,7 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   filter(cancer_code %in% ten_cancer_sites$cancer_code)
 
 Thai_Surv3 <- Thai_Survcan2%>%
-  mutate(surv_yydd=surv_dd/365.15)%>%
+  mutate(surv_yydd=surv_dd/365.2425)%>%
   mutate(event1=case_when(dead==1 &      surv_yydd<=5 ~ 1,
                           dead==1 & surv_yydd>5 ~ 0,
                           dead==0 ~ 0

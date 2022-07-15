@@ -67,6 +67,14 @@ country_codes <-
 life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
   mutate(region = replace(region, region == "Cote d'Ivoire", "Côte d'Ivoire")) %>%
   mutate(region = replace(region, region == "France", "Martinique")) %>%
+  mutate(region=replace(region,region=="Korea","South Korea"))%>%
+  mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
+  mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
+  mutate(region=replace(region,region=="Saudi_Arabia","Saudi Arabia"))%>%
+  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
+  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  mutate(region=replace(region,region=="Ethiopy","Ethiopia"))%>%
   left_join(country_codes, by = c("region"="country_label"))%>%
 dplyr::rename("country"="region")%>%
   select(-country)
@@ -221,12 +229,12 @@ country_codes
 
 #Prepping cancer real world data
 bcan_SURV2 <- bcan_SURV %>%
-  filter(surv_dd>0)%>%
+  filter(surv_ddtot>0)%>%
   filter(include == "Included") %>%
   filter(age >= 15) %>%
   filter(age <= 99) %>%
   filter(!is.na(age)) %>%
-  filter(!is.na(surv_yy)) %>%
+  filter(!is.na(surv_ddtot)) %>%
   mutate(age_cat = cut(
     age,
     breaks = c(-Inf, 15, 64 , 99),
@@ -237,8 +245,8 @@ bcan_SURV2 <- bcan_SURV %>%
   mutate(country=replace(country,country=="France", "Martinique"))%>%
   left_join(country_codes, by = c("country"="country_label"))%>%
   droplevels()%>%
-  mutate(last_FU_age = round(age + surv_dd/365.15)) %>% #creating variable for age of death
-  mutate(last_FU_year = round(year + surv_dd/365.15))%>%  #creating variable for year of death
+  mutate(last_FU_age = round(age + surv_ddtot/365.25)) %>% #creating variable for age of death
+  mutate(last_FU_year = round(year + surv_ddtot/365.25))%>%  #creating variable for year of death
   mutate(sex = replace(sex, sex == "Male", 1)) %>%
   mutate(sex = replace(sex, sex == "Female", 2)) %>%
   mutate(sex = as.integer(sex)) %>%
@@ -247,27 +255,32 @@ bcan_SURV2 <- bcan_SURV %>%
     "last_FU_year" = "year",
     "country_code")) %>%
   droplevels()%>%
- # filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
- filter(!is.na(mx)) %>% 
+  #filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
+ #filter(!is.na(mx)) %>% 
   droplevels() %>%
-  left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))#%>%
+  left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))
 #  mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
 #  mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
  # filter(cancer_code %in% ten_cancer_sites$cancer_code)
 #  filter(is.na(bSURV$mx))
 
 bcan_SURV3 <- bcan_SURV2%>%
-  mutate(surv_yydd=surv_dd/365.15)%>%
-  mutate(event1=case_when(dead==1 &      surv_yydd<=5 ~ 1,
+  mutate(surv_yydd=surv_ddtot/365.25)%>%
+  mutate(event1=case_when(dead==1 & surv_yydd<=5 ~ 1,
                           dead==1 & surv_yydd>5 ~ 0,
                           dead==0 ~ 0
   )) %>%
-     group_by(country,age_cat)%>%
-     mutate(max=max(surv_yydd))%>%
-     filter(max>=5)%>%ungroup()
+  ungroup()%>%
+  group_by(country)%>%
+mutate(end_FU=max(year))%>%
+filter(year>=end_FU-5)%>%
+  ungroup()
+#      group_by(country,age_cat)%>%
+#      mutate(max=max(surv_yydd))%>%
+#      filter(max>=5)%>%ungroup()
 
 
-a<-bcan_SURV3%>%select(country,country_code)%>%distinct()%>%as.data.frame()
+a<-bcan_SURV2%>%select(country,country_code)%>%distinct()%>%as.data.frame()
 b<-life_table%>%select(country,country_code)%>%distinct()%>%as.data.frame()
 
 
@@ -285,12 +298,13 @@ bcan_SURV11 <- bcan_SURV3%>%
 
 bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)%>%
   ungroup()%>%
-  group_by(country)#%>%
-# filter(year>=end_FU-5)
-
-# mutate(surv_yy=case_when(surv_yy<=5 ~ 5
-# )
-# )
+  group_by(country)%>%
+ filter(year>=end_FU-5)
+# 
+#  mutate(surv_yydd=case_when(surv_yydd<=5 ~ 5,
+#                           surv_yydd>5 ~ surv_yydd
+ # )
+ # )
 
 #bSURV$sex <- as.integer(bSURV$sex)
 
@@ -307,7 +321,7 @@ bSURV_age_cats <- bSURV #bSURV_overall %>% full_join(bSURV)
 
 
 
-table(is.na(bSURV$mx)) #60 people have ages above 100 but were between 15-99 years at age of diagnosis. Should they be excluded?
+missingmx <- bSURV %>%filter(is.na(mx)) #60 people have ages above 100 but were between 15-99 years at age of diagnosis. Should they be excluded?
 
 names(table(bcan_SURV2$country))
 
@@ -324,12 +338,17 @@ time <- seq(0, 5, le = 5001)
 
 #Names for countries, regions and age groups for next step
 #Removes empty age variables for model to be run properly
-bSURV <- bSURV %>% ungroup()%>%  droplevels()
+bSURV <- bSURV %>% ungroup()%>%  droplevels()%>%arrange(country)
 
-country_names_Survcan<- as_tibble(names(table(bSURV$country)))
-names(country_names_Survcan)[names(country_names_Survcan) == "value"] <- "country"
-country_names_Survcan <- country_names_Survcan%>%#For regression needs to be in this form
-as.data.frame()%>%mutate(country=as.character(country))%>%slice(-c(4,13,19,22,31))
+#bSURV%>%select(country,bSURV$country_code)
+
+
+country_names_Survcan <- bSURV %>% select(country_code, country)%>%distinct()
+
+#   country_names_Survcan<- as_tibble(names(table(bSURV$country)))
+# names(country_names_Survcan)[names(country_names_Survcan) == "value"] <- "country"
+# country_names_Survcan <- country_names_Survcan%>%#For regression needs to be in this form
+# as.data.frame()%>%mutate(country=as.character(country))%>%slice(-c(4,13,19,22,31))
 
 country_codes <- as_tibble(names(table(bSURV$country_code))) #Needs to be tibble for predictions
 names(country_codes)[names(country_codes) == "value"] <- "country_code"
@@ -436,6 +455,7 @@ Predictions_Cubic_Net_age_2 <- list()
 #Predictions_Cubic_Net_age_3 <- list()
 
 Predictions_Cubic_All_Cause_age_1 <- list()
+
 Predictions_Cubic_All_Cause_age_2 <- list()
 #Predictions_Cubic_All_Cause_age_3 <- list()
 
@@ -482,14 +502,14 @@ for (i in 1:nrow(country_codes_tibble)) {
 
 #Extracting prediction data five year avoidable deaths prediction and survival
 
-Net_Survival_Five_Year_age_1 <- matrix(ncol = 5, nrow = nrow(country_codes)) #R(t)
-Net_Survival_Five_Year_age_2 <- matrix(ncol = 5, nrow = nrow(country_codes)) #R(t)
+Net_Survival_Five_Year_age_1 <- matrix(ncol = 4, nrow = nrow(country_codes)) #R(t)
+Net_Survival_Five_Year_age_2 <- matrix(ncol = 4, nrow = nrow(country_codes)) #R(t)
 # Net_Survival_Five_Year_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
 
 
 
-All_Cause_Survival_age_1 <- matrix(ncol = 5, nrow = nrow(country_codes))    #S(t)
-All_Cause_Survival_age_2 <- matrix(ncol = 5, nrow = nrow(country_codes) )    #S(t)
+All_Cause_Survival_age_1 <- matrix(ncol = 4, nrow = nrow(country_codes))    #S(t)
+All_Cause_Survival_age_2 <- matrix(ncol = 4, nrow = nrow(country_codes) )    #S(t)
 # All_Cause_Survival_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes) )    #S(t)
 
 for (i in 1:nrow(country_codes_tibble)) {
@@ -506,26 +526,33 @@ for (i in 1:nrow(country_codes_tibble)) {
   sp2 <- Predictions_Cubic_All_Cause_age_2[[i]]$results
   sp2 <-  sp2 %>% filter(time.pts == 5)
 
-  Net_Survival_Five_Year_age_1[i,] <-
-    c(country_codes[i,],
-      country_names_Survcan[i,], 
+  try(Net_Survival_Five_Year_age_1[i,] <-
+      c(country_codes[i,],
+      #country_names_Survcan[i,1], 
       s$surv, 
       s$surv.inf, 
-      s$surv.sup)
+      s$surv.sup))
+  
+  try(Net_Survival_Five_Year_age_2[i,] <-
+        c(country_codes[i,],
+          #country_names_Survcan[i,1], 
+          s2$surv, 
+          s2$surv.inf, 
+          s2$surv.sup))
 
 
-  All_Cause_Survival_age_1[i,] <-
+  try(All_Cause_Survival_age_1[i,] <-
     c(country_codes[i,],
-      country_names_Survcan[i,], 
-      s$surv, 
-      s$surv.inf, 
-      s$surv.sup)
-  All_Cause_Survival_age_2[i,] <-
+      #country_names_Survcan[i,], 
+      sp$surv, 
+      sp$surv.inf, 
+      sp$surv.sup))
+  try(All_Cause_Survival_age_2[i,] <-
     c(country_codes[i,],
-      country_names_Survcan[i,], 
-      s$surv, 
-      s$surv.inf, 
-      s$surv.sup)
+     # country_names_Survcan[i,], 
+      sp2$surv, 
+      sp2$surv.inf, 
+      sp2$surv.sup))
 }
 
 #
@@ -545,13 +572,13 @@ All_Cause_Survival_age_2 <- as.data.frame(All_Cause_Survival_age_2)
 
 colnames(Net_Survival_Five_Year_age_1) <-
   c("country_code",
-    "country",
+    #"country",
     "Five_Year_Net_Surv",
     "NS_Lower_CI",
     "NS_Upper_CI")
 colnames(Net_Survival_Five_Year_age_2) <-
   c("country_code",
-    "country",
+   # "country",
     "Five_Year_Net_Surv",
     "NS_Lower_CI",
     "NS_Upper_CI")
@@ -564,13 +591,13 @@ colnames(Net_Survival_Five_Year_age_2) <-
 
 colnames(All_Cause_Survival_age_1) <-
   c("country_code",
-    "country",
+   # "country",
     "Five_Year_all_cause_Surv",
     "OS_Lower_CI",
     "OS_Upper_CI")
 colnames(All_Cause_Survival_age_2) <-
   c("country_code",
-    "country",
+  #  "country",
     "Five_Year_all_cause_Surv",
     "OS_Lower_CI",
     "OS_Upper_CI")
@@ -600,13 +627,17 @@ All_Cause_Survival_age_2 <-
 
 Net_Survival_Five_Year <-
   Net_Survival_Five_Year_age_1 %>% 
-  full_join(Net_Survival_Five_Year_age_2) #%>%
-# full_join(Net_Survival_Five_Year_age_3)
+  full_join(Net_Survival_Five_Year_age_2)%>% 
+  mutate(country_code=as.numeric(country_code))%>% 
+  left_join(country_names_Survcan)%>% 
+  filter(Five_Year_Net_Surv<1)
 
 All_Cause_Survival <-
   All_Cause_Survival_age_1 %>% 
-  full_join(All_Cause_Survival_age_2) #%>%
-# full_join(All_Cause_Survival_age_3)
+  full_join(All_Cause_Survival_age_2) %>% 
+  mutate(country_code=as.numeric(country_code))%>% 
+  left_join(country_names_Survcan)%>% 
+  filter(Five_Year_all_cause_Surv<1)
 
 
 
@@ -637,12 +668,13 @@ NS_OS <-
       "age_cat" = "age_cat"
     )
   ) %>%
-  select(country_code, country, cancer,cancer_code,
+  select(country_code, country,
          Five_Year_all_cause_Surv,OS_Lower_CI,OS_Upper_CI,
          Five_Year_Net_Surv,NS_Lower_CI,NS_Upper_CI,
          age_cat
   ) %>%
-  distinct()
+  distinct()%>%
+  mutate(cancer_code=20)
 
 NS_OS$Five_Year_Net_Surv <- as.numeric(NS_OS$Five_Year_Net_Surv)
 NS_OS$NS_Lower_CI <- as.numeric(NS_OS$NS_Lower_CI)
@@ -760,57 +792,57 @@ for (i in 1:nrow(NS_OS_PAF)){
   
   #Rutherford AD
   
-  AD <-
+  try(AD <-
     (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
     Expected_5_year_surv_mx  *
-    NS_OS_PAF[i,]$total_overall
-  AD_Lower <-
+    NS_OS_PAF[i,]$total_overall)
+  try(AD_Lower <-
     (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * 
     Expected_5_year_surv_mx * 
-    NS_OS_PAF[i,]$total_overall
-  AD_Upper <-
+    NS_OS_PAF[i,]$total_overall)
+  try(AD_Upper <-
     (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
     Expected_5_year_surv_mx *
-    NS_OS_PAF[i,]$total_overall
+    NS_OS_PAF[i,]$total_overall)
   
   
   #Preventable deaths
-  AD_prev <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
-    (1 - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
-    Expected_5_year_surv_mx
-  AD_prev_Lower <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
-    (1 - NS_OS_PAF[i,]$NS_Upper_CI) *
-    Expected_5_year_surv_mx
-  AD_prev_Upper <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall *
-    (1 - NS_OS_PAF[i,]$NS_Lower_CI) *
-    Expected_5_year_surv_mx
+  # AD_prev <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
+  #   (1 - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
+  #   Expected_5_year_surv_mx
+  # AD_prev_Lower <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
+  #   (1 - NS_OS_PAF[i,]$NS_Upper_CI) *
+  #   Expected_5_year_surv_mx
+  # AD_prev_Upper <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall *
+  #   (1 - NS_OS_PAF[i,]$NS_Lower_CI) *
+  #   Expected_5_year_surv_mx
   
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
-  AD_treat <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
-    Expected_5_year_surv_mx *(1 - NS_OS_PAF[i,]$af.comb.agecat) *
-    NS_OS_PAF[i,]$total_overall
-  AD_treat_Lower <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * 
-    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
-    NS_OS_PAF[i,]$total_overall
-  AD_treat_Upper <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
-    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
-    NS_OS_PAF[i,]$total_overall
+ # try(AD_treat <-
+ #    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
+ #    Expected_5_year_surv_mx *(1 - NS_OS_PAF[i,]$af.comb.agecat) *
+ #    NS_OS_PAF[i,]$total_overall)
+ #  try(AD_treat_Lower <-
+ #    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * 
+ #    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
+ #    NS_OS_PAF[i,]$total_overall)
+ #  try(AD_treat_Upper <-
+ #    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
+ #    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
+ #    NS_OS_PAF[i,]$total_overall)
   
   #Deaths not avoidable
   
-  AD_unavoid <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (1-NS_OS_PAF[i,]$surv_ref  * Expected_5_year_surv_mx)
+  # AD_unavoid <-
+  #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (1-NS_OS_PAF[i,]$surv_ref  * Expected_5_year_surv_mx)
   # AD_unavoid_Lower <-
   #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
   # AD_unavoid_Upper <-
   #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
   # 
-  Avoidable_Deaths[i, ] <- c(    NS_OS_PAF[i, ]$country_code,
-                                 NS_OS_PAF[i, ]$country_label,
+  try(Avoidable_Deaths[i, ] <- c(    NS_OS_PAF[i, ]$country_code,
+                                 NS_OS_PAF[i, ]$country,
                                  NS_OS_PAF[i, ]$age_cat,
                                  NS_OS_PAF[i, ]$cancer_code,
                                  NS_OS_PAF[i, ]$cancer_label,
@@ -826,8 +858,8 @@ for (i in 1:nrow(NS_OS_PAF)){
                                  #AD_unavoid,
                                  # AD_unavoid_Lower,
                                  #  AD_unavoid_Upper,
-                                 NS_OS_PAF[i,]$total_overall
-  )
+                                 NS_OS_PAF[i,]$total_overall)
+                      )
 }
 
 
