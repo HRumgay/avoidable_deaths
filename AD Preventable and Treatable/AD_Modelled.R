@@ -68,6 +68,7 @@ countries_5y<-Survival_Modelled%>%
   mutate(country_label = str_remove( country_label,'"'))%>%
   mutate(country_label = str_remove( country_label,"'"))%>%
   mutate(country_label = str_remove( country_label,"`"))%>%
+  mutate(country_label = str_remove( country_label,'"'))%>%
   arrange(country_label)%>%
   #left_join(popmort,by=c("age"="age","country_code"="country_code"))%>%
   #select(-country_label)%>%
@@ -434,25 +435,31 @@ HDI2<-HDI%>%select(country_code,hdi_group)
 
 #Data by country, HDI, etc
 
-AD_by_HDI<- Avoidable_Deaths_Simulated_All_age_cat%>%
+AD_by_HDI <- Avoidable_Deaths_Simulated_All_age_cat%>%
   left_join(HDI2, by="country_code")%>%
-  select(hdi_group, country_code, country_label, cancer, cancer_code, AD_treat, AD_prev, 
+  select(hdi_group, cancer, cancer_code, AD_treat, AD_prev, 
          AD_unavoid, AD_sum, total_overall, age_cat)%>%
- mutate(AD_treat=as.numeric(AD_treat))%>%
-  mutate(AD_prev=as.numeric(AD_prev))%>%
-  mutate(AD_unavoid=as.numeric(AD_unavoid))%>%
-  mutate(cancer_code=as.numeric(cancer_code))%>%
+ # mutate(AD_treat=as.numeric(AD_treat))%>%
+ #  mutate(AD_prev=as.numeric(AD_prev))%>%
+ #  mutate(AD_unavoid=as.numeric(AD_unavoid))%>%
+ #  mutate(cancer_code=as.numeric(cancer_code))%>%
   filter(!is.na(AD_treat))%>%
+  #select(-total_overall)%>%
+  droplevels()%>%
+  ungroup()%>%
   as.data.frame()%>%
-  select(-country_code,-country_label, -total_overall)%>%
+  mutate(hdi_group=as.numeric(hdi_group))%>%
+  group_by(cancer_code, age_cat,hdi_group)%>%
+  summarize(cancer,
+            AD_treat=sum(AD_treat), 
+            AD_prev=sum(AD_prev), 
+            AD_unavoid=sum(AD_unavoid),
+            AD_sum=sum(AD_sum),
+            total_overall=sum(total_overall))%>%
   ungroup()%>%
-  group_by(cancer_code, hdi_group,age_cat)%>%
-  mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
-  mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
-  mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
-  mutate(AD_sum=sum(AD_sum,na.rm=T))  %>%
-  ungroup()%>%
-  distinct()%>%as.data.frame()
+
+  distinct()%>%
+  as.data.frame()
 
 
 AD_by_HDI_overall<-AD_by_HDI%>%filter(age_cat=="Overall")%>%select(-age_cat)
