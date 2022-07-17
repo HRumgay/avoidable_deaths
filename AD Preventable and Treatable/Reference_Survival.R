@@ -21,31 +21,30 @@ Survival_Modelled
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
 
-popmort<-popmort2%>%
-  filter(sex!=0)%>%
-  filter(year==2015)%>%
-  mutate(mx=1-prob)%>%
-  mutate(country_code=as.numeric(country_code))%>%
-  group_by(country_code,age,year)%>%
-  summarize(mx=sum(cases*mx)/sum(cases), 
-            prob=sum(prob*cases)/sum(cases),
-            country_label, 
-            country_code,
-            age_label)%>% #This needs to be adjusted with population weights
-  as.data.frame()%>%
-  distinct()
+# popmort<-popmort2%>%
+#   filter(sex!=0)%>%
+#   filter(year==2015)%>%
+#   mutate(mx=1-prob)%>%
+#   mutate(country_code=as.numeric(country_code))%>%
+#   group_by(country_code,age,year)%>%
+#   summarize(mx=sum(cases*mx)/sum(cases), 
+#             prob=sum(prob*cases)/sum(cases),
+#             country_label, 
+#             country_code,
+#             age_label)%>% #This needs to be adjusted with population weights
+#   as.data.frame()%>%
+#   distinct()
 
 
 countries_5y<-Survival_Modelled%>%
-  arrange(country_label)%>%
-  left_join(popmort,by=c("age"="age","country_code"="country_code","country_label"="country_label" ))#%>%
+  arrange(country_label)
+ # left_join(popmort,by=c("age"="age","country_code"="country_code","country_label"="country_label" ))#%>%
 #  select(-country_label)
 
 
 
 Countries_Simulated <-countries_5y%>%
-  mutate(
-    age_cat = case_when(
+  mutate(age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
       age>=14 ~ "65-99",
       FALSE ~"0-15"
@@ -54,7 +53,8 @@ Countries_Simulated <-countries_5y%>%
   group_by(country_label,cancer_label,age_cat)%>%
   summarize(country_code,country_label, cancer_code, cancer_label,
             age, age_cat,
-            rel_surv, mx)%>%as.data.frame()
+            rel_surv)%>%
+  as.data.frame()
 
 
 
