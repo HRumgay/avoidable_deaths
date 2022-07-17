@@ -2,8 +2,8 @@
 ###############################################
 #
 # Net survival and Avoidable deaths - Simulated data
-#  Date: 09/06/2022
-# Version 2.2
+#  Date: 17/07/2022
+# Version 2.3
 #
 #
 #Load files and packages in AD_2.R file
@@ -21,6 +21,10 @@ ES2<-ES_dt%>%
   rename("ES"="SurvExp")
 
 
+# ES_missing<-ES2%>%
+#   filter(is.na(ES))%>%
+#   select(country_code)%>%distinct()
+# 
 
 #Combining datasets at the time point of interest 5 years and combining to HDI
 
