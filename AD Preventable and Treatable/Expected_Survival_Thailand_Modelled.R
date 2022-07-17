@@ -34,13 +34,45 @@ data(slopop)
 data(rdata)
 data(slopop)
 
+country_codes <-
+  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
+  filter(country_code<900) %>% 
+  mutate(country_label = replace(country_label, country_label == "Iran, Islamic Republic of", "Iran")) %>%
+  mutate(country_label = replace(country_label, country_label == "Korea, Republic of", "South Korea")) %>%
+  mutate(country_label = replace(country_label, country_label == "France, Martinique", "Martinique")) %>%
+  select(country_code, country_label)%>% 
+  full_join(missing_CC)
+
+#mutate(region = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
+
+
+#life tables
+
+life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
+  mutate(region = replace(region, region == "Cote d'Ivoire", "Côte d'Ivoire")) %>%
+  mutate(region = replace(region, region == "France", "Martinique")) %>%
+  mutate(region=replace(region,region=="Korea","South Korea"))%>%
+  mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
+  mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
+  mutate(region=replace(region,region=="Saudi_Arabia","Saudi Arabia"))%>%
+  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
+  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  mutate(region=replace(region,region=="Ethiopy","Ethiopia"))%>%
+  left_join(country_codes, by = c("region"="country_label"))%>%
+  dplyr::rename("country"="region")
+ # select(-country)
+
+
+
+
 #Converting to a matrix...
-men3<-Thailand_popmort%>%
+men3<-Puerto_Rico_popmort%>%
   filter(sex==1)%>%
   rename("year"="X_year")%>%
   rename("age"="X_age")
 
-women3<-Thailand_popmort%>%
+women3<-Puerto_Rico_popmort%>%
   filter(sex==2)%>%
   rename("year"="X_year")%>%
   rename("age"="X_age")
@@ -125,12 +157,12 @@ SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
   rename("ES"="V2")%>%
   mutate(sex=1)
 
-Thailand_expected_Survival<-SurvExpNew_age_cats_women%>%
+Puerto_Rico_expected_Survival<-SurvExpNew_age_cats_women%>%
   as.data.frame()%>%
   rename("age"="V1")%>% #age coded in age groups of five years like globocan
   rename("ES"="V2")%>%
   mutate(sex=2)%>%
   full_join(SurvExpNew_age_cats_men2)
   
-write.csv(Thailand_expected_Survival, "~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")
+write.csv(Puerto_Rico_expected_Survival, "~/Documents/R_Projects/Data/Puerto_Rico_expected_Survival.csv")
 

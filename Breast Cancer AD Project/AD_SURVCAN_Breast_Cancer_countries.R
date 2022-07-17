@@ -48,7 +48,7 @@ library(janitor)
 
 
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
-missing_CC<-data.frame(c("Seychelles", "Martinique"), c(10001,10002))
+missing_CC<-data.frame(c("Seychelles"), c(10001))
 colnames(missing_CC) <- c("country_label","country_code")
 
 country_codes <-
@@ -56,6 +56,7 @@ country_codes <-
   filter(country_code<900) %>% 
   mutate(country_label = replace(country_label, country_label == "Iran, Islamic Republic of", "Iran")) %>%
   mutate(country_label = replace(country_label, country_label == "Korea, Republic of", "South Korea")) %>%
+  mutate(country_label = replace(country_label, country_label == "France, Martinique", "Martinique")) %>%
   select(country_code, country_label)%>% 
   full_join(missing_CC)
   
@@ -76,7 +77,7 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
   mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
   mutate(region=replace(region,region=="Ethiopy","Ethiopia"))%>%
   left_join(country_codes, by = c("region"="country_label"))%>%
-dplyr::rename("country"="region")%>%
+  dplyr::rename("country"="region")%>%
   select(-country)
   
 
@@ -352,7 +353,7 @@ country_names_Survcan <- bSURV %>% select(country_code, country)%>%distinct()
 
 country_codes <- as_tibble(names(table(bSURV$country_code))) #Needs to be tibble for predictions
 names(country_codes)[names(country_codes) == "value"] <- "country_code"
-country_codes <- as.data.frame(country_codes)%>%slice(-c(4,13,19,22,31)) #For regression needs to be in this form
+country_codes <- as.data.frame(country_codes)#%>%slice(-c(4,13,19,22,31)) #For regression needs to be in this form
 
 
 cancer_types <- names(table(bSURV$cancer))%>%as.data.frame() 
@@ -629,15 +630,15 @@ Net_Survival_Five_Year <-
   Net_Survival_Five_Year_age_1 %>% 
   full_join(Net_Survival_Five_Year_age_2)%>% 
   mutate(country_code=as.numeric(country_code))%>% 
-  left_join(country_names_Survcan)%>% 
-  filter(Five_Year_Net_Surv<1)
+  left_join(country_names_Survcan)#%>% 
+#  filter(Five_Year_Net_Surv<1)
 
 All_Cause_Survival <-
   All_Cause_Survival_age_1 %>% 
   full_join(All_Cause_Survival_age_2) %>% 
   mutate(country_code=as.numeric(country_code))%>% 
-  left_join(country_names_Survcan)%>% 
-  filter(Five_Year_all_cause_Surv<1)
+  left_join(country_names_Survcan)#%>% 
+ # filter(Five_Year_all_cause_Surv<1)
 
 
 
@@ -946,6 +947,17 @@ Avoidable_Deaths_age_cat<-Avoidable_Deaths%>%
   as.data.frame()#%>%
 #left_join(MIR_Age_Cats_Survcan, by=c("country_code","cancer_code", "age_cat"))
 
+#Summing by country, region, and such 
+AD_all<-Avoidable_Deaths_age_cat%>%
+  mutate(country_code=0)%>%
+  mutate(country_label="All countries")%>%
+  group_by(age_cat)%>%
+  mutate(AD=sum(AD, na.rm=TRUE))%>%
+  mutate(AD_Lower=sum(AD_Lower, na.rm=TRUE))%>%
+  mutate(AD_Upper=sum(AD_Upper, na.rm=TRUE))%>%
+  mutate(total=sum(total, na.rm=TRUE))%>%
+  ungroup()%>%
+  distinct()
 
 
 NS_OS_PAF

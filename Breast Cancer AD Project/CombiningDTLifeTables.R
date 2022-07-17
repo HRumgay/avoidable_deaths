@@ -24,6 +24,10 @@ Martinique<-Martinique%>%select(-country)%>% clean_names()%>%rename("country"="r
 
 Mauritius<-read.dta13(life_file_list[22])%>%as.data.frame()
  Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
+ 
+ 
+puerto_rico<-read.dta13(life_file_list[27])%>%as.data.frame()
+ puerto_rico<- puerto_ricos%>%clean_names()%>%rename("region"="country")
 
 life<-life%>%full_join(Mauritius)%>%full_join(Martinique)
 
