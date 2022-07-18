@@ -29,6 +29,11 @@ library(janitor)
 ########################
 #Comment from here
 
+
+HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
+
+
+
 who_w<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\WHO_weights.csv")
 
 country_codes <-
@@ -142,12 +147,17 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 
 #Reading all the variables
 #GCO_country_info.csv has correct country_label variable to match with pop_mort2
+who_w<-read.csv("~/Documents/R_Projects/Data/WHO_weights.csv")
+
+HDI_Region_Mapping<-read.csv("~/Documents/R_Projects/Data/HDI2018_GLOBOCAN2020.csv")
+
+
 country_codes <-
   read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>%
   filter(country_code<900) %>%
   select(country_code, country_label)
 
-who_w<-read.csv("~/Documents/R_Projects/Data/WHO_weights.csv")
+
 
 
 PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
