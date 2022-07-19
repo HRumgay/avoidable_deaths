@@ -9,11 +9,11 @@ library("mexhaz")
 library("data.table")
 library("numbers")
 
-load("popmort2.RData")
+load("p.RData") # load who_ghe_group mortality file
 load("country_codes.RData")
 
-# combine age groups 0 (<1 yr) and 1 (1-4 yr) in popmort2
-popmort2 %>% 
+# combine age groups 0 (<1 yr) and 1 (1-4 yr) in lifetables file
+p %>% 
   group_by(country_code,sex,year) %>% 
   mutate(nLx=case_when(age==1 ~ sum(nLx[age%in%c(0,1)]),
                        TRUE~nLx),
