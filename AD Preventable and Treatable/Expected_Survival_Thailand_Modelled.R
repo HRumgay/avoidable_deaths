@@ -34,6 +34,10 @@ data(slopop)
 data(rdata)
 data(slopop)
 
+missing_CC<-data.frame(c("Seychelles"), c(10001))
+colnames(missing_CC) <- c("country_label","country_code")
+
+
 country_codes <-
   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
   filter(country_code<900) %>% 
@@ -47,10 +51,35 @@ country_codes <-
 
 
 #life tables
+life_file_list<-list.files('\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\lifetables\\Expanded_2018', full.names=TRUE)
+life<-plyr::ldply(life_file_list,read.dta13)
+life<-life%>%as.data.frame()%>%
+  clean_names()%>%
+  filter(!is.na(mx))%>%
+  select(-country)%>%
+  filter(region!="Martinique")%>%
+  filter(region!="Mauritius")
 
-life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
-  mutate(region = replace(region, region == "Cote d'Ivoire", "Côte d'Ivoire")) %>%
-  mutate(region = replace(region, region == "France", "Martinique")) %>%
+
+Iran<-read.dta13(life_file_list[15])%>%as.data.frame()
+Iran<-Iran%>% clean_names()%>%rename("country"="region")
+
+Martinique<-read.dta13(life_file_list[21])%>%as.data.frame()
+Martinique<-Martinique%>%select(-country)%>% clean_names()%>%rename("country"="region")
+
+Mauritius<-read.dta13(life_file_list[22])%>%as.data.frame()
+Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
+
+
+puerto_rico<-read.dta13(life_file_list[27])%>%as.data.frame()
+puerto_rico<- puerto_ricos%>%clean_names()%>%rename("region"="country")
+
+life<-life%>%full_join(Mauritius)%>%full_join(Martinique)
+
+#Load mortality rates for survival analysis. Correct and use probability
+life_table<-life%>%
+  #filter(sex==2)%>%
+  select(region,year,sex,age,mx,prob)%>%
   mutate(region=replace(region,region=="Korea","South Korea"))%>%
   mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
   mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
@@ -58,24 +87,37 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
   mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
   mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
   mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
-  mutate(region=replace(region,region=="Ethiopy","Ethiopia"))%>%
-  left_join(country_codes, by = c("region"="country_label"))%>%
-  dplyr::rename("country"="region")
- # select(-country)
+  mutate(region=replace(region,region=="Ethiopy","Ethiopia"))
 
+# 
+# #adding the mortality rates of 2015 to the years 2016-2020
+# 
+life_table_2019<-life_table%>% 
+  filter(year==2015)%>%
+  mutate(year=replace(year,year==2015,2019))
+life_table_2020<-life_table%>% 
+  filter(year==2015)%>%
+  mutate(year=replace(year,year==2015,2020))
+
+life_table_complete<-life_table %>%
+  full_join(life_table_2019) %>%
+  full_join(life_table_2020)
+
+
+Seychelles_popmort<-life_table_complete%>%
+  left_join(country_codes, by = c("region"="country_label"))%>%
+  dplyr::rename("country"="region")%>%
+  select(-country)%>%
+  filter(country_code==630)
 
 
 
 #Converting to a matrix...
-men3<-Puerto_Rico_popmort%>%
-  filter(sex==1)%>%
-  rename("year"="X_year")%>%
-  rename("age"="X_age")
+men3<-Seychelles_popmort%>%
+  filter(sex==1)
 
-women3<-Puerto_Rico_popmort%>%
-  filter(sex==2)%>%
-  rename("year"="X_year")%>%
-  rename("age"="X_age")
+women3<-Seychelles_popmort%>%
+  filter(sex==2)
 
 men<-matrix(NA, 100, 15, dimnames = list(c(seq(0,99,by=1)), c(seq(2000,2014,by=1))))
 
@@ -157,12 +199,12 @@ SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
   rename("ES"="V2")%>%
   mutate(sex=1)
 
-Puerto_Rico_expected_Survival<-SurvExpNew_age_cats_women%>%
+Seychelles_expected_Survival<-SurvExpNew_age_cats_women%>%
   as.data.frame()%>%
   rename("age"="V1")%>% #age coded in age groups of five years like globocan
   rename("ES"="V2")%>%
   mutate(sex=2)%>%
   full_join(SurvExpNew_age_cats_men2)
   
-write.csv(Puerto_Rico_expected_Survival, "~/Documents/R_Projects/Data/Puerto_Rico_expected_Survival.csv")
+write.csv(Seychelles_expected_Survival, "~/Documents/R_Projects/Data/Seychelles_expected_Survival.csv")
 

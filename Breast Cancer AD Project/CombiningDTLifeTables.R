@@ -32,7 +32,7 @@ puerto_rico<-read.dta13(life_file_list[27])%>%as.data.frame()
 life<-life%>%full_join(Mauritius)%>%full_join(Martinique)
 
 #Load mortality rates for survival analysis. Correct and use probability
-life_table<-life%>%filter(sex==2)%>%
+life_table<-life%>%#filter(sex==2)%>%
   select(region,year,age,mx,prob)%>%
   mutate(region=replace(region,region=="Korea","South Korea"))%>%
   mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
