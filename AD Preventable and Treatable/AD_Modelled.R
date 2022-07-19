@@ -372,6 +372,11 @@ colnames(Avoidable_Deaths_Simulated_All2)<-c("country_code","country_label","age
 # MIR_Globocan_2 <-MIR_Globocan%>%
 #   select(-country_label, -cancer_label)
 # 
+SEGI_pop <- c(12000,10000,9000,9000,8000,8000,6000,6000,6000,6000,5000,4000,4000,3000,2000,1000,500,500) #SEGI_pop weights
+age<-c(1:18)
+data.frame(SEGI_pop, age)
+
+weights 
 
 who_w<-  who_w%>%mutate(age = case_when(
   age==0~ 0,
@@ -380,12 +385,12 @@ who_w<-  who_w%>%mutate(age = case_when(
   age==3~ 3,
   age==4~ 4,
   age>4 & age<=9~ 9,
-  age==10~ 10,
-  age==11~ 11,
-  age==12~ 12,
-  age==13~ 13,
-  age==14~ 14,
-  age==15~ 15,
+  age==10 ~ 10,
+  age==11 ~ 11,
+  age==12 ~ 12,
+  age==13 ~ 13,
+  age==14 ~ 14,
+  age==15 ~ 15,
   age>=16 ~ 16,
 ))%>%
   group_by(age)%>%
@@ -393,7 +398,7 @@ who_w<-  who_w%>%mutate(age = case_when(
   distinct()
 
 
-Avoidable_Deaths_Simulated_All<-Avoidable_Deaths_Simulated_All%>%
+Avoidable_Deaths_Simulated_All<-Avoidable_Deaths_Simulated_All2%>%
   as.data.frame()%>%
   mutate(age=as.numeric(as.character(age)))%>%
   mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
@@ -456,11 +461,11 @@ AD_prop_Age_stand<-Avoidable_Deaths_Simulated_All%>%
   #mutate(pAD_treat=AD_treat/total_overall*w)%>%
   #mutate(pAD_prev=AD_prev/total_overall*w)%>%
   #  mutate(pAD_unavoid=AD_unavoid/total_overall*w)%>%
-  mutate(AD_treat = case_when(total_overall!=0 ~ AD_treat/total_overall*w*10**5,
+  mutate(AD_treat = case_when(total_overall!=0 ~ AD_treat*w*10**5, #change to py (population size)
                               total_overall==0 ~ 0))%>%
-mutate(AD_prev = case_when(total_overall!=0 ~ AD_prev/total_overall*w*10**5,
+mutate(AD_prev = case_when(total_overall!=0 ~ AD_prev*w*10**5,
                             total_overall==0 ~ 0))%>%
-mutate(AD_unavoid = case_when(total_overall!=0 ~ AD_unavoid/total_overall*w*10**5,
+mutate(AD_unavoid = case_when(total_overall!=0 ~ AD_unavoid*w*10**5,
                             total_overall==0 ~ 0))%>%
   select(country_code, country_label, cancer_code, cancer, age, 
          AD_treat, #pAD_treat, 
@@ -472,7 +477,7 @@ mutate(AD_unavoid = case_when(total_overall!=0 ~ AD_unavoid/total_overall*w*10**
   
 AD_prop_Age_stand_age_cat2<-Avoidable_Deaths_Simulated_All%>%
   group_by(country_code, cancer_code,age)%>%
-  mutate(AD_treat_prev = case_when(total_overall!=0 ~ AD_treat_prev/total_overall*w*10**5,
+  mutate(AD_treat_prev = case_when(total_overall!=0 ~ (AD_treat+AD_prev)/total_overall*w*10**5,
                               total_overall==0 ~ 0))%>%
   mutate(AD_treat = case_when(total_overall!=0 ~ AD_treat/total_overall*w*10**5,
                               total_overall==0 ~ 0))%>%
@@ -483,10 +488,13 @@ AD_prop_Age_stand_age_cat2<-Avoidable_Deaths_Simulated_All%>%
   ungroup()%>%
   group_by(country_code, cancer_code,age_cat)%>%
   select(country_code, country_label, cancer_code, cancer, age_cat, 
-         AD_treat, pAD_treat, 
-         AD_prev, pAD_prev,
-         AD_treat_prev, pAD_treat_prev,
-         AD_unavoid, pAD_unavoid, hdi_group,total_overall)%>%
+         AD_treat, #pAD_treat, 
+         AD_prev, #pAD_prev,
+         AD_treat_prev, #pAD_treat_prev,
+         AD_unavoid, #pAD_unavoid, 
+         hdi_group
+         #,total_overall
+         )%>%
   as.data.frame
 
 
@@ -647,7 +655,7 @@ left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
   as.data.frame()
 
 
-#age standardizing by region
+#age standardizing by region - aggregate by region and then age standardize
 AD_prop_Age_stand_age_cat_region<-AD_prop_Age_stand_age_cat%>%
   left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
   filter(age_cat=="Overall")%>%

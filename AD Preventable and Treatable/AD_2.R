@@ -34,7 +34,6 @@ HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Researc
 
 
 
-who_w<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\WHO_weights.csv")
 
 country_codes <-
   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
@@ -147,7 +146,6 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 
 #Reading all the variables
 #GCO_country_info.csv has correct country_label variable to match with pop_mort2
-who_w<-read.csv("~/Documents/R_Projects/Data/WHO_weights.csv")
 
 HDI_Region_Mapping<-read.csv("~/Documents/R_Projects/Data/HDI2018_GLOBOCAN2020.csv")
 
@@ -207,7 +205,8 @@ p <- read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
   as.data.frame()
 
 MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
-  as.data.frame()%>%select(-mortality,-incidence)%>%
+  as.data.frame()%>%
+  select(-mortality,-incidence)%>%
   mutate(MIR=replace(MIR,MIR==Inf, NA))
 
 #same file but Globocan age groups for modeled data
