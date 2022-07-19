@@ -29,7 +29,7 @@ library(janitor)
 ########################
 #Comment from here
 
-
+load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_pop2020.RData")
 HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
 
 
@@ -128,7 +128,9 @@ Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Researc
           cancer_code,
           rel_surv)%>%
   dplyr::rename("surv_ref"="rel_surv")%>%
-  distinct()
+  distinct()%>%
+  mutate(surv_ref=case_when(surv_ref>1~ 1,
+                            surv_ref<=1~ surv_ref))
 
 Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
   as.data.frame()%>%
@@ -136,7 +138,9 @@ Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\
           cancer_code,
           rel_surv)%>%
   dplyr::rename("surv_ref"="rel_surv")%>%
-  distinct()
+  distinct()%>%
+  mutate(surv_ref=case_when(surv_ref>1~ 1,
+                            surv_ref<=1~ surv_ref))
 
 
 ###################
@@ -149,6 +153,8 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 
 HDI_Region_Mapping<-read.csv("~/Documents/R_Projects/Data/HDI2018_GLOBOCAN2020.csv")
 
+# population data
+load("~/Documents/R_Projects/Data/GCO_pop2020.RData")
 
 country_codes <-
   read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>%
@@ -248,7 +254,9 @@ Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv
           cancer_code,
           rel_surv)%>%
   dplyr::rename("surv_ref"="rel_surv")%>%
-  distinct()
+  distinct()%>%
+  mutate(surv_ref=case_when(surv_ref>1~ 1,
+                            surv_ref<=1~ surv_ref))
 
 Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
   as.data.frame()%>%
@@ -256,7 +264,9 @@ Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Surv
           cancer_code,
           rel_surv)%>%
   dplyr::rename("surv_ref"="rel_surv")%>%
-  distinct()
+  distinct()%>%
+  mutate(surv_ref=case_when(surv_ref>1~ 1,
+                            surv_ref<=1~ surv_ref))
 
 
 
