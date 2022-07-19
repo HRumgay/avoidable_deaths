@@ -70,7 +70,6 @@ Martinique<-Martinique%>%select(-country)%>% clean_names()%>%rename("country"="r
 Mauritius<-read.dta13(life_file_list[22])%>%as.data.frame()
 Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
 
-
 puerto_rico<-read.dta13(life_file_list[27])%>%as.data.frame()
 puerto_rico<- puerto_ricos%>%clean_names()%>%rename("region"="country")
 
@@ -108,7 +107,7 @@ Seychelles_popmort<-life_table_complete%>%
   left_join(country_codes, by = c("region"="country_label"))%>%
   dplyr::rename("country"="region")%>%
   select(-country)%>%
-  filter(country_code==630)
+  filter(country_code==10001)
 
 
 
@@ -206,5 +205,5 @@ Seychelles_expected_Survival<-SurvExpNew_age_cats_women%>%
   mutate(sex=2)%>%
   full_join(SurvExpNew_age_cats_men2)
   
-write.csv(Seychelles_expected_Survival, "~/Documents/R_Projects/Data/Seychelles_expected_Survival.csv")
+write.csv(Seychelles_expected_Survival, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Seychelles_expected_Survival.csv")
 
