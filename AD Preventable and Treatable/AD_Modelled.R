@@ -284,12 +284,12 @@ Simulated_Data_PAF_1<-simulated_overall%>%
 #first need to make sure data is in right format (numeric columns)
 
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
-Avoidable_Deaths_Simulated_All <- matrix(ncol = 12, nrow = nrow(Simulated_Data_PAF_All)) #AD(t)
+Avoidable_Deaths_Simulated_All2 <- matrix(ncol = 12, nrow = nrow(Simulated_Data_PAF_All)) #AD(t)
 
 #NS_Ref<-0.9 #Reference countries survival
 
 
-for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
+for (i in 1:nrow(Avoidable_Deaths_Simulated_All2)) {
   
   ES <- Simulated_Data_PAF_All[i,]$ES #Crude calculations of expected survival
   
@@ -321,7 +321,7 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
   #AD_unavoid_Upper<-(1-Simulated_Data_PAF_All[i,]$af.comb.agecat)*Simulated_Data_PAF_All[i,]$total_overall*(1-Simulated_Data_PAF_All[i,]$NS_Upper_CI*ES)
   
   
-  Avoidable_Deaths_Simulated_All[i, ] <- c(Simulated_Data_PAF_All[i, ]$country_code,
+  Avoidable_Deaths_Simulated_All2[i, ] <- c(Simulated_Data_PAF_All[i, ]$country_code,
                                        Simulated_Data_PAF_All[i, ]$country_label,
                                        Simulated_Data_PAF_All[i, ]$age_cat,
                                        Simulated_Data_PAF_All[i, ]$age,
@@ -345,7 +345,7 @@ for (i in 1:nrow(Avoidable_Deaths_Simulated_All)) {
 
 
 
-colnames(Avoidable_Deaths_Simulated_All)<-c("country_code","country_label","age_cat","age","cancer_code","cancer",   
+colnames(Avoidable_Deaths_Simulated_All2)<-c("country_code","country_label","age_cat","age","cancer_code","cancer",   
                                             "AD_treat",
                             #"AD_treat_Lower", 
                             #"AD_treat_Upper",
@@ -586,13 +586,13 @@ AD_by_HDI_overall<-AD_by_HDI%>%filter(age_cat=="Overall")%>%select(-age_cat)
 
 AD_by_HDI_all<-AD_by_HDI_overall%>%
   ungroup()%>%
-  select(-w)%>%
+  select(-w,-total_overall)%>%
   group_by(hdi_group)%>%
   mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
   mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
   mutate(AD_sum=sum(AD_sum,na.rm=T))  %>%
-  mutate(total_overall=sum(total_overall))%>%
+  #mutate(total_overall=sum(total_overall))%>%
   #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
   mutate(cancer="All Cancer Sites")%>%
   mutate(cancer_code=1000)%>%
@@ -691,9 +691,9 @@ table_1_1<-Avoidable_Deaths_Simulated_All_age_cat  %>%
          pAD_treat, pAD_prev,pAD_treat_prev, pAD_unavoid)%>%
   distinct()
   
-
+#Overall ASR
 table_1_2<-AD_prop_Age_stand_age_cat%>%
-  select(-country_label, -country_code, -cancer_code, -cancer, -pAD_treat, -pAD_prev, -pAD_treat_prev, -pAD_unavoid)%>%
+  select(-country_label, -country_code, -cancer_code, -cancer,-hdi_group)%>%
   filter(age_cat=="Overall")%>%
   ungroup()%>%
   mutate(AD_treat=mean(AD_treat,na.rm=TRUE))%>%
