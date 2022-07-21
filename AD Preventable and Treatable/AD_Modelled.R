@@ -24,52 +24,69 @@ ES3<-ES_dt%>%
 # Imputing missing countries 
 
 # For For all the French overseas and territories (Polynesia, Guyana, Guadeloupe, Martinique, Reunion, New Caledonia)
-ES_France<-ES3%>%filter(country_code==250)%>%mutate(ES3=ES) 
+ES_France1<-ES3%>%filter(country_code==250)%>%mutate(ES3=ES) %>%select(-ES) 
+ES_France2<-ES_France1%>%mutate(country_code=254)
+ES_France3<-ES_France1%>%mutate(country_code=258)
+ES_France4<-ES_France1%>%mutate(country_code=312)
+ES_France5<-ES_France1%>%mutate(country_code=474)
+ES_France6<-ES_France1%>%mutate(country_code=540)
+ES_France7<-ES_France1%>%mutate(country_code=638)
 
-#Guam - ?
+#Guam - Imputed by HDI 0.844
+
+HDI_countries_Guam<-Survival_Modelled%>%
+  filter(0.844-0.05<=hdi_value &hdi_value<=0.844+0.05)%>%
+  select(country_code)%>%
+  distinct()
+
+ES_Guam<-ES3%>%filter(country_code%in%HDI_countries_Guam$country_code)%>%
+  group_by(age)%>%
+  mutate(ES=mean(ES, na.rm=T))%>%
+  mutate(country_code=316)%>%
+  distinct()%>%
+  mutate(ES3=ES)%>%select(-ES)
+
+#Palestine? - Imputed by HDI 0.690 average plus minus 0.1 HDI
+
+HDI_countries_palestine<-Survival_Modelled%>%
+  filter(0.690-0.05<=hdi_value &hdi_value<=0.690+0.05)%>%
+  select(country_code)%>%
+  distinct()
+
+ES_palestine<-ES3%>%filter(country_code%in%HDI_countries_palestine$country_code)%>%
+  group_by(age)%>%
+  mutate(ES=mean(ES, na.rm=T))%>%
+  mutate(country_code=275)%>%
+  distinct()%>%
+  mutate(ES3=ES)%>%select(-ES)
 
 
 #Puerto Rico - Using US
-ES_USA<-ES3%>%filter(country_code==840)%>%mutate(ES3=ES) 
+ES_USA<-ES3%>%filter(country_code==840)%>%mutate(ES3=ES)%>%select(-ES)%>%mutate(country_code=630)
 
-ES_Additional<-ES_France%>%full_join(ES_USA)
+ES_Additional<-ES_France2%>%
+  full_join(ES_France3)%>%
+  full_join(ES_France4)%>%
+  full_join(ES_France5)%>%
+  full_join(ES_France6)%>%
+  full_join(ES_France7)%>%
+  full_join(ES_USA)%>%
+  full_join(ES_palestine)%>%
+  full_join(ES_Guam)
 
 ES2<-ES3%>%
   group_by(country_code, age)%>%
-  left_join(ES_Additional)%>%
+  left_join(ES_Additional, by=c("country_code", "age", "sex"))%>%
   mutate(ES=case_when(
     country_code%in%c(254, 258, 312, 474, 540, 638, # French territories
-                      840 #puerto rico
+                      630, 275, 316 #puerto rico
                       ) ~ ES3, 
-    TRUE~ ES))
+    TRUE~ ES))%>%
+  select(-ES3)
 
   
 
 
-# ES_missing<-ES2%>%
-#   filter(is.na(ES))%>%
-#   select(country_code)%>%distinct()
-# 
-
-#Combining datasets at the time point of interest 5 years and combining to HDI
-
-#check country_code for China in HDI dataset and Thailand/Israel datasets match up
-
-# hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
-#   left_join(HDI, by="country_code")%>%
-#   select(-c(country_label, hdi_rank, year, X))%>%
-#   filter(hdi_group%in% c(3,4))
-# 
-# lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
-#   left_join(HDI, by="country_code")%>%
-#   select(-c(country_label, hdi_rank, year,X.1, X))%>%
-#   #filter(hdi_group%in% c(1,2))%>%
-#   filter(!hdi_group%in%c(3,4))
-# 
-# lm_HDI%>%summarize(country_name,country_code, hdi_group)%>%distinct()%>%
-#   filter(!hdi_group%in%c(3,4)) #includes low, medium and missing HDI groups
-
-#new combined data set of survival
 
 Survival_Modelled
 
@@ -861,7 +878,7 @@ AD_by_HDI_all
 #By region
 AD_Region<-AD_Region%>%mutate(across(4:6, ceiling))%>%
   mutate(across(9:9, ceiling))%>%
-  mutate(across(10:13, round,4))
+  mutate(across(10:14, round,4)*100) #mutate to show proportion as percentage in export
   
 
 #Age standardized
