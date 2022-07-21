@@ -15,10 +15,35 @@
 
 #Expected survival
 
-ES2<-ES_dt%>%
+ES3<-ES_dt%>%
   filter(time==1000)%>%
   select(-time)%>%
   rename("ES"="SurvExp")
+
+
+# Imputing missing countries 
+
+# For For all the French overseas and territories (Polynesia, Guyana, Guadeloupe, Martinique, Reunion, New Caledonia)
+ES_France<-ES3%>%filter(country_code==250)%>%mutate(ES3=ES) 
+
+#Guam - ?
+
+
+#Puerto Rico - Using US
+ES_USA<-ES3%>%filter(country_code==840)%>%mutate(ES3=ES) 
+
+ES_Additional<-ES_France%>%full_join(ES_USA)
+
+ES2<-ES3%>%
+  group_by(country_code, age)%>%
+  left_join(ES_Additional)%>%
+  mutate(ES=case_when(
+    country_code%in%c(254, 258, 312, 474, 540, 638, # French territories
+                      840 #puerto rico
+                      ) ~ ES3, 
+    TRUE~ ES))
+
+  
 
 
 # ES_missing<-ES2%>%

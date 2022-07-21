@@ -113,7 +113,7 @@ df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
 df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
 
 #For the automatic legend
-break_quantile_t <- paste(round(break_quantile,1),"", sep="")
+break_quantile_t <- paste(round(break_quantile,2),"", sep="")
 
 labels_leg <-  c( paste("< ", break_quantile_t[2]),
                   paste(break_quantile_t[2], " - ", break_quantile_t[3]),
@@ -201,7 +201,7 @@ df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
 df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
 
 #For the automatic legend
-break_quantile_t <- paste(round(break_quantile,1),"", sep="")
+break_quantile_t <- paste(round(break_quantile,2),"", sep="")
 
 labels_leg <-  c( paste("< ", break_quantile_t[2]),
                   paste(break_quantile_t[2], " - ", break_quantile_t[3]),
@@ -290,7 +290,7 @@ df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
 df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
 
 #For the automatic legend
-break_quantile_t <- paste(round(break_quantile,1),"", sep="")
+break_quantile_t <- paste(round(break_quantile,2),"", sep="")
 
 labels_leg <-  c( paste("< ", break_quantile_t[2]),
                   paste(break_quantile_t[2], " - ", break_quantile_t[3]),
