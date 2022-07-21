@@ -63,6 +63,7 @@ Reference_Survival<-read.csv("DATA/Reference_Survival.csv") %>%
 Survival_Modelled %>% 
   full_join(Reference_Survival) -> d
 
+# expand age groups in survival datasets
 d %>% 
   bind_rows(d %>% 
               filter(age==4) %>% 
@@ -82,18 +83,20 @@ d %>%
   bind_rows(d %>% 
               filter(age==16) %>% 
               mutate(age=18)) %>% 
-  full_join(ES) %>% 
-  full_join(PAFs %>% 
+  full_join(ES) %>%      # merge expected survival data
+  full_join(PAFs %>%     # merge PAF data
               select(-country_label,-cancer_label, -af.tob:-af.uv) %>% 
-              filter(cancer_code!=40, sex!=0, age>3)) %>% 
-  filter(country_code==160) -> dChina
-  
+              filter(cancer_code!=40, sex!=0, age>3)) %>%  # remove all cancers combine, both sexes and ages <15
+  filter(country_code==160) -> dChina # filter to China
+
+
+# calculate avoidable deaths ----
 dChina %>% 
   filter(cancer_code%in%c(6,7,11,15,20,23,27)) %>% 
   mutate(prevd1 = (1-(rel_surv*es))*cases.prev,   # new formula for prev
          prevd2 = (1-rel_surv)*es*cases.prev,     # previous formula for prev
-         treatd = (surv_ref-rel_surv)*es*cases.notprev,
-         unavoidd = (1-(surv_ref*es))*cases.notprev,
+         treatd = (surv_ref-rel_surv)*es*cases.notprev, # treatable
+         unavoidd = (1-(surv_ref*es))*cases.notprev,    # unavoidable
          expdsum1 = prevd1+treatd+unavoidd,      # total deaths including new formula for prev
          expdsum2 = prevd2+treatd+unavoidd,      # total deaths including previous formula for prev
          expd = (1-(rel_surv*es))*cases #expected deaths
