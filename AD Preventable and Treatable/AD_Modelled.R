@@ -32,20 +32,6 @@ ES_France5<-ES_France1%>%mutate(country_code=474)
 ES_France6<-ES_France1%>%mutate(country_code=540)
 ES_France7<-ES_France1%>%mutate(country_code=638)
 
-#Guam - Imputed by HDI 0.844
-
-HDI_countries_Guam<-Survival_Modelled%>%
-  filter(0.844-0.05<=hdi_value &hdi_value<=0.844+0.05)%>%
-  select(country_code)%>%
-  distinct()
-
-ES_Guam<-ES3%>%filter(country_code%in%HDI_countries_Guam$country_code)%>%
-  group_by(age)%>%
-  mutate(ES=mean(ES, na.rm=T))%>%
-  mutate(country_code=316)%>%
-  distinct()%>%
-  mutate(ES3=ES)%>%select(-ES)
-
 #Palestine? - Imputed by HDI 0.690 average plus minus 0.1 HDI
 
 HDI_countries_palestine<-Survival_Modelled%>%
@@ -61,8 +47,27 @@ ES_palestine<-ES3%>%filter(country_code%in%HDI_countries_palestine$country_code)
   mutate(ES3=ES)%>%select(-ES)
 
 
-#Puerto Rico - Using US
-ES_USA<-ES3%>%filter(country_code==840)%>%mutate(ES3=ES)%>%select(-ES)%>%mutate(country_code=630)
+#Western Sahara? - Imputed by HDI 0.690 average plus minus 0.1 HDI
+
+HDI_countries_palestine<-Survival_Modelled%>%
+  filter(0.690-0.05<=hdi_value &hdi_value<=0.690+0.05)%>%
+  select(country_code)%>%
+  distinct()
+
+ES_palestine<-ES3%>%filter(country_code%in%HDI_countries_palestine$country_code)%>%
+  group_by(age)%>%
+  mutate(ES=mean(ES, na.rm=T))%>%
+  mutate(country_code=275)%>%
+  distinct()%>%
+  mutate(ES3=ES)%>%select(-ES)
+
+
+
+
+#Puerto Rico and Guam - Using US
+ES_PR<-ES3%>%filter(country_code==840)%>%mutate(ES3=ES)%>%select(-ES)%>%mutate(country_code=630)
+
+ES_Guam<-ES3%>%filter(country_code==840)%>%mutate(ES3=ES)%>%select(-ES)%>%mutate(country_code=316)
 
 ES_Additional<-ES_France2%>%
   full_join(ES_France3)%>%
@@ -70,7 +75,7 @@ ES_Additional<-ES_France2%>%
   full_join(ES_France5)%>%
   full_join(ES_France6)%>%
   full_join(ES_France7)%>%
-  full_join(ES_USA)%>%
+  full_join(ES_PR)%>%
   full_join(ES_palestine)%>%
   full_join(ES_Guam)
 
@@ -421,7 +426,8 @@ colnames(Avoidable_Deaths_Simulated_All2) <- c("country_code","country_label","a
 
 #Globocan population data 
 
-pop20202 <- pop2020%>%as.data.frame()%>%
+pop20202 <- pop2020%>%
+  as.data.frame()%>%
   filter(sex!=0)%>%
   select(-sex)%>%
   mutate(age = case_when(
@@ -483,11 +489,15 @@ Avoidable_Deaths_Simulated_All<- Avoidable_Deaths_Simulated_All2%>%
   mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
   mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
-  # filter(total_overall<AD_sum)%>%
   as.data.frame()%>%distinct()%>%
   mutate(country_code=as.integer(country_code))%>%
   left_join(weights2)%>%
-  left_join(pop20202)
+  left_join(pop20202)%>%
+  mutate(AD_treat = case_when(AD_treat<0 ~ 0, 
+  # Numerical calculation error causes the countries which are references  to go slightly negative. 
+  # By definition this is zero This is rounded to 0
+                              TRUE ~ AD_treat))
+
 
 
 
@@ -688,9 +698,9 @@ AD_country_all_cancers <- Avoidable_Deaths_Simulated_All_age_cat%>%
   filter(age_cat=="Overall")%>%
   mutate(AD_treat_prev=AD_treat+AD_prev)%>%
   ungroup()%>%
-  mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
   select(-hdi_group,  -AD_sum)%>%
   group_by(country_code)%>%
+  mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
   mutate(AD_treat_prev=sum(AD_treat_prev,na.rm=T))%>%
   mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
@@ -712,7 +722,7 @@ AD_country_all_cancers <- Avoidable_Deaths_Simulated_All_age_cat%>%
 
 #Calculating by region. Need a file that links countries to region 
 HDI_Region_Mapping2 <- HDI_Region_Mapping%>%select(-country_label)%>%
-  filter(area<19)
+  filter(area<=21)
 
 areas <- HDI_Region_Mapping%>%
   filter(country_code>=910& country_code<=931 | country_code==905 | country_code==906| country_code==954| country_code==957 )%>%
@@ -721,14 +731,14 @@ areas <- HDI_Region_Mapping%>%
 
 
 #by region
-AD_Region <- Avoidable_Deaths_Simulated_All_age_cat%>%
+AD_Region2 <- Avoidable_Deaths_Simulated_All_age_cat%>%
   left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
   filter(age_cat=="Overall")%>%
   mutate(AD_treat_prev=AD_treat+AD_prev)%>%
   ungroup()%>%
-  mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
   select(-hdi_group,-continent, -country_label,-country_code,  -AD_sum)%>%
   group_by(area)%>%
+  mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
   mutate(AD_treat_prev=sum(AD_treat_prev,na.rm=T))%>%
   mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
@@ -748,6 +758,12 @@ AD_Region <- Avoidable_Deaths_Simulated_All_age_cat%>%
   as.data.frame()
 
 #age standardizing by region - aggregate by region and then age standardize
+
+countries_regions<-Avoidable_Deaths_Simulated_All%>%
+  select(country_code)%>%distinct()%>%
+  left_join(HDI_Region_Mapping2, by=c("country_code"))
+
+
 
 AD_prop_Age_stand_age_cat_region <- Avoidable_Deaths_Simulated_All%>%
   left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
@@ -876,8 +892,8 @@ AD_by_HDI_all
 
 
 #By region
-AD_Region<-AD_Region%>%mutate(across(4:6, ceiling))%>%
-  mutate(across(9:9, ceiling))%>%
+AD_Region<-AD_Region2%>%mutate(across(4:6, round, -2))%>%
+  mutate(across(9:9,round, -2))%>%
   mutate(across(10:14, round,4)*100) #mutate to show proportion as percentage in export
   
 

@@ -9,6 +9,9 @@ library(rgdal)
 library(pastecs)
 
 
+AD_country_all_cancers%>%select(country_label)%>%distinct()
+
+
 # load AD results
 
 AD_country_all_cancers2<-AD_country_all_cancers%>%
