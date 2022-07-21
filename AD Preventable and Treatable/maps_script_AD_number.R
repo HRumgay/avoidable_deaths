@@ -11,13 +11,13 @@ library(pastecs)
 
 # load AD results
 
-Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_age_cat%>%
-  filter(age_cat=="Overall")%>%
-  group_by(country_code,cancer_code)%>%
+AD_country_all_cancers2<-AD_country_all_cancers%>%mutate(across(6:8, ceiling))%>%
+  mutate(across(10:10, ceiling))%>%
+  mutate(across(12:15, round,4)*100)
   
   
 
-AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
+AD_Map <- as.data.table(AD_country_all_cancers2)
 
 # load id for each country
 dict_id <-  as.data.table(read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_map.csv", sep=","))
@@ -94,22 +94,22 @@ colors_blue_GCO<-  c( "#084594","#2171b5", "#4292c6","#6baed6","#9ecae1", "#c6db
 
 colors_green_GCO <- c("#005a32", "#238b45", "#41ab5d","#74c476", "#a1d99b","#c7e9c0", "#e5f5e0", "#f7fcf5") 
 
-colors_red_GCO <- c("#99000d","#cb181d","#ef3b2c","#fb6a4a", "#fc9272", "#fcbba1", "#fee0d2", "#fff5f0") 
+colors_red_GCO <- c("#99000d","#cb181d","#ef3b2c","#fb6a4a", "#fc9272", "#fcbba1", "#fee0d2", "#fff5f0" ) 
 
 
-#--- maps for AD mortality in males ----
+#--- maps for Preventable AD----
 
-allc <- AD[sex == 1,][type==1,]
+allc <- AD_Map#[sex == 2,][type==1,]
 
-break_quantile <- quantile(allc$AD_treat, probs = seq(0, 1, by = 0.125), na.rm = T)
+break_quantile <- quantile(allc$AD_prev, probs = seq(0, 1, by = 0.125), na.rm = T)
 
-allc$cutpoint <- cut(allc$AD_treat, breaks = rev(break_quantile), include.lowest = TRUE)
+allc$cutpoint <- cut(allc$AD_prev, breaks = rev(break_quantile), include.lowest = TRUE)
 table(allc$cutpoint)
 allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
 
 #merge with shapefile
-df_premat_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
-df_premat_map<- df_premat_map[order(df_premat_map$int_map_index),]
+df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
+df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
 
 #For the automatic legend
 break_quantile_t <- paste(round(break_quantile,1),"", sep="")
@@ -127,14 +127,14 @@ labels_leg <-  c( paste("< ", break_quantile_t[2]),
 labels_leg <- rev(labels_leg)
 
 ggplot() + 
-  geom_polygon(data=df_premat_map,
+  geom_polygon(data=df_AD_map,
                aes(x=long, y=lat,fill=cutpoint, group= group))+
-  geom_polygon(data=df_premat_map,
+  geom_polygon(data=df_AD_map,
                aes(x=long, y=lat,fill=cutpoint, group= group),   
                colour="grey10", 
                size = 0.4,
                show.legend=FALSE)+
-  geom_polygon(data=df_premat_map[df_premat_map$id == 82,],
+  geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
                aes(x=long, y=lat,fill=cutpoint,group= group),
                colour="grey10",
                size = 0.4,
@@ -164,198 +164,201 @@ ggplot() +
   #      labs(title = paste0(cancer,", ",gender))+
   coord_equal() + 
   theme_opts +
-  theme(legend.key.width= unit(2.6, "cm"), #1.5 before
-        legend.key.height= unit(1.4, "cm"),
+  theme(legend.key.width= unit(2.6, "cm"), 
+       legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=28),
-        legend.title = element_text(size=28, hjust = 1),
+        legend.text = element_text(size=24),
+        legend.title = element_text(size=24, hjust = 1),
         legend.title.align=0.5,
-        legend.position =c(0.085, 0),
+        legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "AD_treat (World) per 100 000",
-                    values= colors_blue_GCO,
-                    labels= labels_leg, 
-                    na.value = "#cccccc",
-                    drop=FALSE)+
-  guides(fill = guide_legend(reverse = FALSE))+
-  scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))
-
-ggsave("map_male_all_cancers.pdf",width = 40, height = 30, pointsize = 12)    
-
-#--- maps for AD mortality in females ----
-
-allc <- AD[sex == 2,][type==1,]
-
-break_quantile <- quantile(allc$AD_treat, probs = seq(0, 1, by = 0.125), na.rm = T)
-
-allc$cutpoint <- cut(allc$AD_treat, breaks = rev(break_quantile), include.lowest = TRUE)
-table(allc$cutpoint)
-allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
-
-#merge with shapefile
-df_premat_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
-df_premat_map<- df_premat_map[order(df_premat_map$int_map_index),]
-
-#For the automatic legend
-break_quantile_t <- paste(round(break_quantile,1),"", sep="")
-
-labels_leg <-  c( paste("< ", break_quantile_t[2]),
-                  paste(break_quantile_t[2], " - ", break_quantile_t[3]),
-                  paste(break_quantile_t[3], " - ", break_quantile_t[4]),
-                  paste(break_quantile_t[4], " - ", break_quantile_t[5]),
-                  paste(break_quantile_t[5], " - ", break_quantile_t[6]),
-                  paste(break_quantile_t[6], " - ", break_quantile_t[7]),
-                  paste(break_quantile_t[7], " - ", break_quantile_t[8]),
-                  paste(">= ", break_quantile_t[8]))
-
-
-labels_leg <- rev(labels_leg)
-
-ggplot() + 
-  geom_polygon(data=df_premat_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group))+
-  geom_polygon(data=df_premat_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group),   
-               colour="grey10", 
-               size = 0.4,
-               show.legend=FALSE)+
-  geom_polygon(data=df_premat_map[df_premat_map$id == 82,],
-               aes(x=long, y=lat,fill=cutpoint,group= group),
-               colour="grey10",
-               size = 0.4,
-               show.legend=FALSE)+
-  geom_polygon(data=df_map[df_map$id == 59,],
-               aes(x=long, y=lat,group= group),
-               fill = "#d6d6d6",
-               colour="grey10",
-               size = 0.4,
-               show.legend=FALSE)+
-  geom_polygon(data=df_poly[df_poly$poly_fill == 888,], 
-               aes(x=long, y=lat,group= group),
-               fill = "grey100" ,
-               show.legend=FALSE)+
-  geom_polygon(data=df_poly[df_poly$poly_fill == 999,], 
-               aes(x=long, y=lat,group= group),
-               fill = "#d6d6d6" ,
-               show.legend=FALSE)+
-  geom_path(data=df_poly ,
-            aes(x=long, y=lat, color=line_color,linetype=line_type,group= group),
-            size = 0.4,
-            show.legend=FALSE)+
-  geom_path(data = df_line[df_line$line_color != 0, ],
-            aes(x=long, y=lat,color=line_color,linetype=line_type,group=group),
-            size = 0.4,
-            show.legend=FALSE)+
-  #      labs(title = paste0(cancer,", ",gender))+
-  coord_equal() + 
-  theme_opts +
-  theme(legend.key.width= unit(2.6, "cm"), #1.5 before
-        legend.key.height= unit(1.4, "cm"),
-        legend.direction= "vertical",
-        legend.text = element_text(size=28),
-        legend.title = element_text(size=28, hjust = 1),
-        legend.title.align=0.5,
-        legend.position =c(0.085, 0),
-        legend.background = element_rect(fill="transparent"),
-        plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "AD_treat (World) per 100 000",
-                    values= colors_green_GCO,
-                    labels= labels_leg, 
-                    na.value = "#cccccc",
-                    drop=FALSE)+
-  guides(fill = guide_legend(reverse = FALSE))+
-  scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))
-
-ggsave("map_female_all_cancers.pdf",width = 40, height = 30, pointsize = 12) 
-
-#--- maps for AD mortality in both sexes ----
-
-allc <- AD
-
-break_quantile <- quantile(allc$AD_treat, probs = seq(0, 1, by = 0.125), na.rm = T)
-
-allc$cutpoint <- cut(allc$AD_treat, breaks = rev(break_quantile), include.lowest = TRUE)
-table(allc$cutpoint)
-allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
-
-#merge with shapefile
-df_premat_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
-df_premat_map<- df_premat_map[order(df_premat_map$int_map_index),]
-
-#For the automatic legend
-break_quantile_t <- paste(round(break_quantile,1),"", sep="")
-
-labels_leg <-  c( paste("< ", break_quantile_t[2]),
-                  paste(break_quantile_t[2], " - ", break_quantile_t[3]),
-                  paste(break_quantile_t[3], " - ", break_quantile_t[4]),
-                  paste(break_quantile_t[4], " - ", break_quantile_t[5]),
-                  paste(break_quantile_t[5], " - ", break_quantile_t[6]),
-                  paste(break_quantile_t[6], " - ", break_quantile_t[7]),
-                  paste(break_quantile_t[7], " - ", break_quantile_t[8]),
-                  paste(">= ", break_quantile_t[8]))
-
-
-labels_leg <- rev(labels_leg)
-
-ggplot() + 
-  geom_polygon(data=df_premat_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group))+
-  geom_polygon(data=df_premat_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group),   
-               colour="grey10", 
-               size = 0.4,
-               show.legend=FALSE)+
-  geom_polygon(data=df_premat_map[df_premat_map$id == 82,],
-               aes(x=long, y=lat,fill=cutpoint,group= group),
-               colour="grey10",
-               size = 0.4,
-               show.legend=FALSE)+
-  geom_polygon(data=df_map[df_map$id == 59,],
-               aes(x=long, y=lat,group= group),
-               fill = "#d6d6d6",
-               colour="grey10",
-               size = 0.4,
-               show.legend=FALSE)+
-  geom_polygon(data=df_poly[df_poly$poly_fill == 888,], 
-               aes(x=long, y=lat,group= group),
-               fill = "grey100" ,
-               show.legend=FALSE)+
-  geom_polygon(data=df_poly[df_poly$poly_fill == 999,], 
-               aes(x=long, y=lat,group= group),
-               fill = "#d6d6d6" ,
-               show.legend=FALSE)+
-  geom_path(data=df_poly ,
-            aes(x=long, y=lat, color=line_color,linetype=line_type,group= group),
-            size = 0.4,
-            show.legend=FALSE)+
-  geom_path(data = df_line[df_line$line_color != 0, ],
-            aes(x=long, y=lat,color=line_color,linetype=line_type,group=group),
-            size = 0.4,
-            show.legend=FALSE)+
-  #      labs(title = paste0(cancer,", ",gender))+
-  coord_equal() + 
-  theme_opts +
-   theme(legend.key.width= unit(2.6, "cm"), #1.5 before
-  #       legend.key.height= unit(1.4, "cm"),
-  #       legend.direction= "vertical",
-  #       legend.text = element_text(size=28),
-  #       legend.title = element_text(size=28, hjust = 1),
-  #       legend.title.align=0.5,
-  #       legend.position =c(0.085, 0),
-  #       legend.background = element_rect(fill="transparent"),
-        plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Treatable AD for all ten Cancer sites (number)",
+  scale_fill_manual(name = "Total Number Avoidable Deaths (Preventable)",
                     values= colors_red_GCO,
-                   #labels= labels_leg, 
+                    labels= labels_leg, 
                     na.value = "#cccccc",
                     drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_linetype_manual(values=c("solid", "11"))
 
-ggsave("map_both_sexes_all_cancers.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_prev.pdf",width = 40, height = 30, pointsize = 12) 
+
+
+#--- maps for Treatable AD----
+
+allc <- AD_Map#[sex == 2,][type==1,]
+
+break_quantile <- quantile(allc$AD_treat, probs = seq(0, 1, by = 0.125), na.rm = T)
+
+allc$cutpoint <- cut(allc$AD_treat, breaks = rev(break_quantile), include.lowest = TRUE)
+table(allc$cutpoint)
+allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
+
+#merge with shapefile
+df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
+df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
+
+#For the automatic legend
+break_quantile_t <- paste(round(break_quantile,1),"", sep="")
+
+labels_leg <-  c( paste("< ", break_quantile_t[2]),
+                  paste(break_quantile_t[2], " - ", break_quantile_t[3]),
+                  paste(break_quantile_t[3], " - ", break_quantile_t[4]),
+                  paste(break_quantile_t[4], " - ", break_quantile_t[5]),
+                  paste(break_quantile_t[5], " - ", break_quantile_t[6]),
+                  paste(break_quantile_t[6], " - ", break_quantile_t[7]),
+                  paste(break_quantile_t[7], " - ", break_quantile_t[8]),
+                  paste(">= ", break_quantile_t[8]))
+
+
+labels_leg <- rev(labels_leg)
+
+ggplot() + 
+  geom_polygon(data=df_AD_map,
+               aes(x=long, y=lat,fill=cutpoint, group= group))+
+  geom_polygon(data=df_AD_map,
+               aes(x=long, y=lat,fill=cutpoint, group= group),   
+               colour="grey10", 
+               size = 0.4,
+               show.legend=FALSE)+
+  geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
+               aes(x=long, y=lat,fill=cutpoint,group= group),
+               colour="grey10",
+               size = 0.4,
+               show.legend=FALSE)+
+  geom_polygon(data=df_map[df_map$id == 59,],
+               aes(x=long, y=lat,group= group),
+               fill = "#d6d6d6",
+               colour="grey10",
+               size = 0.4,
+               show.legend=FALSE)+
+  geom_polygon(data=df_poly[df_poly$poly_fill == 888,], 
+               aes(x=long, y=lat,group= group),
+               fill = "grey100" ,
+               show.legend=FALSE)+
+  geom_polygon(data=df_poly[df_poly$poly_fill == 999,], 
+               aes(x=long, y=lat,group= group),
+               fill = "#d6d6d6" ,
+               show.legend=FALSE)+
+  geom_path(data=df_poly ,
+            aes(x=long, y=lat, color=line_color,linetype=line_type,group= group),
+            size = 0.4,
+            show.legend=FALSE)+
+  geom_path(data = df_line[df_line$line_color != 0, ],
+            aes(x=long, y=lat,color=line_color,linetype=line_type,group=group),
+            size = 0.4,
+            show.legend=FALSE)+
+  #      labs(title = paste0(cancer,", ",gender))+
+  coord_equal() + 
+  theme_opts +
+  theme(legend.key.width= unit(2.6, "cm"), 
+        legend.key.height= unit(1.4, "cm"),
+        legend.direction= "vertical",
+        legend.text = element_text(size=24),
+        legend.title = element_text(size=24, hjust = 1),
+        legend.title.align=0.5,
+        legend.position =c(0.18, -0.02),
+        legend.background = element_rect(fill="transparent"),
+        plot.margin = unit(c(0,0,0,0),"lines"))+
+  scale_fill_manual(name = "Total Number Avoidable Deaths (Treatable)",
+                    values= colors_red_GCO,
+                    labels= labels_leg, 
+                    na.value = "#cccccc",
+                    drop=FALSE)+
+  guides(fill = guide_legend(reverse = FALSE))+
+  scale_color_manual(values=c("grey100", "grey10"))+
+  scale_linetype_manual(values=c("solid", "11"))
+
+ggsave("map_AD_all_cancers_treatable.pdf",width = 40, height = 30, pointsize = 12) 
+
+
+
+#--- maps for Overall AD (treat + prev)----
+
+allc <- AD_Map#[sex == 2,][type==1,]
+
+break_quantile <- quantile(allc$AD_treat_prev, probs = seq(0, 1, by = 0.125), na.rm = T)
+
+allc$cutpoint <- cut(allc$AD_treat_prev, breaks = rev(break_quantile), include.lowest = TRUE)
+table(allc$cutpoint)
+allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
+
+#merge with shapefile
+df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
+df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
+
+#For the automatic legend
+break_quantile_t <- paste(round(break_quantile,1),"", sep="")
+
+labels_leg <-  c( paste("< ", break_quantile_t[2]),
+                  paste(break_quantile_t[2], " - ", break_quantile_t[3]),
+                  paste(break_quantile_t[3], " - ", break_quantile_t[4]),
+                  paste(break_quantile_t[4], " - ", break_quantile_t[5]),
+                  paste(break_quantile_t[5], " - ", break_quantile_t[6]),
+                  paste(break_quantile_t[6], " - ", break_quantile_t[7]),
+                  paste(break_quantile_t[7], " - ", break_quantile_t[8]),
+                  paste(">= ", break_quantile_t[8]))
+
+
+labels_leg <- rev(labels_leg)
+
+ggplot() + 
+  geom_polygon(data=df_AD_map,
+               aes(x=long, y=lat,fill=cutpoint, group= group))+
+  geom_polygon(data=df_AD_map,
+               aes(x=long, y=lat,fill=cutpoint, group= group),   
+               colour="grey10", 
+               size = 0.4,
+               show.legend=FALSE)+
+  geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
+               aes(x=long, y=lat,fill=cutpoint,group= group),
+               colour="grey10",
+               size = 0.4,
+               show.legend=FALSE)+
+  geom_polygon(data=df_map[df_map$id == 59,],
+               aes(x=long, y=lat,group= group),
+               fill = "#d6d6d6",
+               colour="grey10",
+               size = 0.4,
+               show.legend=FALSE)+
+  geom_polygon(data=df_poly[df_poly$poly_fill == 888,], 
+               aes(x=long, y=lat,group= group),
+               fill = "grey100" ,
+               show.legend=FALSE)+
+  geom_polygon(data=df_poly[df_poly$poly_fill == 999,], 
+               aes(x=long, y=lat,group= group),
+               fill = "#d6d6d6" ,
+               show.legend=FALSE)+
+  geom_path(data=df_poly ,
+            aes(x=long, y=lat, color=line_color,linetype=line_type,group= group),
+            size = 0.4,
+            show.legend=FALSE)+
+  geom_path(data = df_line[df_line$line_color != 0, ],
+            aes(x=long, y=lat,color=line_color,linetype=line_type,group=group),
+            size = 0.4,
+            show.legend=FALSE)+
+  #      labs(title = paste0(cancer,", ",gender))+
+  coord_equal() + 
+  theme_opts +
+  theme(legend.key.width= unit(2.6, "cm"), 
+        legend.key.height= unit(1.4, "cm"),
+        legend.direction= "vertical",
+        legend.text = element_text(size=24),
+        legend.title = element_text(size=24, hjust = 1),
+        legend.title.align=0.5,
+        legend.position =c(0.18, -0.02),
+        legend.background = element_rect(fill="transparent"),
+        plot.margin = unit(c(0,0,0,0),"lines"))+
+  scale_fill_manual(name = "Total Number Overall Avoidable Deaths (Treatable + Preventable)",
+                    values= colors_red_GCO,
+                    labels= labels_leg, 
+                    na.value = "#cccccc",
+                    drop=FALSE)+
+  guides(fill = guide_legend(reverse = FALSE))+
+  scale_color_manual(values=c("grey100", "grey10"))+
+  scale_linetype_manual(values=c("solid", "11"))
+
+ggsave("map_AD_all_cancers_preventable_treatable.pdf",width = 40, height = 30, pointsize = 12) 
 
 

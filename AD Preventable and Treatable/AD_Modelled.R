@@ -579,11 +579,6 @@ AD_prop_Age_stand_age_cat <- ADprop3%>%full_join(ADprop4)%>%
 # 
 
 
-#writing the files
-write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
-write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
-write.csv(Avoidable_Deaths_Simulated_All_age_cat, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries_age_cat.csv")
-
 
 #HDI 
 
@@ -645,7 +640,31 @@ AD_by_HDI_all <- AD_by_HDI_overall%>%
   mutate(total_deaths=sum(AD_sum))
 
 
+#By country for all cancer sites (number and proportion): 
 
+AD_country_all_cancers <- Avoidable_Deaths_Simulated_All_age_cat%>%
+  filter(age_cat=="Overall")%>%
+  mutate(AD_treat_prev=AD_treat+AD_prev)%>%
+  ungroup()%>%
+  mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
+  select(-hdi_group,  -AD_sum)%>%
+  group_by(country_code)%>%
+  mutate(AD_treat_prev=sum(AD_treat_prev,na.rm=T))%>%
+  mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
+  mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
+  mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+  mutate(pAD_treat=AD_treat/total_deaths)%>%
+  mutate(pAD_prev=AD_prev/total_deaths)%>%
+  mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
+  mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
+  #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
+  mutate(cancer="All Cancer Sites")%>%
+  mutate(cancer_code=1000)%>%
+  select(-py)%>%
+  distinct()%>%
+  ungroup()%>%
+  distinct()%>%
+  as.data.frame()
 
 
 
@@ -679,11 +698,12 @@ AD_Region <- Avoidable_Deaths_Simulated_All_age_cat%>%
   #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
   mutate(cancer="All Cancer Sites")%>%
   mutate(cancer_code=1000)%>%
-  left_join(areas)%>%
+  select(-py)%>%
+  distinct()%>%
+  left_join(areas, by=c("area"))%>%
   ungroup()%>%
   distinct()%>%
   as.data.frame()
-
 
 #age standardizing by region - aggregate by region and then age standardize
 
@@ -787,6 +807,9 @@ table_1_2<-Avoidable_Deaths_Simulated_All%>%
 
 
 
+#By Country and all cancer sites
+
+AD_country_all_cancers
 
 #By country AND cancer site
 
@@ -811,7 +834,10 @@ AD_by_HDI_all
 
 
 #By region
-AD_Region
+AD_Region<-AD_Region%>%mutate(across(4:6, ceiling))%>%
+  mutate(across(9:9, ceiling))%>%
+  mutate(across(10:13, round,4))
+  
 
 #Age standardized
 AD_prop_Age_stand_age_cat_region
@@ -821,6 +847,18 @@ AD_prop_Age_stand_age_cat_region
 table_1_1
 
 table_1_2
+
+
+
+#writing the files
+write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
+write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
+write.csv(Avoidable_Deaths_Simulated_All_age_cat, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries_age_cat.csv")
+
+write.csv(AD_Region, "~/Documents/R_Projects/Data/AD_Region.csv")
+
+
+
 
 
 
