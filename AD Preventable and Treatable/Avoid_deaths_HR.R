@@ -1,7 +1,6 @@
 # file to calculate avoidable deaths - HR
 
 # open libraries
-library(foreign)
 library(tidyverse)
 library(data.table)
 
@@ -87,27 +86,38 @@ d %>%
   full_join(PAFs %>%     # merge PAF data
               select(-country_label,-cancer_label, -af.tob:-af.uv) %>% 
               filter(cancer_code!=40, sex!=0, age>3)) %>%  # remove all cancers combine, both sexes and ages <15
-  filter(country_code==160) -> dChina # filter to China
+  filter(country_code==566) -> d2 # filter to Nigeria
 
 
 # calculate avoidable deaths ----
-dChina %>% 
+d2 %>% 
   filter(cancer_code%in%c(6,7,11,15,20,23,27)) %>% 
   mutate(prevd1 = (1-(rel_surv*es))*cases.prev,   # new formula for prev
          prevd2 = (1-rel_surv)*es*cases.prev,     # previous formula for prev
          treatd = (surv_ref-rel_surv)*es*cases.notprev, # treatable
+         treatd2 = (surv_ref-rel_surv)*es*cases,  # treatable of all cases (not just non-prev)
          unavoidd = (1-(surv_ref*es))*cases.notprev,    # unavoidable
-         expdsum1 = prevd1+treatd+unavoidd,      # total deaths including new formula for prev
-         expdsum2 = prevd2+treatd+unavoidd,      # total deaths including previous formula for prev
+         unavoidd2 = (1-(surv_ref*es))*cases,    # unavoidable all cases
+         expdsum1 = prevd1+treatd+unavoidd,       # total deaths including new formula for prev
+         expdsum2 = prevd2+treatd+unavoidd,       # total deaths including previous formula for prev
+         expdsum3 = treatd2+unavoidd2,       # total deaths not including prev
          expd = (1-(rel_surv*es))*cases #expected deaths
   ) %>% 
   group_by(cancer_code,country_code) %>% 
   mutate(prevd1 = sum(prevd1, na.rm=T),
          prevd2 = sum(prevd2, na.rm=T),
          treatd = sum(treatd, na.rm=T),
+         treatd2 = sum(treatd2, na.rm=T),
          unavoidd = sum(unavoidd, na.rm=T),
+         unavoidd2 = sum(unavoidd2, na.rm=T),
          expdsum1 = sum(expdsum1, na.rm=T),
          expdsum2 = sum(expdsum2, na.rm=T),
-         expd = sum(expd, na.rm=T)) %>% 
-  select(-rel_surv,-es,-anchor,-surv_ref,-age,-sex,-cases:-py) %>% unique() -> tChina
-write.csv(tChina,"RESULTS/testformulas_China.csv",row.names=FALSE)
+         expdsum3 = sum(expdsum3, na.rm=T),
+         expd = sum(expd, na.rm=T),
+         prop.prevd1 = prevd1/expdsum1*100,
+         prop.treat1 = treatd/expdsum1*100,
+         prop.prevd2 = prevd2/expdsum2*100,
+         prop.treat2 = treatd/expdsum2*100,
+         prop.treat3 = treatd2/expdsum3*100) %>% 
+  select(-rel_surv,-es,-anchor,-surv_ref,-age,-sex,-cases:-py,-hdi_value,-hdi_rank) %>% unique() -> t2
+write.csv(t2,"RESULTS/testformulas_Nigeria.csv",row.names=FALSE)
