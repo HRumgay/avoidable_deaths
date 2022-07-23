@@ -659,8 +659,9 @@ AD_by_HDI <- Avoidable_Deaths_Simulated_All_age_cat%>%
   mutate(AD_treat=sum(AD_treat))%>%
   mutate(AD_prev=sum(AD_prev))%>%
   mutate(AD_unavoid=sum(AD_unavoid))%>%
-  mutate(AD_sum=sum(AD_sum))%>%
+  mutate(total_deaths=sum(AD_sum))%>%
  # mutate(total_overall=sum(total_overall))%>%
+  select(-AD_sum)%>%
   ungroup()%>%
   distinct()%>%
   as.data.frame()
@@ -676,20 +677,27 @@ AD_by_HDI_overall <- AD_by_HDI%>%filter(age_cat=="Overall")%>%select(-age_cat)
 
 AD_by_HDI_all <- AD_by_HDI_overall%>%
   ungroup()%>%
-  select(-w,-total_overall)%>%
   group_by(hdi_group)%>%
+  mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
+  mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
   mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
   mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
-  mutate(AD_sum=sum(AD_sum,na.rm=T))  %>%
-  #mutate(total_overall=sum(total_overall))%>%
+  mutate(pAD_treat=AD_treat/total_deaths)%>%
+  mutate(pAD_prev=AD_prev/total_deaths)%>%
+  mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
+  mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
   #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
   mutate(cancer="All Cancer Sites")%>%
   mutate(cancer_code=1000)%>%
+  distinct()%>%
+  select(-w)%>%
   ungroup()%>%
   distinct()%>%
-  as.data.frame()%>%
-  mutate(total_deaths=sum(AD_sum))
+  arrange(hdi_group)%>%
+  as.data.frame()
+
+
 
 
 #By country for all cancer sites (number and proportion): 
@@ -755,6 +763,7 @@ AD_Region2 <- Avoidable_Deaths_Simulated_All_age_cat%>%
   left_join(areas, by=c("area"))%>%
   ungroup()%>%
   distinct()%>%
+  left_join(HDI_Region_Mapping, by=c("area", "country_label"))%>%
   as.data.frame()
 
 #age standardizing by region - aggregate by region and then age standardize
@@ -867,7 +876,18 @@ table_1_2<-Avoidable_Deaths_Simulated_All%>%
 
 #By Country and all cancer sites
 
-AD_country_all_cancers
+AD_country_all_cancers2<-AD_country_all_cancers%>%  
+  mutate(across(6:8,round, -2))%>%
+  mutate(across(10:11,round, -2))%>%
+  mutate(across(12:15, round,4)*100)%>% #mutate to show proportion as percentage in export
+  select("country_code","country_label",
+         "cancer_code", "cancer", 
+          "AD_prev","pAD_prev",    
+          "AD_treat",  "pAD_treat" ,
+          "AD_treat_prev", "pAD_treat_prev",
+          "AD_unavoid",   "pAD_unavoid" ,        
+          "total_deaths"  )
+
 
 #By country AND cancer site
 
@@ -876,7 +896,16 @@ AD_country_all_cancers
 Avoidable_Deaths_Simulated_All
 Avoidable_Deaths_Simulated_All_age_cat
 Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_age_cat%>% #Object to plot overall age standardized on world maps 
-  filter(age_cat=="Overall")
+  filter(age_cat=="Overall")%>%  
+  mutate(across(6:8,round, -2))%>%
+  mutate(across(9:12, round,4)*100)%>% #mutate to show proportion as percentage in export
+  select( "hdi_group","cancer_code", "cancer", 
+          "AD_prev","pAD_prev",    
+          "AD_treat",  "pAD_treat" ,
+          "AD_treat_prev", "pAD_treat_prev",
+          "AD_unavoid",   "pAD_unavoid" ,        
+          "total_deaths"  )
+  
 # age standardized 
 
 AD_prop_Age_stand #for reference...
@@ -886,34 +915,66 @@ AD_prop_Age_stand_age_cat_overall<-AD_prop_Age_stand_age_cat%>% #Object to plot 
 #By HDI
 
 AD_by_HDI
-AD_by_HDI_all
+
+AD_by_HDI_all2<-AD_by_HDI_all%>%
+  mutate(across(4:8,round, -2))%>%
+  mutate(across(9:12, round,4)*100)%>% #mutate to show proportion as percentage in export
+  select( "hdi_group",     "cancer_code", "cancer", 
+         "AD_prev",        "pAD_prev",    
+         "AD_treat",       "pAD_treat" ,
+         "AD_treat_prev",  "pAD_treat_prev",
+         "AD_unavoid",     "pAD_unavoid" ,        
+         "total_deaths")
+
 
 #Age standardized
 
 
 #By region
 AD_Region<-AD_Region2%>%mutate(across(4:6, round, -2))%>%
-  mutate(across(9:9,round, -2))%>%
-  mutate(across(10:14, round,4)*100) #mutate to show proportion as percentage in export
-  
+  mutate(across(9:10,round, -2))%>%
+  mutate(across(11:14, round,4)*100)%>% #mutate to show proportion as percentage in export
+arrange(continent, country_label)%>%
+  select("age_cat", "cancer_code", "cancer", 
+         "AD_prev","pAD_prev",    
+         "AD_treat",  "pAD_treat" ,
+         "AD_treat_prev", "pAD_treat_prev",
+         "AD_unavoid",   "pAD_unavoid" ,        
+         "total_deaths" , 
+         "area"       ,            
+         "country_label" , "country_code" ,  "continent")
 
 #Age standardized
 AD_prop_Age_stand_age_cat_region
 
+
 #World total
 
-table_1_1
+table_1_11<-table_1_1%>%mutate(across(1:5, round, -2))%>%
+  mutate(across(6:9, round,4)*100)%>% #mutate to show proportion as percentage in export
+  select(
+         "AD_prev","pAD_prev",    
+         "AD_treat",  "pAD_treat" ,
+         "AD_treat_prev", "pAD_treat_prev",
+         "AD_unavoid",   "pAD_unavoid" ,        
+         "total_deaths" )
+
 
 table_1_2
 
-
+#HDI
 
 #writing the files
 write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
 write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
 write.csv(Avoidable_Deaths_Simulated_All_age_cat, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries_age_cat.csv")
-
 write.csv(AD_Region, "~/Documents/R_Projects/Data/AD_Region.csv")
+write.csv(table_1_11, "~/Documents/R_Projects/Data/AD_Total.csv")
+write.csv(AD_by_HDI_all2, "~/Documents/R_Projects/Data/AD_HDI_All_Cancers.csv")
+write.csv(AD_country_all_cancers2, "~/Documents/R_Projects/Data/AD_Country_All_Cancers.csv")
+
+
+
 
 
 
