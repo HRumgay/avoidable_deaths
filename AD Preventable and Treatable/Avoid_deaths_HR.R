@@ -3,6 +3,7 @@
 # open libraries
 library(tidyverse)
 library(data.table)
+library(Rcan)
 
 
 # set working directory
@@ -219,8 +220,11 @@ t3 %>%
          prop.treat = treatd/expd,
          prop.avoid = avoid/expd,
          prop.unavoid = unavoidd/expd) -> asr
-
 write.csv(asr,"RESULTS/AD_modelled_country.csv",row.names=FALSE)
+
+
+t3 <- as.data.table(t3)
+t3[, 15:25][is.na(t3[, 15:25])] <- 0 #replace nas with 0
 
 # calculate world total
 t3 %>% 
