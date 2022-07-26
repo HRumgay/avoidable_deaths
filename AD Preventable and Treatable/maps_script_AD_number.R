@@ -11,9 +11,7 @@ library(pastecs)
 
 # load AD results
 
-AD_country_all_cancers2<-AD_country_all_cancers%>%mutate(across(6:8, ceiling))%>%
-  mutate(across(10:10, ceiling))%>%
-  mutate(across(12:15, round,4)*100)
+AD_country_all_cancers2
   
   
 

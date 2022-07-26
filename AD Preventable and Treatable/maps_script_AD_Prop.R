@@ -14,10 +14,7 @@ AD_country_all_cancers%>%select(country_label)%>%distinct()
 
 # load AD results
 
-AD_country_all_cancers2<-AD_country_all_cancers%>%
-  mutate(across(6:8, ceiling))%>%
-  mutate(across(10:10, ceiling))%>%
-  mutate(across(12:15)*100)
+AD_country_all_cancers2
 
 
 
@@ -177,7 +174,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion Overall Avoidable Deaths (Treatable) out of Overall Cancer Deaths",
+  scale_fill_manual(name = "Proportion Overall Avoidable Deaths (Preventable) out of Overall Cancer Deaths",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
