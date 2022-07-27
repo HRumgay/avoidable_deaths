@@ -882,7 +882,7 @@ Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_a
   mutate(across(6:9,round,0 ))%>%
   mutate(across(13:13,round,0))%>%
   mutate(across(14:19, round,4)*100)%>% #mutate to show proportion as percentage in export
-  select( "hdi_group","cancer_code", "cancer", 
+  select( "country_code","country_label","cancer_code", "cancer", 
           "AD_prev","pAD_prev",    
           "AD_treat",  "pAD_treat" ,
           AD_treat_not_prev, pAD_treat_not_prev,
