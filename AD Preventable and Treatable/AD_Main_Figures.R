@@ -72,12 +72,18 @@ ggsave("Figure_1_percentAD.pdf",width = 40, height = 30, pointsize = 12)
 # Figure 4 - Global burden of cancer by cancer site pie chart 
 
 AD_by_cancer_site_3<-AD_cancer2%>%
+  select(cancer, cancer_code, AD_treat)%>%
+  rename("AD"="AD_treat")%>%
   mutate(AD_cat="Treatable")
 
 AD_by_cancer_site_2<-AD_cancer2%>%
+  select(cancer, cancer_code, AD_prev)%>%
+  rename("AD"="AD_prev")%>%
   mutate(AD_cat="Preventable")
 
 AD_by_cancer_site_1<-AD_cancer2%>%
+  select(cancer, cancer_code, AD_treat_prev)%>%
+  rename("AD"="AD_treat_prev")%>%
   mutate(AD_cat="Total Proportion Avoidable Deaths (Preventable + Treatable)")%>%
   full_join(AD_by_cancer_site_2)%>%
   full_join(AD_by_cancer_site_3)
@@ -96,6 +102,7 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   group_by(AD_cat)%>%
   mutate(total=sum(AD))%>%
   mutate(n = n())%>%
+  mutate(wght = AD/total)%>%
   mutate(pos = (cumsum(wght)))%>%
   mutate(scale=total)%>%
   distinct()%>%
