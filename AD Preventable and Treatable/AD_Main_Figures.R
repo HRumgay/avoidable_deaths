@@ -139,6 +139,34 @@ ggsave("Figure_1_Pie_Chart_cancer_site_scaled_percent.pdf",width = 30, height = 
 
 
 
+# alternative pie charts script using some elements from Bar_and_Pie_base.R script using globocan colours
+pied <- AD_by_cancer_site_1
+
+pied %>%
+  filter(grptotaacases!=0, sex==0) %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rank,levels = unique(pafd[sex==0 & grptotaacases!=0,]$rank), labels = unique(pafd[sex==0 & grptotaacases!=0,]$Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  geom_text(aes(label = paste0(formatC(round_any(grptotaacases,100), format="f", big.mark=" ", digits=0),"\n ",scales::percent(percent, accuracy = 1)), x = 2.75),
+            position = position_stack(vjust=0.5),
+            size=2) +
+  coord_polar(theta = "y") +
+  xlim(c(0.5,3))+
+  scale_fill_identity("Cancer site", labels = pafd[sex==0 & grptotaacases!=0,]$cancer_label,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  labs(title = "Both sexes")+
+  theme(plot.background= element_blank(),
+        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank())
+
 
 # Figure 5
 
