@@ -12,18 +12,6 @@
 
 
 #Avoidable Deaths due to Risk Factors for various Cancer sites
-library(readxl)
-#library(plyr)
-library(dplyr)
-library(tidyverse)
-library(stringr)
-library(haven)
-library(mexhaz)
-library(readr)
-library(ggplot2)
-library(relsurv)
-library(readstata13)
-library(janitor)
 
 
 

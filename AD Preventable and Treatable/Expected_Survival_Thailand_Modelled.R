@@ -44,6 +44,7 @@ country_codes <-
   mutate(country_label = replace(country_label, country_label == "Iran, Islamic Republic of", "Iran")) %>%
   mutate(country_label = replace(country_label, country_label == "Korea, Republic of", "South Korea")) %>%
   mutate(country_label = replace(country_label, country_label == "France, Martinique", "Martinique")) %>%
+  mutate(country_label = replace(country_label, country_label ==  "Côte d'Ivoire","Cote d'Ivoire")) %>%
   select(country_code, country_label)%>% 
   full_join(missing_CC)
 
@@ -77,7 +78,7 @@ life<-life%>%full_join(Mauritius)%>%full_join(Martinique)
 
 #Load mortality rates for survival analysis. Correct and use probability
 life_table<-life%>%
-  #filter(sex==2)%>%
+  filter(sex==2)%>%
   select(region,year,sex,age,mx,prob)%>%
   mutate(region=replace(region,region=="Korea","South Korea"))%>%
   mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
@@ -100,25 +101,32 @@ life_table_2020<-life_table%>%
 
 life_table_complete<-life_table %>%
   full_join(life_table_2019) %>%
-  full_join(life_table_2020)
+  full_join(life_table_2020) %>%
+  left_join(country_codes, by = c("region"="country_label"))
 
+countries_survcan<-life_table_complete%>%
+  select(region,country_code)%>%distinct()%>%as.data.frame()%>%
+  filter(!is.na(country_code))
+  
+expected_survcan<-list()
 
-Seychelles_popmort<-life_table_complete%>%
-  left_join(country_codes, by = c("region"="country_label"))%>%
+for(p in(1:nrow(countries_survcan))){
+
+SURVCAN_popmort<-life_table_complete%>%
   dplyr::rename("country"="region")%>%
   select(-country)%>%
-  filter(country_code==10001)
+  filter(country_code==countries_survcan[p,]$country_code)
 
 
 
 #Converting to a matrix...
-men3<-Seychelles_popmort%>%
-  filter(sex==1)
+# men3<-SURVCAN_popmort%>%
+#   filter(sex==1)
 
-women3<-Seychelles_popmort%>%
+women3<-SURVCAN_popmort%>%
   filter(sex==2)
 
-men<-matrix(NA, 100, 15, dimnames = list(c(seq(0,99,by=1)), c(seq(2000,2014,by=1))))
+#men<-matrix(NA, 100, 15, dimnames = list(c(seq(0,99,by=1)), c(seq(2000,2014,by=1))))
 
 women<-matrix(NA, 100, 15, dimnames = list(c(seq(0,99,by=1)), c(seq(2000,2014,by=1))))
 
@@ -126,9 +134,9 @@ women<-matrix(NA, 100, 15, dimnames = list(c(seq(0,99,by=1)), c(seq(2000,2014,by
 
 for(j in 2000:2014){
   for(i in 1:100){
-  men2<-men3%>%
-    filter(year==j)
-  men[i,j-1999] <- men2[i,]$prob
+  # men2<-men3%>%
+  #   filter(year==j)
+  # men[i,j-1999] <- men2[i,]$prob
 
     women2<-women3%>%
     filter(year==j)
@@ -139,23 +147,23 @@ for(j in 2000:2014){
 
 ratetablepop<-transrate(men,women,yearlim=c(2000,2014),int.length=1) #if even one column that is unused has NA values it fails to calculated in the loop below...
 
-SurvExpNew_1 <- rep(0,1000)
+#SurvExpNew_1 <- rep(0,1000)
 SurvExpNew_2 <- rep(0,1000)
-SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow = 20)
+#SurvExpNew_age_cats_men <- matrix(ncol = 2, nrow = 20)
 SurvExpNew_age_cats_women <- matrix(ncol = 2, nrow = 20)
 
 Time <- seq(0,5,le=1001)[-1]
 
 
 for (j in 0:20){
-  DataTemp <- expand.grid(age=((j*5):(5*(j+1)-1)),year=2009:2014)   #
-  DataTemp$year <- as.Date(paste0(DataTemp$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
-  DataTemp$cens <- 0 ## actually, not used in the calculations...
-  DataTemp$timeFix <- 0
-  DataTemp$sex <- 1
-  DataTemp$w <- 1/dim(DataTemp)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
-
-  
+  # DataTemp <- expand.grid(age=((j*5):(5*(j+1)-1)),year=2009:2014)   #
+  # DataTemp$year <- as.Date(paste0(DataTemp$year,"-01-01"),origin="1960-01-01",format="%Y-%m-%d")
+  # DataTemp$cens <- 0 ## actually, not used in the calculations...
+  # DataTemp$timeFix <- 0
+  # DataTemp$sex <- 1
+  # DataTemp$w <- 1/dim(DataTemp)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
+  # 
+  # 
   DataTemp2 <- expand.grid(age=((j*5):(5*(j+1)-1)),year=2009:2014)   #
   DataTemp2$year <- as.Date(paste0(DataTemp2$year,"-01-01"), origin="1960-01-01", format="%Y-%m-%d")
   DataTemp2$cens <- 0 ## actually, not used in the calculations...
@@ -164,15 +172,15 @@ for (j in 0:20){
   DataTemp2$w <- 1/dim(DataTemp2)[1]  ## or other weights if you can find convenient values to represent the combined distribution of ages at diagnosis and year at diagnosis
   
   for (i in 1000:1000){
-    DataTemp$timeFix <- Time[i]
-    Temp <- calcExpect(time="timeFix",
-                       event="cens", 
-                       ratetable=ratetablepop, 
-                       rmap=list(age=age*365.241,
-                                 year=year,
-                                 sex=sex),
-                       data=DataTemp)
-    Temp$surv <- exp(-Temp$MUA)
+    # DataTemp$timeFix <- Time[i]
+    # Temp <- calcExpect(time="timeFix",
+    #                    event="cens", 
+    #                    ratetable=ratetablepop, 
+    #                    rmap=list(age=age*365.241,
+    #                              year=year,
+    #                              sex=sex),
+    #                    data=DataTemp)
+    # Temp$surv <- exp(-Temp$MUA)
 
   DataTemp2$timeFix <- Time[i]
   
@@ -187,23 +195,30 @@ for (j in 0:20){
   SurvExpNew_1[i] <- sum(Temp$surv*Temp$w)
   SurvExpNew_2[i] <- sum(Temp2$surv*Temp2$w)
   
-  SurvExpNew_age_cats_men[j,]<-c(j,SurvExpNew_1[1000])
+  #SurvExpNew_age_cats_men[j,]<-c(j,SurvExpNew_1[1000])
   SurvExpNew_age_cats_women[j,]<-c(j,SurvExpNew_2[1000])
   }
 }
+# 
+# SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
+#   as.data.frame()%>%
+#   rename("age"="V1")%>% #age coded in age groups of five years like globocan
+#   rename("ES"="V2")%>%
+#   mutate(sex=1)
 
-SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
+SURVCAN_expected_Survival<-SurvExpNew_age_cats_women%>%
   as.data.frame()%>%
-  rename("age"="V1")%>% #age coded in age groups of five years like globocan
-  rename("ES"="V2")%>%
-  mutate(sex=1)
+  rename("age" = "V1")%>% #age coded in age groups of five years like globocan
+  rename("ES" = "V2")%>%
+  mutate(sex = 2)
 
-Seychelles_expected_Survival<-SurvExpNew_age_cats_women%>%
-  as.data.frame()%>%
-  rename("age"="V1")%>% #age coded in age groups of five years like globocan
-  rename("ES"="V2")%>%
-  mutate(sex=2)%>%
-  full_join(SurvExpNew_age_cats_men2)
+expected_survcan[[p]]<-SURVCAN_expected_Survival
+}
+
+
+expected_survcan
+
   
-write.csv(Seychelles_expected_Survival, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Seychelles_expected_Survival.csv")
+  
+write.csv(SURVCAN_expected_Survival, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Seychelles_expected_Survival.csv")
 
