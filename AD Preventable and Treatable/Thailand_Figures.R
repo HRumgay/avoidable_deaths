@@ -85,80 +85,10 @@ AD_by_cancer_site_1<-AD_by_cancer_site%>%
   full_join(AD_by_cancer_site_2)%>%
   full_join(AD_by_cancer_site_3)
 
-# Figure 4 - Global burden of cancer by cancer site pie chart 
-
-library(ggrepel)
-
-Figure_4_1 <- AD_by_cancer_site_1%>%
-  ungroup()%>%
-  mutate(wght = runif(length(AD)))%>%
-  mutate(wght = wght/sum(wght))%>%
-  mutate(pos = (cumsum(c(0, wght)) + c(wght / 2, .01))[1:nrow(AD_by_cancer_site_1)])%>%
-  group_by(AD_cat)%>%
-  arrange(desc(AD), .by_group = TRUE) %>%
-  ggplot(aes(x="", y=wght, fill = AD_cat)) +
-  geom_col(color = 'black', 
-           position = position_stack(reverse = TRUE), 
-           show.legend = TRUE) +
-  geom_text_repel(aes(x = 1.4, y = pos, label = cancer), 
-                  nudge_x = .3, 
-                  segment.size = .7, 
-                  show.legend = TRUE) +
-  scale_fill_discrete(name = "Type of avoidable deaths", 
-                      labels = c("Preventable", "Treatable", "Unavoidable")) +
-  coord_polar("y", start=0) +
-  labs(title="Preventable and treatable avoidable deaths globally by cancer site")+
-  theme_void()
-
-Figure_4_1
-
-Figure_4_2 <- AD_by_cancer_site_1%>%
-  group_by(AD_cat)%>%
-  summarize(AD=sum(AD))%>%
-  distinct()%>%
-  ungroup()%>%
-  mutate(wght = runif(length(AD)))%>%
-  mutate(wght = wght/sum(wght))%>%
-  mutate(pos = (cumsum(c(0, wght)) + c(wght / 2, .01))[1:3])%>%
-  group_by(AD_cat)%>%
-  arrange(desc(AD), .by_group = TRUE) %>%
-  
-  ggplot(aes(x="", y=pos, fill = AD_cat)) +
-  geom_col(color = 'black', 
-           position = position_stack(reverse = TRUE), 
-           show.legend = TRUE) +
-  geom_text_repel(aes(x = 1.4, y = wght, label = AD_cat), 
-                  nudge_x = .3, 
-                  segment.size = .7, 
-                  show.legend = TRUE) +
-  scale_fill_discrete(name = "Type of avoidable deaths", 
-                      labels = c("Preventable", "Treatable", "Unavoidable")) +
-  coord_polar("y", start=0) +
-  labs(title="Preventable and treatable avoidable deaths globally for ten cancer sites")+
-  theme_void()
-
-
-
-Figure_4_2
 
 
 
 
-
-
-# AD_plotable %>% ggplot(aes(x = "", y = value, fill = group)) +
-#   geom_col(color = "black") +
-#   geom_text(aes(label = value),
-#             position = position_stack(vjust = 0.5)) +
-#   coord_polar(theta = "y") +
-#   guides(fill = guide_legend(title = "Title")) +
-#   facet_grid(. ~ Scenario)
-# 
-# 
-# mutate_if(.<0,0)
-# 
-# 
-# mutate_if(any_column_NA,replace_NA_0)
 
 
 
