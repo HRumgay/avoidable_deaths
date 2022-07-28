@@ -403,6 +403,7 @@ weights2 <- weights2%>%mutate(age = case_when(
   age==15 ~ 15,
   age>=16 ~ 16,
 ))%>%
+  filter(age>3) %>% 
   mutate(total=sum(w2))%>%
   group_by(age)%>%
   mutate(w=sum(w2)/total)%>%
@@ -429,10 +430,16 @@ Avoidable_Deaths_Simulated_All<- Avoidable_Deaths_Simulated_All2%>%
                               TRUE ~ AD_treat))
 
 
-
+## added new ASR code below
 Avoidable_Deaths_Simulated_All_overall <- Avoidable_Deaths_Simulated_All%>%
   mutate(age_cat="Overall")%>%
   group_by(country_code, cancer_code, age_cat)%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   select( -total_overall)%>%
   mutate(AD_prev = sum(AD_prev,na.rm=T))%>%
   mutate(AD_treat = sum(AD_treat,na.rm=T))%>%
