@@ -1,7 +1,8 @@
+
+
 library(ggplot2)
 
 setwd("D:/Script/Pie")
-rm(list=ls())
 
 #####################
 ## GLOBOCAN classics
@@ -25,7 +26,7 @@ names(dat)[names(dat)=="Color.Hex"] <- "color"
 
 # Bar
 dbar <- dat %>% #filter(country_label=="World" & !cancer_code %in% c(17,37,38,39,40) & sex==0 & AD_cat!=2) %>%
-  #select(cancer_code, cancer, AD_cat, cases, color) %>%
+  #select(cancer_code, cancer, AD_cat, AD, color) %>%
   arrange(AD_cat,-AD)
 
 dbar <- dbar %>% 
@@ -36,10 +37,10 @@ filter(rank <= 7)
 
 dbargph <- subset(dbar, AD_cat=="Preventable")
 
-# plot <- ggplot(dbargph, aes(x=AD_cat, y=pct, fill=reorder(cancer,-cases))) + 
+# plot <- ggplot(dbargph, aes(x=AD_cat, y=pct, fill=reorder(cancer,-AD))) + 
 #   geom_bar(stat="identity", width = 0.3) +
 #   geom_text(aes(y=label_y, label=cancer), vjust=-1) +
-#   xlab("") + ylab("Number of cancer cases (%)") +
+#   xlab("") + ylab("Number of cancer AD (%)") +
 #   theme_bw() +
 #   ggtitle("") +   
 #   theme(legend.position="right") +
@@ -52,8 +53,8 @@ dbargph2 <- as.matrix(cbind(rev(dbargph$cancer),rev(dbargph$pct)))
 barplot(dbargph2,
         main="AD",
         xlab = "",
-        ylab="Number of cancer cases (%)",
-        col=rev(dbargph$color), border = "slate grey",
+        ylab="Number of cancer AD (%)",
+         border = "slate grey",
         space = 2, las=2,
         xlim = c(2,6)
 )
@@ -92,10 +93,12 @@ dpie <- dpie %>% mutate(labls = paste(cancer, paste(as.character(pct), "%", sep 
 # Preventable
 dpiegph <- subset(dpie, AD_cat=="Preventable")
 dtot <- dat %>% filter(AD_cat=="Preventable" ) %>% select(AD)
-dtitle <- paste(as.character(dtot$cases),"new cases", sep = "\n")
+dtitle <- paste(as.character(dtot$AD),"new AD", sep = "\n")
 
-#pie(dpiegph$cases, labels=dpiegph$labls, init.angle=90, col=c("#1a62a2", "#dcdcdc"), main="Preventable")
-pie(dpiegph$AD, labels = NA, init.angle=90, col=c("#1a62a2", "#dcdcdc"), main="Preventable", border = "slate grey",sub=dtitle)
+#pie(dpiegph$AD, labels=dpiegph$labls, init.angle=90, col=c("#1a62a2", "#dcdcdc"), main="Preventable")
+
+
+pie(dpiegph$AD, labels = NA, init.angle=90, main="Preventable", border = "slate grey",sub=dtitle)
 text(c(-0.4,0.4), c(0.3,-0.3), adj = 0.5, labels = dpiegph$labls2, cex = 1.2)
 
 pdf("Bar_and_Pie_base.pdf",width = 10, height = 7, pointsize = 12)
@@ -104,17 +107,47 @@ par(mar=c(3,5,2,4), oma = c(2, 0, 2, 1)) # c(bottom, left, top, right), the defa
 par(mfrow=c(1,2))
 barplot(dbargph2,
         xlab = "",
-        ylab="Proportion of cases among top cancers (%)",
+        ylab="Proportion of AD among top cancers (%)",
         col=rev(dbargph$color), border = "slate grey",
         space = 2.4, las=2,
         xlim = c(5,6)
 )
 text(5.6, dbargph$label_y+0.075, adj=1, labels = dbargph$cancer, cex = 1.4)
-pie(dpiegph$cases, labels = dpiegph$cancer, init.angle=90, col=c("#1a62a2", "#dcdcdc"), border = "slate grey")
+
+pie(dpiegph$AD, labels = dpiegph$cancer, init.angle=90, col=c("#1a62a2", "#dcdcdc"), border = "slate grey")
 text(c(-0.4,0.4), c(0.2,-0.2), adj = 0.5, labels = dpiegph$labls2, cex = 1.8)
 mtext("Preventable", outer = TRUE, adj = 0.6, cex = 2)
 mtext(dtitle, side = 1, outer = TRUE, adj = 0.6, cex = 1.6)
 
 
+
+# Preventable
+dpiegph <- subset(dpie, AD_cat=="Treatable")
+dtot <- dat %>% filter(AD_cat=="Treatable" ) %>% select(AD)
+dtitle <- paste(as.character(dtot$AD),"AD", sep = "\n")
+
+#pie(dpiegph$AD, labels=dpiegph$labls, init.angle=90, col=c("#1a62a2", "#dcdcdc"), main="Preventable")
+
+
+pie(dpiegph$AD, labels = NA, init.angle=90, main="Treatable", border = "slate grey",sub=dtitle)
+text(c(-0.4,0.4), c(0.3,-0.3), adj = 0.5, labels = dpiegph$labls2, cex = 1.2)
+
+pdf("Bar_and_Pie_base.pdf",width = 10, height = 7, pointsize = 12)
+#svg("Bar_and_Pie_fig3.svg",width = 10, height = 7, pointsize = 12)
+par(mar=c(3,5,2,4), oma = c(2, 0, 2, 1)) # c(bottom, left, top, right), the default is c(5, 4, 4, 2)
+par(mfrow=c(1,2))
+barplot(dbargph2,
+        xlab = "",
+        ylab="Proportion of AD among top cancers (%)",
+        col=rev(dbargph$color), border = "slate grey",
+        space = 2.4, las=2,
+        xlim = c(5,6)
+)
+text(5.6, dbargph$label_y+0.075, adj=1, labels = dbargph$cancer, cex = 1.4)
+
+pie(dpiegph$AD, labels = dpiegph$cancer, init.angle=90, col=c("#1a62a2", "#dcdcdc"), border = "slate grey")
+text(c(-0.4,0.4), c(0.2,-0.2), adj = 0.5, labels = dpiegph$labls2, cex = 1.8)
+mtext("Treatable", outer = TRUE, adj = 0.6, cex = 2)
+mtext(dtitle, side = 1, outer = TRUE, adj = 0.6, cex = 1.6)
 #####################
 

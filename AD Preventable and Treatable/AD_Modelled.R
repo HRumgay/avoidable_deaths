@@ -492,6 +492,7 @@ AD_by_HDI <- Avoidable_Deaths_Simulated_All_age_cat%>%
   ungroup()%>%
   select(-country_code,-country_label, -py,  hdi_group, cancer, cancer_code, AD_treat, AD_prev, 
          AD_unavoid, AD_sum, age_cat, w)%>%
+  
   mutate(AD_treat=as.numeric(AD_treat))%>%
   mutate(AD_treat_not_prev=as.numeric(AD_treat_not_prev))%>%
   mutate(AD_prev=as.numeric(AD_prev))%>%
@@ -505,10 +506,14 @@ AD_by_HDI <- Avoidable_Deaths_Simulated_All_age_cat%>%
   droplevels()%>%
   ungroup()%>%
   mutate(hdi_group=as.numeric(hdi_group))%>%
+  mutate(AD_treat_prev=(AD_prev+AD_treat_not_prev))%>%
   group_by(cancer_code, age_cat,hdi_group)%>%
+  mutate(AD_treat_prev=sum(AD_prev+AD_treat_not_prev))%>%
   mutate(Expect_deaths=sum(Expect_deaths))%>%
   mutate(AD_treat=sum(AD_treat))%>%
   mutate(AD_treat_not_prev=sum(AD_treat_not_prev))%>%
+
+  #mutate(AD_treat_prev=sum(AD_treat,AD_treat_not_prev,na.rm=T))%>%
   mutate(AD_prev=sum(AD_prev))%>%
   mutate(AD_unavoid=sum(AD_unavoid))%>%
   mutate(total_deaths=sum(Expect_deaths))%>%
@@ -529,7 +534,9 @@ AD_by_HDI_all <- AD_by_HDI_overall%>%
   group_by(hdi_group)%>%
   mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
   select(-Expect_deaths)%>%
-  mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
+  mutate(AD_treat_prev=sum((AD_treat+AD_treat_not_prev),na.rm=T))%>%
+
+
   mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
   mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
