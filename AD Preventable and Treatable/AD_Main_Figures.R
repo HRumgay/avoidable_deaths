@@ -100,25 +100,26 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   ungroup()%>%
   mutate(total2=sum(AD))%>%
   group_by(AD_cat)%>%
+  slice_max(AD, n = 7)%>%
   mutate(total=sum(AD))%>%
   mutate(n = n())%>%
   mutate(wght = AD/total)%>%
   mutate(pos = (cumsum(wght)))%>%
-  mutate(scale=total)%>%
+  mutate(scale=total/total2)%>%
   distinct()%>%
-  arrange(desc(AD), .by_group = TRUE)%>%
+  ungroup()%>%
+  mutate(AD_cat=factor(AD_cat,      # Reordering group factor levels
+                levels = c("Preventable","Treatable","Total Proportion Avoidable Deaths (Preventable + Treatable)")))%>%
   ggplot(aes(x=scale/2, y=wght, fill = cancer, width = scale)) +
   geom_col(color = 'black', 
            position = position_stack(reverse = TRUE), 
            show.legend = TRUE) +
-  # geom_text_repel(aes(x = 1.4, y = pos, label = cancer), 
-  #                 nudge_x = .3, 
-  #                 segment.size = .7, 
+  # geom_text_repel(aes(x = 1.4*scale, y = pos*wght, label = AD),
+  #                 nudge_x = .3,
+  #                 segment.size = .7,
   #                 show.legend = TRUE,max.overlaps = 42) +
-  # scale_fill_discrete(name = "Type of avoidable deaths", 
-  #                     labels = c("Preventable", "Treatable", "Unavoidable")) +
   coord_polar("y", start=0) +
-  labs(title="Percentage preventable and treatable avoidable deaths globally by cancer site")+
+  labs(title="Top seven cancer sites by number preventable, treatable and overall avoidable deaths globally")+
   theme_void()+
   # theme(legend.key.width= unit(2.6, "cm"), 
   #       legend.key.height= unit(1.4, "cm"),
@@ -130,7 +131,8 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   #       legend.background = element_rect(fill="transparent"),
   #       plot.margin = unit(c(0,0,0,0),"lines"))+
   guides(fill=guide_legend(title="Cancer Type"))+
-  scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set1"))(colourCount))+
+  #scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set1"))(colourCount))+
+  scale_fill_lancet()+
   facet_wrap( ~ AD_cat,nrow=2) 
 
 Figure_4_1

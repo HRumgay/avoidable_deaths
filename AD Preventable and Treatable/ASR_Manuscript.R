@@ -23,7 +23,7 @@ Avoidable_Deaths_Simulated_All%>%
 
 # age standardized proportions by cancer site, country, sex
 
-asr_countries_by_sex<-t3 %>% 
+asr_countries_by_sex <- t3 %>% 
   csu_asr(
     var_age = "age",
     var_cases = "AD_prev",
@@ -91,7 +91,6 @@ asr_world_by_cancer_site<-t3 %>%
     #var_age_group = "cancer_label",
     var_asr = "prev.asr"
   )%>% 
-  
   left_join(t3 %>% 
               csu_asr(
                 var_age = "age",
@@ -196,7 +195,8 @@ asr_world_all_sites<-t3 %>%
   mutate(prop.prev = AD_treat/Expect_deaths,
          prop.treat = AD_prev/Expect_deaths,
          prop.treat_prev = AD_treat_prev/Expect_deaths,
-         prop.unavoid =AD_unavoid/Expect_deaths) 
+         prop.unavoid =AD_unavoid/Expect_deaths)%>%
+  select(prev.asr, treat.asr, treat_prev.asr, unavoid.asr, expd.asr)
 
 
 
@@ -332,7 +332,7 @@ asr_by_region <- t3%>%
          prop.treat = AD_prev/Expect_deaths,
          prop.treat_prev = AD_treat_prev/Expect_deaths,
          prop.unavoid =AD_unavoid/Expect_deaths)%>%
-  select(area, 
+  select(area, Expect_deaths,
         prev.asr, treat.asr, treat_prev.asr, unavoid.asr, expd.asr)%>%
   left_join(areas, by=c("area"))
 

@@ -422,7 +422,7 @@ Avoidable_Deaths_Simulated_All<- Avoidable_Deaths_Simulated_All2%>%
   as.data.frame()%>%distinct()%>%
   mutate(country_code=as.integer(country_code))%>%
   left_join(weights2)%>%
-  left_join(pop20202)%>%
+  left_join(pop20202, c("sex", "country_code", "age"))%>%
   mutate(AD_treat = case_when(AD_treat<0 ~ 0, 
                               # Numerical calculation error causes the countries which are references  to go slightly negative. 
                               # By definition this is zero This is rounded to 0
@@ -813,8 +813,14 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
           "AD_unavoid",     "pAD_unavoid" ,        
           "total_deaths")
 
+# By risk factor 
 
-
+AD_Risk_factors<-Avoidable_Deaths_Simulated_All_age_cat%>%
+  
+  
+  
+  
+  
 #writing the files
 write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
 write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
