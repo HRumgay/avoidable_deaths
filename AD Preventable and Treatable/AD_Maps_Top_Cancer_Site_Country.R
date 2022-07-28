@@ -9,6 +9,7 @@ library(tidyverse)
 library(ggrepel)
 library(rgdal)
 library(pastecs)
+library(ggsci)
 
 
 AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
@@ -156,6 +157,7 @@ ggplot() +
   
   guides(fill=guide_legend(title="Cancer site with the highest proportion preventable deaths in each country"))+
   scale_color_manual(values=c("grey100", "grey10"))+
+  scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
 ggsave("map_AD_all_cancers_prev_prop_max_country.pdf",width = 40, height = 30, pointsize = 12) 
@@ -224,6 +226,7 @@ df_AD_map%>%
   
   guides(fill=guide_legend(title="Cancer site with the highest proportion treatable deaths by cancer site"))+
   scale_color_manual(values=c("grey100", "grey10"))+
+  scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
 ggsave("map_AD_all_cancers_treatable_prop_max_country.pdf",width = 40, height = 30, pointsize = 12) 
@@ -292,6 +295,7 @@ df_AD_map%>%
   
   guides(fill=guide_legend(title="Cancer site with the highest proportion total (preventable + treatable) deaths in each country"))+
   scale_color_manual(values=c("grey100", "grey10"))+
+  scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
 ggsave("map_AD_all_cancers_treat_prev_prop_max_country.pdf",width = 40, height = 30, pointsize = 12) 
