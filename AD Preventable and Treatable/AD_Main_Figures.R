@@ -1,5 +1,6 @@
 
 # load libraries needed for some charts
+library(plyr) #load this before dplyr/tidyverse otherwise it masks some dplyr functions
 library(tidyverse)
 library(data.table)
 library(Rcan)
@@ -252,24 +253,120 @@ ggsave("Figure_1_Pie_Chart_cancer_site_scaled_percent.pdf",width = 30, height = 
 
 
 
+# pie charts ----
 # alternative pie charts script using some elements from Bar_and_Pie_base.R script using globocan colours
-pied <- AD_by_cancer_site_1
+col <- read.csv("cancer_color_2018.csv", stringsAsFactors = F)
 
+Avoidable_Deaths_Simulated_All %>% 
+  group_by(cancer) %>% 
+  mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T),
+         AD_prev=sum(AD_prev,na.rm=T),
+         AD_treat=sum(AD_treat,na.rm=T),
+         Expect_deaths=sum(Expect_deaths,na.rm=T)) %>% 
+  filter(!is.na(cancer_code)) %>% 
+  select(cancer,cancer_code,AD_prev,AD_treat,AD_treat_prev,Expect_deaths)%>% 
+  unique() %>% 
+  left_join(col %>% select(cancer_label:Color.Hex) %>% filter(cancer_label!="Colorectum")) %>% 
+  pivot_longer(AD_prev:Expect_deaths,
+               names_to="AD_cat",
+               values_to = "AD") %>%
+  group_by(AD_cat) %>% 
+  mutate(percent=sum(AD),
+         percent = AD/percent) %>% 
+  dplyr::arrange(AD) %>% 
+  mutate(rankc = as.numeric(dplyr::row_number())) %>% 
+  group_by(AD_cat) %>% 
+  mutate(AD=case_when(rankc<32~sum(AD[rankc<32]),
+                      TRUE~AD),
+         percent=case_when(rankc<32~sum(percent[rankc<32]),
+                           TRUE~percent), 
+         rankc=case_when(rankc<32~1,
+                         TRUE~rankc),
+         Color.Hex=case_when(rankc==1~"#DCDCDC",
+                             TRUE~Color.Hex),
+         cancer=case_when(rankc==1~"Other sites",
+                          TRUE~cancer)) %>% 
+  select(cancer,Color.Hex,AD_cat,AD,percent,rankc) %>% 
+  unique() -> AD_by_cancer_site_1
+
+Avoidable_Deaths_Simulated_All %>%
+  filter(!is.na(cancer_code)) %>%
+  group_by(cancer,cancer_code,hdi_group) %>% 
+  mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T),
+         AD_prev=sum(AD_prev,na.rm=T),
+         AD_treat=sum(AD_treat,na.rm=T),
+         Expect_deaths=sum(Expect_deaths,na.rm=T)) %>% 
+  select(hdi_group, cancer,cancer_code,AD_prev,AD_treat,AD_treat_prev,Expect_deaths)%>% 
+  unique() %>% 
+  left_join(col%>% select(cancer_label:Color.Hex)%>% filter(cancer_label!="Colorectum")) %>% 
+  pivot_longer(AD_prev:Expect_deaths,
+               names_to="AD_cat",
+               values_to = "AD") %>%
+  group_by(AD_cat,hdi_group) %>%
+  mutate(percent=sum(AD),
+         percent = AD/percent) %>% 
+  arrange(AD) %>% 
+  mutate(rankc = as.numeric(dplyr::row_number())) %>% 
+  group_by(AD_cat, hdi_group) %>% 
+  mutate(AD=case_when(rankc<32~sum(AD[rankc<32]),
+                      TRUE~AD),
+         percent=case_when(rankc<32~sum(percent[rankc<32]),
+                           TRUE~percent), 
+         rankc=case_when(rankc<32~1,
+                         TRUE~rankc),
+         Color.Hex=case_when(rankc==1~"#DCDCDC",
+                             TRUE~Color.Hex),
+         cancer=case_when(rankc==1~"Other sites",
+                          TRUE~cancer)) %>% 
+  select(hdi_group, cancer,Color.Hex,AD_cat,AD,percent,rankc) %>% 
+  unique() -> AD_by_cancer_site_1_HDI
+
+#preventable pie
+pied <- as.data.table(AD_by_cancer_site_1 %>%filter(AD_cat=="AD_prev") )
 pied %>%
-  filter(grptotaacases!=0, sex==0) %>%
-  ggplot(aes(x = 2, y = percent, fill = factor(rank,levels = unique(pafd[sex==0 & grptotaacases!=0,]$rank),
-                                               labels = unique(pafd[sex==0 & grptotaacases!=0,]$Color.Hex)))) +
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pied$rankc),
+                                               labels = unique(pied$Color.Hex)))) +
   geom_bar(width = 1, stat = "identity") +
-  geom_text(aes(label = paste0(formatC(round_any(grptotaacases,100), format="f", big.mark=" ", digits=0),"\n ", 
+  geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
                                scales::percent(percent, accuracy = 1)), x = 2.75),
             position = position_stack(vjust=0.5),
             size=2) +
   coord_polar(theta = "y") +
-  xlim(c(0.5,3))+
-  scale_fill_identity("Cancer site", labels = pafd[sex==0 & grptotaacases!=0,]$cancer_label,
+  #xlim(c(0.5,3))+  # to make into donut
+  scale_fill_identity("Cancer site", labels = pied$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
-  labs(title = "Both sexes")+
+  #labs(title = "Preventable deaths")+
+  theme(plot.background= element_blank(),
+        #plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank()) -> pie.prev
+pie.prev
+ggsave("pie.prev.pdf",pie.prev,width=5.43 ,height=2.43)
+
+#treatable pie
+pied <- as.data.table(AD_by_cancer_site_1 %>%filter(AD_cat=="AD_treat") )
+pied %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pied$rankc),
+                                               labels = unique(pied$Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
+                               scales::percent(percent, accuracy = 1)), x = 2.75),
+            position = position_stack(vjust=0.5),
+            size=2) +
+  coord_polar(theta = "y") +
+  #xlim(c(0.5,3))+   # to make into donut
+  scale_fill_identity("Cancer site", labels = pied$cancer,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  #labs(title = "Treatable deaths")+
   theme(plot.background= element_blank(),
         plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
         panel.background = element_blank(),
@@ -280,8 +377,159 @@ pied %>%
         panel.border = element_blank(),
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        strip.background = element_blank())
+        strip.background = element_blank()) -> pie.treat
+pie.treat
+ggsave("pie.treat.pdf",pie.treat,width=5.43 ,height=2.43)
 
+#avoidable pie
+pied <- as.data.table(AD_by_cancer_site_1 %>%filter(AD_cat=="AD_treat_prev") )
+pied %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pied$rankc),
+                                               labels = unique(pied$Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
+                               scales::percent(percent, accuracy = 1)), x = 2.75),
+            position = position_stack(vjust=0.5),
+            size=2) +
+  coord_polar(theta = "y") +
+  #xlim(c(0.5,3))+    # to make into donut
+  scale_fill_identity("Cancer site", labels = pied$cancer,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  #labs(title = "Avoidable deaths")+
+  theme(plot.background= element_blank(),
+        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank()) -> pie.avoid
+pie.avoid
+ggsave("pie.avoid.pdf",pie.avoid,width=5.43 ,height=2.43)
+
+
+#avoidable pie for HDI group 1
+pied <- as.data.table(AD_by_cancer_site_1_HDI %>%filter(AD_cat=="AD_treat_prev",hdi_group==1) )
+pied %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pied$rankc),
+                                               labels = unique(pied$Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
+                               scales::percent(percent, accuracy = 1)), x = 2.75),
+            position = position_stack(vjust=0.5),
+            size=2) +
+  coord_polar(theta = "y") +
+  #xlim(c(0.5,3))+    # to make into donut
+  scale_fill_identity("Cancer site", labels = pied$cancer,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  labs(title = "Low HDI")+
+  theme(plot.background= element_blank(),
+        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank()) -> pie.avoid.hdi1
+pie.avoid.hdi1
+ggsave("pie.avoid.hdi1.pdf",pie.avoid.hdi1,width=5.43 ,height=2.43)
+
+
+pied <- as.data.table(AD_by_cancer_site_1_HDI %>%filter(AD_cat=="AD_treat_prev",hdi_group==2) )
+pied %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pied$rankc),
+                                               labels = unique(pied$Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
+                               scales::percent(percent, accuracy = 1)), x = 2.75),
+            position = position_stack(vjust=0.5),
+            size=2) +
+  coord_polar(theta = "y") +
+  #xlim(c(0.5,3))+    # to make into donut
+  scale_fill_identity("Cancer site", labels = pied$cancer,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  labs(title = "Medium HDI")+
+  theme(plot.background= element_blank(),
+        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank()) -> pie.avoid.hdi2
+pie.avoid.hdi2
+ggsave("pie.avoid.hdi2.pdf",pie.avoid.hdi2,width=5.43 ,height=2.43)
+
+pied <- as.data.table(AD_by_cancer_site_1_HDI %>%filter(AD_cat=="AD_treat_prev",hdi_group==3) )
+pied %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pied$rankc),
+                                               labels = unique(pied$Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
+                               scales::percent(percent, accuracy = 1)), x = 2.75),
+            position = position_stack(vjust=0.5),
+            size=2) +
+  coord_polar(theta = "y") +
+  #xlim(c(0.5,3))+    # to make into donut
+  scale_fill_identity("Cancer site", labels = pied$cancer,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  labs(title = "High HDI")+
+  theme(plot.background= element_blank(),
+        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank()) -> pie.avoid.hdi3
+pie.avoid.hdi3
+ggsave("pie.avoid.hdi3.pdf",pie.avoid.hdi3,width=5.43 ,height=2.43)
+
+
+pied <- as.data.table(AD_by_cancer_site_1_HDI %>%filter(AD_cat=="AD_treat_prev",hdi_group==4) )
+pied %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pied$rankc),
+                                               labels = unique(pied$Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
+                               scales::percent(percent, accuracy = 1)), x = 2.75),
+            position = position_stack(vjust=0.5),
+            size=2) +
+  coord_polar(theta = "y") +
+  #xlim(c(0.5,3))+    # to make into donut
+  scale_fill_identity("Cancer site", labels = pied$cancer,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  labs(title = "Very High HDI")+
+  theme(plot.background= element_blank(),
+        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank()) -> pie.avoid.hdi4
+pie.avoid.hdi4
+ggsave("pie.avoid.hdi4.pdf",pie.avoid.hdi4,width=5.43 ,height=2.43)
 
 # Figure 5
 
