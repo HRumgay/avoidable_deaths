@@ -403,12 +403,13 @@ weights2 <- weights2%>%mutate(age = case_when(
   age==15 ~ 15,
   age>=16 ~ 16,
 ))%>%
-  filter(age>3) %>% 
+  filter(age>3)%>%
   mutate(total=sum(w2))%>%
   group_by(age)%>%
   mutate(w=sum(w2)/total)%>%
   select(-w2, -total)%>%
   distinct()
+
 
 Avoidable_Deaths_Simulated_All<- Avoidable_Deaths_Simulated_All2%>%
   as.data.frame()%>%
@@ -422,8 +423,8 @@ Avoidable_Deaths_Simulated_All<- Avoidable_Deaths_Simulated_All2%>%
   mutate(cancer_code=as.numeric(cancer_code))%>%
   as.data.frame()%>%distinct()%>%
   mutate(country_code=as.integer(country_code))%>%
-  left_join(weights2)%>%
   left_join(pop20202, c("sex", "country_code", "age"))%>%
+  left_join(weights2)%>%
   mutate(AD_treat = case_when(AD_treat<0 ~ 0, 
                               # Numerical calculation error causes the countries which are references  to go slightly negative. 
                               # By definition this is zero This is rounded to 0
@@ -451,7 +452,7 @@ Avoidable_Deaths_Simulated_All_overall <- Avoidable_Deaths_Simulated_All%>%
   select(-af.comb, -age,-sex)%>%
   ungroup()%>%
   group_by(cancer_code, country_code,age_cat)%>%
-  mutate(w=sum(w))%>%
+  mutate(w=sum(w/2))%>%
   distinct()%>%
   as.data.frame()
 
@@ -459,6 +460,12 @@ Avoidable_Deaths_Simulated_All_overall <- Avoidable_Deaths_Simulated_All%>%
 Avoidable_Deaths_Simulated_All_age_cat <- Avoidable_Deaths_Simulated_All%>%
   ungroup()%>%
   group_by(country_code, cancer_code, age_cat)%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   select(-total_overall)%>%
   #mutate(total_overall=sum(total_overall,na.rm=T))%>%
   mutate(AD_prev = sum(AD_prev,na.rm=T))%>%
@@ -471,7 +478,7 @@ Avoidable_Deaths_Simulated_All_age_cat <- Avoidable_Deaths_Simulated_All%>%
   select(-af.comb, -age,-sex)%>%
   ungroup()%>%
   group_by(cancer_code, country_code,age_cat)%>%
-  mutate(w=sum(w))%>%
+  mutate(w=sum(w/2))%>%
   distinct()%>%
   full_join(Avoidable_Deaths_Simulated_All_overall)%>%
   as.data.frame()%>%ungroup()
@@ -486,39 +493,53 @@ Avoidable_Deaths_Simulated_All_age_cat <- Avoidable_Deaths_Simulated_All%>%
 
 # Data by country, HDI, etc
 
-AD_by_HDI <- Avoidable_Deaths_Simulated_All_age_cat%>%
+AD_by_HDI <- Avoidable_Deaths_Simulated_All%>%
+  mutate(age_cat="Overall")%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
-  select(-country_code,-country_label, -py,  hdi_group, cancer, cancer_code, AD_treat, AD_prev, 
-         AD_unavoid, AD_sum, age_cat, w)%>%
-  
-  mutate(AD_treat=as.numeric(AD_treat))%>%
-  mutate(AD_treat_not_prev=as.numeric(AD_treat_not_prev))%>%
-  mutate(AD_prev=as.numeric(AD_prev))%>%
-  mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
-  mutate(AD_sum=as.numeric(as.character(AD_sum)))%>%
-  #mutate(total_overall=as.numeric(as.character(total_overall)))%>%
-  #mutate(cancer_code=as.numeric(cancer_code))%>%
-  filter(!is.na(AD_treat))%>%
-  #select(-total_overall)%>%
+  group_by(hdi_group, cancer, age,sex)%>%
+  mutate(py=sum(py))%>%
+  mutate(AD_treat_prev=sum(AD_prev+AD_treat_not_prev))%>%
+  #mutate(Expect_deaths=sum(Expect_deaths))%>%
+  mutate(AD_treat=sum(AD_treat))%>%
+  mutate(AD_treat_not_prev=sum(AD_treat_not_prev))%>%
+  ungroup()%>%
+  select(-country_label,-country_code,  hdi_group, cancer, cancer_code, AD_treat, AD_prev, 
+         AD_unavoid, AD_sum,-sex, -age, age_cat,-total_overall)%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
   mutate(hdi_group=as.numeric(hdi_group))%>%
-  mutate(AD_treat_prev=(AD_prev+AD_treat_not_prev))%>%
-  group_by(cancer_code, age_cat,hdi_group)%>%
+  ungroup()%>%
+  group_by(hdi_group,cancer)%>%
+  group_by(hdi_group,cancer)%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   mutate(AD_treat_prev=sum(AD_prev+AD_treat_not_prev))%>%
-  mutate(Expect_deaths=sum(Expect_deaths))%>%
+ mutate(Expect_deaths=sum(Expect_deaths))%>%
   mutate(AD_treat=sum(AD_treat))%>%
   mutate(AD_treat_not_prev=sum(AD_treat_not_prev))%>%
-
+ #select(-af.comb)%>%
   #mutate(AD_treat_prev=sum(AD_treat,AD_treat_not_prev,na.rm=T))%>%
   mutate(AD_prev=sum(AD_prev))%>%
   mutate(AD_unavoid=sum(AD_unavoid))%>%
-  mutate(total_deaths=sum(Expect_deaths))%>%
+  mutate(total_deaths=Expect_deaths)%>%
+  mutate(pAD_treat=AD_treat/total_deaths)%>%
+  mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
+  mutate(pAD_prev=AD_prev/total_deaths)%>%
+  mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
+  mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
+  mutate(w=sum(w)/n())%>%
+
   # mutate(total_overall=sum(total_overall))%>%
-  select(-AD_sum)%>%
+  select(-AD_sum,-af.comb,-py)%>%
+  
   ungroup()%>%
   distinct()%>%
   as.data.frame()
@@ -526,46 +547,82 @@ AD_by_HDI <- Avoidable_Deaths_Simulated_All_age_cat%>%
 
 AD_by_HDI
 
-AD_by_HDI_overall <- AD_by_HDI%>%filter(age_cat=="Overall")%>%select(-age_cat)
 
-
-AD_by_HDI_all <- AD_by_HDI_overall%>%
+AD_by_HDI_all <-Avoidable_Deaths_Simulated_All%>%
+  mutate(age_cat="Overall")%>%
+  as.data.frame()%>%
+  droplevels()%>%
+  ungroup()%>%
+  group_by(hdi_group, cancer, age,sex)%>%
+  mutate(py=sum(py))%>%
+  ungroup()%>%
+  select(-country_label,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
+         AD_unavoid, Expect_deaths, AD_sum,-sex, -age, age_cat,-total_overall)%>%
+  
+  as.data.frame()%>%
+  droplevels()%>%
+  ungroup()%>%
+  mutate(hdi_group=as.numeric(hdi_group))%>%
   ungroup()%>%
   group_by(hdi_group)%>%
-  mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  select(-Expect_deaths)%>%
-  mutate(AD_treat_prev=sum((AD_treat+AD_treat_not_prev),na.rm=T))%>%
-
-
-  mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
-  mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
-  mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
-  mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
+         AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+  mutate(AD_treat_prev=sum(AD_prev+AD_treat_not_prev))%>%
+  mutate(Expect_deaths=sum(Expect_deaths))%>%
+  mutate(AD_treat=sum(AD_treat))%>%
+  mutate(AD_treat_not_prev=sum(AD_treat_not_prev))%>%
+  #select(-af.comb)%>%
+  #mutate(AD_treat_prev=sum(AD_treat,AD_treat_not_prev,na.rm=T))%>%
+  mutate(AD_prev=sum(AD_prev))%>%
+  mutate(AD_unavoid=sum(AD_unavoid))%>%
+  mutate(total_deaths=Expect_deaths)%>%
   mutate(pAD_treat=AD_treat/total_deaths)%>%
   mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
   mutate(pAD_prev=AD_prev/total_deaths)%>%
   mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
-  #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
   mutate(cancer="All Cancer Sites")%>%
-  mutate(cancer_code=1000)%>%
-  distinct()%>%
-  select(-w)%>%
+  
+  mutate(w=sum(w)/n())%>%
+  
+  # mutate(total_overall=sum(total_overall))%>%
+  select(-AD_sum,-af.comb,-py)%>%
+  
   ungroup()%>%
   distinct()%>%
-  arrange(hdi_group)%>%
   as.data.frame()
 
 
+AD_by_HDI_all 
 # By country for all cancer sites (number and proportion): 
 
-AD_country_all_cancers <- Avoidable_Deaths_Simulated_All_age_cat%>%
-  filter(age_cat=="Overall")%>%
+AD_country_all_cancers <-Avoidable_Deaths_Simulated_All%>%
+  mutate(age_cat="Overall")%>%
+  as.data.frame()%>%
+  droplevels()%>%
+  ungroup()%>%
+  group_by(country_label, cancer, age,sex)%>%
+  mutate(py=sum(py))%>%
+  ungroup()%>%
+  select(-age,-sex,-total_overall,-af.comb,-AD_sum)%>%
   mutate(AD_treat_prev=AD_treat+AD_prev)%>%
   ungroup()%>%
-  select(  -hdi_group,  -AD_sum)%>%
+  select(  -hdi_group,  )%>%
   group_by(country_code)%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
+     #    AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat_not_prev,na.rm=T))%>%
+  mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
   mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T))%>%
   mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -579,7 +636,7 @@ AD_country_all_cancers <- Avoidable_Deaths_Simulated_All_age_cat%>%
   #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
   mutate(cancer="All Cancer Sites")%>%
   mutate(cancer_code=1000)%>%
-  select(-py)%>%
+  select(-py,-w)%>%
   distinct()%>%
   ungroup()%>%
   distinct()%>%
@@ -588,12 +645,24 @@ AD_country_all_cancers <- Avoidable_Deaths_Simulated_All_age_cat%>%
 
 # By cancer site
 
-AD_cancer <- Avoidable_Deaths_Simulated_All_age_cat%>%
-  filter(age_cat=="Overall")%>%
+AD_cancer <- Avoidable_Deaths_Simulated_All%>%
+  mutate(age_cat="Overall")%>%
+  group_by(cancer, age,sex)%>%
+  mutate(py=sum(py))%>%
+  ungroup()%>%
   mutate(AD_treat_prev=AD_treat+AD_prev)%>%
   ungroup()%>%
-  select(-hdi_group,  -AD_sum, -w)%>%
+  select(-hdi_group,  -AD_sum,-af.comb,-age,-sex)%>%
+  mutate(country_code=1000)%>%
+  mutate(country_label="All Countries")%>%
   group_by(cancer_code)%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
+         #    AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
   select(-Expect_deaths)%>%
   mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T))%>%
@@ -608,13 +677,13 @@ AD_cancer <- Avoidable_Deaths_Simulated_All_age_cat%>%
   mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
   #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
-  mutate(country_label="All Countries")%>%
-  mutate(country_code=1000)%>%
-  select(-py)%>%
+  select(-py,-w,-total_overall)%>%
   distinct()%>%
   ungroup()%>%
   distinct()%>%
   as.data.frame()
+
+sum(AD_cancer$total_deaths)
 
 
 # Calculating by region. Need a file that links countries to region 
@@ -630,13 +699,32 @@ areas <- HDI_Region_Mapping%>%
 
 
 # By region
-AD_Region2 <- Avoidable_Deaths_Simulated_All_age_cat%>%
+AD_Region2 <- Avoidable_Deaths_Simulated_All%>%
   left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
-  filter(age_cat=="Overall")%>%
-  mutate(AD_treat_prev=AD_treat+AD_prev)%>%
+  mutate(age_cat="Overall")%>%
+  as.data.frame()%>%
+  droplevels()%>%
   ungroup()%>%
-  select(-hdi_group,-continent, -country_label,-country_code,  -AD_sum)%>%
+  group_by(area, cancer, age,sex)%>%
+  mutate(py=sum(py))%>%
+  ungroup()%>%
+  select(-country_label,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
+         AD_unavoid, Expect_deaths, -sex, -age, age_cat,-total_overall,-af.comb)%>%
+  as.data.frame()%>%
+  droplevels()%>%
+  ungroup()%>%
+  mutate(hdi_group=as.numeric(hdi_group))%>%
+  ungroup()%>%  mutate(AD_treat_prev=AD_treat+AD_prev)%>%
+  ungroup()%>%
+  select(-hdi_group,-continent,   -AD_sum)%>%
   group_by(area)%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
+        # AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
   select(-Expect_deaths)%>%
   mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T))%>%
@@ -652,13 +740,65 @@ AD_Region2 <- Avoidable_Deaths_Simulated_All_age_cat%>%
   #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
   mutate(cancer="All Cancer Sites")%>%
   mutate(cancer_code=1000)%>%
-  select(-py)%>%
+  select(-py,-w)%>%
   distinct()%>%
   left_join(areas, by=c("area"))%>%
   ungroup()%>%
   distinct()%>%
   left_join(HDI_Region_Mapping, by=c("area", "country_label"))%>%
   as.data.frame()
+
+#region and cancer site
+AD_Region_cancer_sites <- Avoidable_Deaths_Simulated_All%>%
+  left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
+  mutate(age_cat="Overall")%>%
+  as.data.frame()%>%
+  droplevels()%>%
+  ungroup()%>%
+  group_by(area, cancer, age,sex)%>%
+  mutate(py=sum(py))%>%
+  ungroup()%>%
+  select(-country_label,-country_code,-cancer_code, hdi_group,  AD_treat, AD_prev, 
+         AD_unavoid, Expect_deaths, -sex, -age, age_cat,-total_overall,-af.comb)%>%
+  as.data.frame()%>%
+  droplevels()%>%
+  ungroup()%>%
+  mutate(hdi_group=as.numeric(hdi_group))%>%
+  ungroup()%>%  mutate(AD_treat_prev=AD_treat+AD_prev)%>%
+  ungroup()%>%
+  select(-hdi_group,-continent,   -AD_sum)%>%
+  group_by(area,cancer)%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
+         # AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+  mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
+  select(-Expect_deaths)%>%
+  mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T))%>%
+  mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
+  mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
+  mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
+  mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+  mutate(pAD_treat=AD_treat/total_deaths)%>%
+  mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
+  mutate(pAD_prev=AD_prev/total_deaths)%>%
+  mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
+  mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
+  #mutate(total_overall=sum(total_overall,na.rm=T))  %>%
+  # mutate(cancer="All Cancer Sites")%>%
+  # mutate(cancer_code=1000)%>%
+  select(-py,-w)%>%
+  distinct()%>%
+  left_join(areas, by=c("area"))%>%
+  ungroup()%>%
+  distinct()%>%
+  left_join(HDI_Region_Mapping, by=c("area", "country_label"))%>%
+  as.data.frame()%>%
+  group_by(area)
+ # slice_max(AD_prev, n = 7)
 
 # age standardizing by region - aggregate by region and then age standardize
 
@@ -673,9 +813,25 @@ countries_regions<-Avoidable_Deaths_Simulated_All%>%
 # Table 1 in the manuscript
 
 # Gives us number, percentage of total deaths 
-table_1_1 <- Avoidable_Deaths_Simulated_All_age_cat  %>%
-  select(-country_label, -country_code, -cancer_code, -cancer)%>%
-  filter(age_cat=="Overall")%>%
+table_1_1 <- Avoidable_Deaths_Simulated_All %>%
+  select(-country_label, -country_code, -cancer_code, hdi_group)%>%
+  mutate(age_cat="Overall")%>%
+  group_by(cancer, age,sex)%>%
+  mutate(py=sum(py))%>%
+  ungroup()%>%
+  as.data.frame()%>%
+  droplevels()%>%
+  ungroup()%>%
+  mutate(hdi_group=as.numeric(hdi_group))%>%
+  ungroup()%>%  mutate(AD_treat_prev=AD_treat+AD_prev)%>%
+  ungroup()%>%
+  mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
+         AD_treat.asr=sum(AD_treat/py*100000*w),
+         AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
+         # AD_sum.asr=sum(AD_sum/py*100000*w),
+         AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+         AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   ungroup()%>%
   mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
   mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T))%>%
@@ -688,10 +844,12 @@ table_1_1 <- Avoidable_Deaths_Simulated_All_age_cat  %>%
   mutate(pAD_prev=AD_prev/total_deaths)%>%
   mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
-  select(AD_treat, AD_prev, 
+  select(AD_prev, AD_treat, 
          AD_treat_not_prev,
          AD_treat_prev, AD_unavoid, total_deaths, 
-         pAD_treat, pAD_treat_not_prev,pAD_prev,pAD_treat_prev, pAD_unavoid)%>%
+         pAD_treat, pAD_treat_not_prev,pAD_prev,pAD_treat_prev, pAD_unavoid,
+         AD_prev.asr,AD_treat.asr ,AD_treat_not_prev.asr,
+         AD_treat_prev.asr, AD_unavoid.asr,Expect_deaths.asr)%>%
   distinct()
 
 
@@ -701,18 +859,19 @@ table_1_1 <- Avoidable_Deaths_Simulated_All_age_cat  %>%
 
 AD_country_all_cancers2<-AD_country_all_cancers%>%  
   ungroup()%>%
-  mutate(across(6:10,round, -2))%>%
-  mutate(across(12:13,round, -2))%>%
-  mutate(across(14:18, round,4)*100)%>% #mutate to show proportion as percentage in export
+  distinct()%>%
+  mutate(across(6:11,round, -2))%>%
+mutate(across(12:17,round, 0))%>%
+  mutate(across(18:18,round, -2))%>%
+  mutate(across(19:23, round,3)*100)%>% #mutate to show proportion as percentage in export
   select("country_code","country_label",
          "cancer_code", "cancer", 
-         "AD_prev","pAD_prev",    
-         "AD_treat",  "pAD_treat" ,
-         AD_treat_not_prev, pAD_treat_not_prev,
-         "AD_treat_prev", "pAD_treat_prev",
-         "AD_unavoid",   "pAD_unavoid" ,        
-         "total_deaths"  )%>%
-  distinct()
+         "AD_prev",        "pAD_prev",    "AD_prev.asr",
+         "AD_treat",       "pAD_treat" ,"AD_treat.asr",
+         "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
+         "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
+         "total_deaths","Expect_deaths.asr")
+  
 
 
 # By country AND cancer site
@@ -737,7 +896,8 @@ Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_a
   mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
   as.data.frame()%>%
-  mutate(across(6:9,round,0 ))%>%
+  mutate(across(6:10,round,0 ))
+
   mutate(across(13:13,round,0))%>%
   mutate(across(14:19, round,4)*100)%>% #mutate to show proportion as percentage in export
   select( "country_code","country_label","cancer_code", "cancer", 
@@ -764,37 +924,25 @@ AD_cancer2 <- AD_cancer%>%
           "AD_unavoid",     "pAD_unavoid" ,        
           "total_deaths")
 
-AD_by_HDI_all2<-AD_by_HDI_all%>%
-  mutate(across(3:6, round, -2))%>%
-  mutate(across(8:9, round, -2))%>%
-  mutate(across(10:14, round,4)*100)%>% #mutate to show proportion as percentage in export
-  select( "hdi_group",     "cancer_code", "cancer", 
-          "AD_prev",        "pAD_prev",    
-          "AD_treat",       "pAD_treat" ,
-          AD_treat_not_prev, pAD_treat_not_prev,
-          "AD_treat_prev",  "pAD_treat_prev",
-          "AD_unavoid",     "pAD_unavoid" ,        
-          "total_deaths")
+
 
 
 
 
 #By region
 AD_Region<-AD_Region2%>%
-  mutate(across(4:7, round, -2))%>%
-  mutate(across(10:11,round, -2))%>%
-  mutate(across(12:16, round,4)*100)%>% #mutate to show proportion as percentage in export
+  mutate(across(2:5, round, -2))%>%
+  mutate(across(7:7,round, -2))%>%
+mutate(across(8:13,round, 0))%>%
+  mutate(across(14:14,round, -2))%>%
+  mutate(across(15:18, round,4)*100)%>% #mutate to show proportion as percentage in export
   arrange(continent, country_label)%>%
-  select("age_cat", "cancer_code", "cancer", 
-         "AD_prev","pAD_prev",    
-         "AD_treat",  "pAD_treat" ,
-         "AD_treat_prev", "pAD_treat_prev",
-         AD_treat_not_prev, pAD_treat_not_prev,
-         "AD_unavoid",   "pAD_unavoid" ,        
-         "total_deaths" , 
-         "area"       ,            
-         "country_label" , "country_code" ,  "continent")
-
+  select("continent","area","country_label","age_cat", "cancer_code", "cancer", 
+         "AD_prev",        "pAD_prev",    "AD_prev.asr",
+         "AD_treat",       "pAD_treat" ,"AD_treat.asr",
+         "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
+         "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
+         "total_deaths","Expect_deaths.asr")
 
 
 
@@ -802,13 +950,14 @@ AD_Region<-AD_Region2%>%
 
 table_1_11<-table_1_1%>%mutate(across(1:6,round, -2))%>%
   mutate(across(7:11, round,4)*100)%>% #mutate to show proportion as percentage in export
+  mutate(across(12:17,round, 0))%>%
   select(
-    "AD_prev","pAD_prev",    
-    "AD_treat",  "pAD_treat" ,
-    "AD_treat_prev", "pAD_treat_prev",
-    AD_treat_not_prev, pAD_treat_not_prev,
-    "AD_unavoid",   "pAD_unavoid" ,        
-    "total_deaths" )
+    "AD_prev",        "pAD_prev",    "AD_prev.asr",
+    "AD_treat",       "pAD_treat" ,"AD_treat.asr",
+    "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
+    "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
+    "total_deaths","Expect_deaths.asr")
+
 
 table_1_2
 
@@ -817,15 +966,16 @@ table_1_2
 AD_by_HDI
 
 AD_by_HDI_all2<-AD_by_HDI_all%>%
-  mutate(across(3:6,round, -2))%>%
-  mutate(across(8:9,round, -2))%>%
-  mutate(across(10:14, round,4)*100)%>% #mutate to show proportion as percentage in export
-  select( "hdi_group",     "cancer_code", "cancer", 
-          "AD_prev",        "pAD_prev",    
-          "AD_treat",       "pAD_treat" ,
-          "AD_treat_prev",  "pAD_treat_prev",
-          "AD_unavoid",     "pAD_unavoid" ,        
-          "total_deaths")
+  mutate(across(2:6, round, -2))%>%
+  mutate(across(9:14, round, 0))%>%
+  mutate(across(15:17, round, -2))%>%
+  mutate(across(18:22, round,4)*100)%>% #mutate to show proportion as percentage in export
+  select( "hdi_group",      "cancer", 
+          "AD_prev",        "pAD_prev",    "AD_prev.asr",
+          "AD_treat",       "pAD_treat" ,"AD_treat.asr",
+          "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
+          "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
+          "total_deaths","Expect_deaths.asr")
 
 # By risk factor 
 
@@ -850,6 +1000,10 @@ AD_Region
 AD_by_HDI_all2
 AD_country_all_cancers2
 AD_cancer2
-table_1_11 
+table_1_11
 
 
+
+
+
+AD_cancer

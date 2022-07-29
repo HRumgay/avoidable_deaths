@@ -99,6 +99,12 @@ AD_HDI_by_cancer_site_11<-AD_HDI_by_cancer_site_1%>%
   slice_max(AD, n = 7)%>%
   select(cancer_code)%>%
   mutate(max="max")
+
+
+SumADprevseven <- AD_cancer%>%
+  #group_by(cancer)%>%
+  slice_max(AD_prev, n = 7)%>%
+  mutate(sumAD=sum(AD_prev))
   
   
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))

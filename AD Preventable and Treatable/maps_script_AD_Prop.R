@@ -174,7 +174,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion Overall Avoidable Deaths (Preventable) out of Overall Cancer Deaths",
+  scale_fill_manual(name = "Total preventable proportion of deaths avoidable (%)",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -262,7 +262,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion Overall Avoidable Deaths (Treatable) out of Overall Cancer Deaths",
+  scale_fill_manual(name = "Total treatable proportion of deaths avoidable (%)",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -351,7 +351,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion Overall Avoidable Deaths (Treatable + Preventable) out of Overall Cancer Deaths",
+  scale_fill_manual(name = "Total proportion of deaths avoidable (%)",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
