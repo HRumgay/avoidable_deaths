@@ -155,12 +155,12 @@ ggplot() +
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest proportion preventable deaths in each country"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number preventable avoidable deaths by cancer site"))+
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
-ggsave("map_AD_all_cancers_prev_prop_max_country.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_prev_max_country.pdf",width = 40, height = 30, pointsize = 12) 
 
 #--- maps for Treatable AD----
 
@@ -224,12 +224,12 @@ df_AD_map%>%
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest proportion treatable deaths by cancer site"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number treatable avoidable deaths by cancer site"))+
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
-ggsave("map_AD_all_cancers_treatable_prop_max_country.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_treatable_max_country.pdf",width = 40, height = 30, pointsize = 12) 
 
 #--- maps for total AD----
 
@@ -293,10 +293,10 @@ df_AD_map%>%
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest proportion total (preventable + treatable) deaths in each country"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number total avoidable deaths"))+
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
-ggsave("map_AD_all_cancers_treat_prev_prop_max_country.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_treat_prev_max_country.pdf",width = 40, height = 30, pointsize = 12) 
 

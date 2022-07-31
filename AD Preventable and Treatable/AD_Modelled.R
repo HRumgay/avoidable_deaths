@@ -655,7 +655,7 @@ AD_cancer <- Avoidable_Deaths_Simulated_All%>%
   select(-hdi_group,  -AD_sum,-af.comb,-age,-sex)%>%
   mutate(country_code=1000)%>%
   mutate(country_label="All Countries")%>%
-  group_by(cancer_code)%>%
+  group_by(cancer)%>%
   mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
          AD_treat.asr=sum(AD_treat/py*100000*w),
          AD_treat_prev.asr=sum((AD_treat_not_prev+AD_prev)/py*100000*w),
@@ -861,7 +861,7 @@ AD_country_all_cancers2<-AD_country_all_cancers%>%
   ungroup()%>%
   distinct()%>%
   mutate(across(6:11,round, -2))%>%
-mutate(across(12:17,round, 0))%>%
+mutate(across(12:17,round, 1))%>%
   mutate(across(18:18,round, -2))%>%
   mutate(across(19:23, round,3)*100)%>% #mutate to show proportion as percentage in export
   select("country_code","country_label",
@@ -933,9 +933,9 @@ AD_cancer2 <- AD_cancer%>%
 AD_Region<-AD_Region2%>%
   mutate(across(2:5, round, -2))%>%
   mutate(across(7:7,round, -2))%>%
-mutate(across(8:13,round, 0))%>%
+mutate(across(8:13,round, 1))%>%
   mutate(across(14:14,round, -2))%>%
-  mutate(across(15:18, round,4)*100)%>% #mutate to show proportion as percentage in export
+  mutate(across(15:19, round,3)*100)%>% #mutate to show proportion as percentage in export
   arrange(continent, country_label)%>%
   select("continent","area","country_label","age_cat", "cancer_code", "cancer", 
          "AD_prev",        "pAD_prev",    "AD_prev.asr",
@@ -949,8 +949,8 @@ mutate(across(8:13,round, 0))%>%
 #World total
 
 table_1_11<-table_1_1%>%mutate(across(1:6,round, -2))%>%
-  mutate(across(7:11, round,4)*100)%>% #mutate to show proportion as percentage in export
-  mutate(across(12:17,round, 0))%>%
+  mutate(across(7:11, round,3)*100)%>% #mutate to show proportion as percentage in export
+  mutate(across(12:17,round, 1))%>%
   select(
     "AD_prev",        "pAD_prev",    "AD_prev.asr",
     "AD_treat",       "pAD_treat" ,"AD_treat.asr",
@@ -967,9 +967,9 @@ AD_by_HDI
 
 AD_by_HDI_all2<-AD_by_HDI_all%>%
   mutate(across(2:6, round, -2))%>%
-  mutate(across(9:14, round, 0))%>%
+  mutate(across(9:14, round, 1))%>%
   mutate(across(15:17, round, -2))%>%
-  mutate(across(18:22, round,4)*100)%>% #mutate to show proportion as percentage in export
+  mutate(across(18:22, round,3)*100)%>% #mutate to show proportion as percentage in export
   select( "hdi_group",      "cancer", 
           "AD_prev",        "pAD_prev",    "AD_prev.asr",
           "AD_treat",       "pAD_treat" ,"AD_treat.asr",
@@ -1001,7 +1001,7 @@ AD_by_HDI_all2
 AD_country_all_cancers2
 AD_cancer2
 table_1_11
-
+Avoidable_Deaths_Simulated_All_age_cat_overall
 
 
 
