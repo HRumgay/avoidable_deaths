@@ -979,9 +979,7 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
 
 # By risk factor 
 
-AD_Risk_factors<-Avoidable_Deaths_Simulated_All_age_cat%>%
-  
-  
+
   
   
   
@@ -994,6 +992,7 @@ write.csv(table_1_11, "~/Documents/R_Projects/Data/AD_Total.csv")
 write.csv(AD_by_HDI_all2, "~/Documents/R_Projects/Data/AD_HDI_All_Cancers.csv")
 write.csv(AD_country_all_cancers2, "~/Documents/R_Projects/Data/AD_Country_All_Cancers.csv")
 write.csv(AD_cancer2, "~/Documents/R_Projects/Data/AD_Cancer_by_Site.csv")
+write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall, "~/Documents/R_Projects/Data/AD_country_and_Cancer_by_Site.csv")
 
 
 AD_Region
@@ -1003,7 +1002,3 @@ AD_cancer2
 table_1_11
 Avoidable_Deaths_Simulated_All_age_cat_overall
 
-
-
-
-AD_cancer
