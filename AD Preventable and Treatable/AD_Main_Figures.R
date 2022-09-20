@@ -74,10 +74,10 @@ AD_HDI_by_cancer_site_3<-AD_by_HDI %>%
   rename("AD"="AD_treat")%>%
   mutate(AD_cat="Treatable")
 
-AD_HDI_by_cancer_site_1<-AD_by_HDI %>%
+AD_HDI_by_cancer_site_2<-AD_by_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group,cancer, cancer_code, AD_prev)%>%
-  rename("AD"="AD_prev")%>%
+ # rename("AD"="AD_prev")%>%
   mutate(AD_cat="Preventable")%>%
   mutate(hdi_group=as.numeric(hdi_group))
 
@@ -85,7 +85,7 @@ AD_HDI_by_cancer_site_1<-AD_by_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group, cancer, cancer_code, AD_treat_prev)%>%
   mutate(hdi_group=as.numeric(hdi_group))%>%
-  rename("AD"="AD_treat_prev")%>%
+  #rename("AD"="AD_treat_prev")%>%
   mutate(AD_cat="Total")%>%
   ungroup()%>%
 full_join(AD_HDI_by_cancer_site_2)%>%

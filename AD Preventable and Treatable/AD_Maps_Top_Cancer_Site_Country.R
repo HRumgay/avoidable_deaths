@@ -14,14 +14,22 @@ library(ggsci)
 
 AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
 
+cancer_colors<-read.csv("~/Documents/R_Projects/Data/cancer_color_2018.csv", sep=",")%>%
+  as.data.frame()%>%
+  select(cancer_code,color, Color.Hex)
 
 # load id for each country
 dict_id <-  as.data.table(read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_map.csv", sep=","))
 dict_id %>% dplyr::select(-country_label)-> dict_id
 
 # merge paf data with dict_id
-AD_Map <- merge(AD_Map, dict_id, by = c("country_code"), all.x = T) 
+AD_Map <- merge(AD_Map, dict_id, by = c("country_code"), all.x = T)%>%left_join(cancer_colors, by=c("cancer_code"))
 
+
+# Color scale
+myColors <- AD_Map$Color.Hex
+names(myColors) <- levels(AD_Map$cancer)
+colScale <- scale_colour_manual(name =cancer,values = myColors)
 #------ map shape ------------------
 
 # create a blank ggplot theme
@@ -107,15 +115,15 @@ df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
 df_AD_map%>%
 ggplot() + 
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer, group= group))+
+               aes(x=long, y=lat,fill=cancer, color=Color.Hex,group= group))+
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer, group= group),   
+               aes(x=long, y=lat,fill=cancer, color=Color.Hex, group= group),   
                colour="grey10", 
                size = 0.4,
                show.legend=FALSE
                )+
   geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
-               aes(x=long, y=lat,fill=cancer,group= group),
+               aes(x=long, y=lat,fill=cancer, color=Color.Hex,group= group),
                colour="grey10",
                size = 0.4,
                show.legend=FALSE)+
@@ -150,14 +158,13 @@ ggplot() +
         legend.direction= "vertical",
         legend.text = element_text(size=24),
         legend.title = element_text(size=24, hjust = 1),
-        legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  
   guides(fill=guide_legend(title="Cancer site with the highest number preventable avoidable deaths by cancer site"))+
-  scale_color_manual(values=c("grey100", "grey10"))+
-  scale_fill_lancet()+
+  #scale_color_manual(name = cancer,values=df_AD_map$Color.Hex)+
+  #scale_color_manual(values=c("grey100", "grey10"))+
+  #scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
 ggsave("map_AD_all_cancers_prev_max_country.pdf",width = 40, height = 30, pointsize = 12) 
@@ -225,8 +232,9 @@ df_AD_map%>%
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
   guides(fill=guide_legend(title="Cancer site with the highest number treatable avoidable deaths by cancer site"))+
-  scale_color_manual(values=c("grey100", "grey10"))+
-  scale_fill_lancet()+
+  scale_color_manual(values=df_AD_map$Color.Hex)+
+  #scale_color_manual(values=c("grey100", "grey10"))+
+#  scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
 ggsave("map_AD_all_cancers_treatable_max_country.pdf",width = 40, height = 30, pointsize = 12) 
@@ -294,8 +302,8 @@ df_AD_map%>%
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
   guides(fill=guide_legend(title="Cancer site with the highest number total avoidable deaths"))+
-  scale_color_manual(values=c("grey100", "grey10"))+
-  scale_fill_lancet()+
+  scale_color_manual(values=df_AD_map$Color.Hex)+
+ # scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))
 
 ggsave("map_AD_all_cancers_treat_prev_max_country.pdf",width = 40, height = 30, pointsize = 12) 
