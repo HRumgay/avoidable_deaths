@@ -7,6 +7,7 @@ library(Rcan)
 library(ggrepel)
 library("ggplot2")
 library(ggsci)
+library(dplyr)
 
 
 AD_Region
@@ -18,20 +19,20 @@ table_1_11
 # Figure 1 - Overall % avoidable deaths 
 
 Figure_11<-table_1_11%>%select("AD_prev", "pAD_prev" )%>%
-  rename("AD"="AD_prev")%>%
-  rename("pAD"="pAD_prev")%>%
+  dplyr::rename("AD"="AD_prev")%>%
+  dplyr::rename("pAD"="pAD_prev")%>%
   mutate(AD_cat="Preventable")
 
 
 Figure_12<-table_1_11%>%select("AD_treat", "pAD_treat" )%>%
-  rename("AD"="AD_treat")%>%
-  rename("pAD"="pAD_treat")%>%
+  dplyr::rename("AD"="AD_treat")%>%
+  dplyr::rename("pAD"="pAD_treat")%>%
   mutate(AD_cat="Treatable")
 
 
 Figure_1<-table_1_11%>%select("AD_treat_prev", "pAD_treat_prev" )%>%
-  rename("AD"="AD_treat_prev")%>%
-  rename("pAD"="pAD_treat_prev")%>%
+  dplyr::rename("AD"="AD_treat_prev")%>%
+  dplyr::rename("pAD"="pAD_treat_prev")%>%
   mutate(AD_cat="Treatable + Preventable")%>%
   full_join(Figure_11)%>%
   full_join(Figure_12)
@@ -71,13 +72,13 @@ ggsave("Figure_1_percentAD.pdf",width = 40, height = 30, pointsize = 12)
 AD_HDI_by_cancer_site_3<-AD_by_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group,cancer, cancer_code, AD_treat)%>%
-  rename("AD"="AD_treat")%>%
+  dplyr::rename("AD"="AD_treat")%>%
   mutate(AD_cat="Treatable")
 
 AD_HDI_by_cancer_site_2<-AD_by_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group,cancer, cancer_code, AD_prev)%>%
- # rename("AD"="AD_prev")%>%
+  dplyr::rename("AD"="AD_prev")%>%
   mutate(AD_cat="Preventable")%>%
   mutate(hdi_group=as.numeric(hdi_group))
 
@@ -85,11 +86,11 @@ AD_HDI_by_cancer_site_1<-AD_by_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group, cancer, cancer_code, AD_treat_prev)%>%
   mutate(hdi_group=as.numeric(hdi_group))%>%
-  #rename("AD"="AD_treat_prev")%>%
+  dplyr::rename("AD"="AD_treat_prev")%>%
   mutate(AD_cat="Total")%>%
   ungroup()%>%
-full_join(AD_HDI_by_cancer_site_2)%>%
- full_join(AD_HDI_by_cancer_site_3)
+  full_join(AD_HDI_by_cancer_site_2)%>%
+  full_join(AD_HDI_by_cancer_site_3)
 
 
 
@@ -107,8 +108,8 @@ SumADprevseven <- AD_cancer%>%
   mutate(sumAD=sum(AD_prev))
   
   
-getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-colourCount = 35
+#getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+#colourCount = 35
 
 # 
 # AD_levels<-names(sort(tapply( AD_HDI_by_cancer_site_1$AD,AD_HDI_by_cancer_site_1$cancer, sum)))
@@ -175,27 +176,28 @@ Figure_2
 
 AD_by_cancer_site_3<-AD_cancer2%>%
   select(cancer, cancer_code, AD_treat)%>%
-  rename("AD"="AD_treat")%>%
+  dplyr::rename("AD"="AD_treat")%>%
   mutate(AD_cat="Treatable")
 
 AD_by_cancer_site_2<-AD_cancer2%>%
   select(cancer, cancer_code, AD_prev)%>%
-  rename("AD"="AD_prev")%>%
+  dplyr::rename("AD"="AD_prev")%>%
   mutate(AD_cat="Preventable")
 
 AD_by_cancer_site_1<-AD_cancer2%>%
   select(cancer, cancer_code, AD_treat_prev)%>%
-  rename("AD"="AD_treat_prev")%>%
+  dplyr::rename("AD"="AD_treat_prev")%>%
   mutate(AD_cat="Total")%>%
   full_join(AD_by_cancer_site_2)%>%
   full_join(AD_by_cancer_site_3)
 
 # Pie Chart
 
-library(RColorBrewer) 
+#library(RColorBrewer) 
 
-getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-colourCount = 35
+#getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+#colourCount = 35
+
 
 #scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set2"))(colourCount))+
 
@@ -207,9 +209,7 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   mutate(total2=sum(AD))%>%
   group_by(AD_cat)%>%
   arrange(AD_cat,-AD)%>%
-  
-  
-  mutate(posit = 1:n())%>%
+  dplyr::mutate(posit = 1:n())%>%
   mutate(cancer=case_when(posit <=7 ~ cancer,
                           posit>7 ~ "All other sites"
                           ))%>%
@@ -220,7 +220,7 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   ungroup%>%
   group_by(AD_cat)%>%
   mutate(total=sum(AD))%>%
-  mutate(n = n())%>%
+  dplyr::mutate(n = n())%>%
   mutate(wght = AD/total)%>%
   mutate(pos = (cumsum(wght)))%>%
   mutate(scale=total/total2)%>%
@@ -249,7 +249,7 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   #       legend.background = element_rect(fill="transparent"),
   #       plot.margin = unit(c(0,0,0,0),"lines"))+
   guides(fill=guide_legend(title="Cancer Type"))+
-  scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set1"))(colourCount))+
+  #scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set1"))(colourCount))+
  # scale_fill_lancet()+
   facet_wrap( ~ AD_cat,nrow=2)
 
@@ -261,26 +261,29 @@ ggsave("Figure_1_Pie_Chart_cancer_site_scaled_percent.pdf",width = 30, height = 
 
 # pie charts ----
 # alternative pie charts script using some elements from Bar_and_Pie_base.R script using globocan colours
-col <- read.csv("cancer_color_2018.csv", stringsAsFactors = F)
+col <- cancer_colors<-read.csv("~/Documents/R_Projects/Data/cancer_color_2018.csv", sep=",")
+
 
 Avoidable_Deaths_Simulated_All %>% 
+  ungroup()%>%
+  select(-country_code,-country_label)%>%
   group_by(cancer) %>% 
-  mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T),
+  mutate(AD_treat_prev=sum(AD_treat_not_prev, AD_prev, na.rm=T),
          AD_prev=sum(AD_prev,na.rm=T),
          AD_treat=sum(AD_treat,na.rm=T),
          Expect_deaths=sum(Expect_deaths,na.rm=T)) %>% 
   filter(!is.na(cancer_code)) %>% 
-  select(cancer,cancer_code,AD_prev,AD_treat,AD_treat_prev,Expect_deaths)%>% 
+  select(cancer, cancer_code, AD_prev, AD_treat, AD_treat_prev, Expect_deaths)%>% 
   unique() %>% 
   left_join(col %>% select(cancer_label:Color.Hex) %>% filter(cancer_label!="Colorectum")) %>% 
   pivot_longer(AD_prev:Expect_deaths,
                names_to="AD_cat",
                values_to = "AD") %>%
   group_by(AD_cat) %>% 
-  mutate(percent=sum(AD),
-         percent = AD/percent) %>% 
+  mutate(sumAD=sum(AD),
+         percent = AD/sumAD*100)%>%
   dplyr::arrange(AD) %>% 
-  mutate(rankc = as.numeric(dplyr::row_number())) %>% 
+  dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>%
   group_by(AD_cat) %>% 
   mutate(AD=case_when(rankc<32~sum(AD[rankc<32]),
                       TRUE~AD),
@@ -309,10 +312,10 @@ Avoidable_Deaths_Simulated_All %>%
                names_to="AD_cat",
                values_to = "AD") %>%
   group_by(AD_cat,hdi_group) %>%
-  mutate(percent=sum(AD),
-         percent = AD/percent) %>% 
+  mutate(sumAD=sum(AD),
+         percent = AD/sumAD*100)%>%
   arrange(AD) %>% 
-  mutate(rankc = as.numeric(dplyr::row_number())) %>% 
+  dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat, hdi_group) %>% 
   mutate(AD=case_when(rankc<32~sum(AD[rankc<32]),
                       TRUE~AD),

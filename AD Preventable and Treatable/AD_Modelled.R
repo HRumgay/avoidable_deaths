@@ -896,7 +896,7 @@ Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_a
   mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
   as.data.frame()%>%
-  mutate(across(6:10,round,0 ))
+  mutate(across(6:10,round,0 ))%>%
 
   mutate(across(13:13,round,0))%>%
   mutate(across(14:19, round,4)*100)%>% #mutate to show proportion as percentage in export
