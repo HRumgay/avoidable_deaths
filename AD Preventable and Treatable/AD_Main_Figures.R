@@ -97,14 +97,14 @@ AD_HDI_by_cancer_site_1<-AD_by_HDI %>%
 AD_HDI_by_cancer_site_11<-AD_HDI_by_cancer_site_1%>%
   group_by(hdi_group)%>%
   filter(AD_cat=="Total")%>% 
-  slice_max(AD, n = 7)%>%
+  slice_max(AD, n = 4)%>%
   select(cancer_code)%>%
   mutate(max="max")
 
 
 SumADprevseven <- AD_cancer%>%
   #group_by(cancer)%>%
-  slice_max(AD_prev, n = 7)%>%
+  slice_max(AD_prev, n = 4)%>%
   mutate(sumAD=sum(AD_prev))
   
   
@@ -200,7 +200,19 @@ AD_by_cancer_site_1<-AD_cancer2%>%
 
 
 #scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set2"))(colourCount))+
-
+#color palette
+cancerss<-Avoidable_Deaths_Simulated_All_age_cat_overall%>%select(cancer_code, cancer)%>%distinct()
+cancer_colors<-read.csv("~/Documents/R_Projects/Data/cancer_color_2018.csv", sep=",")%>%
+  as.data.frame()%>%
+  select(cancer_code, Color.Hex)%>%
+  # dplyr::rename("cancer"="cancer_label")%>%
+  filter(Color.Hex!="")%>%
+  filter(Color.Hex!="#")%>%
+  left_join(cancerss, by=c("cancer_code"))%>%
+  select(-cancer_code)
+cancer_colors
+palette1_named = setNames(object = cancer_colors$Color.Hex, nm = cancer_colors$cancer)
+print(palette1_named)
 
 Figure_4_1 <- AD_by_cancer_site_1%>%
  # filter(AD_cat==)
@@ -210,8 +222,8 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   group_by(AD_cat)%>%
   arrange(AD_cat,-AD)%>%
   dplyr::mutate(posit = 1:n())%>%
-  mutate(cancer=case_when(posit <=7 ~ cancer,
-                          posit>7 ~ "All other sites"
+  mutate(cancer=case_when(posit <=4 ~ cancer,
+                          posit>4 ~ "All other sites"
                           ))%>%
   select(-posit)%>%
   group_by(AD_cat,cancer)%>%
@@ -237,7 +249,7 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   #                 segment.size = .7,
   #                 show.legend = TRUE,max.overlaps = 42) +
   coord_polar("y", start=0) +
-  labs(title="Top seven cancer sites by number preventable, treatable and overall avoidable deaths globally")+
+  labs(title="Top four cancer sites by number preventable, treatable and overall avoidable deaths globally")+
   theme_void()+
   # theme(legend.key.width= unit(2.6, "cm"), 
   #       legend.key.height= unit(1.4, "cm"),
@@ -249,8 +261,11 @@ Figure_4_1 <- AD_by_cancer_site_1%>%
   #       legend.background = element_rect(fill="transparent"),
   #       plot.margin = unit(c(0,0,0,0),"lines"))+
   guides(fill=guide_legend(title="Cancer Type"))+
+  scale_fill_manual(values = palette1_named, drop = TRUE)+
+
   #scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set1"))(colourCount))+
  # scale_fill_lancet()+
+  
   facet_wrap( ~ AD_cat,nrow=2)
 
 Figure_4_1
@@ -386,7 +401,8 @@ pied %>%
         panel.border = element_blank(),
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        strip.background = element_blank()) -> pie.treat
+        strip.background = element_blank())+
+  scale_fill_manual(values = palette1_named)-> pie.treat
 pie.treat
 ggsave("pie.treat.pdf",pie.treat,width=5.43 ,height=2.43)
 
@@ -416,7 +432,8 @@ pied %>%
         panel.border = element_blank(),
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        strip.background = element_blank()) -> pie.avoid
+        strip.background = element_blank())+
+  scale_fill_manual(values = palette1_named) -> pie.avoid
 pie.avoid
 ggsave("pie.avoid.pdf",pie.avoid,width=5.43 ,height=2.43)
 
@@ -447,7 +464,8 @@ pied %>%
         panel.border = element_blank(),
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        strip.background = element_blank()) -> pie.avoid.hdi1
+        strip.background = element_blank())+
+  scale_fill_manual(values = palette1_named) -> pie.avoid.hdi1
 pie.avoid.hdi1
 ggsave("pie.avoid.hdi1.pdf",pie.avoid.hdi1,width=5.43 ,height=2.43)
 
@@ -477,7 +495,8 @@ pied %>%
         panel.border = element_blank(),
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        strip.background = element_blank()) -> pie.avoid.hdi2
+        strip.background = element_blank())+
+  scale_fill_manual(values = palette1_named) -> pie.avoid.hdi2
 pie.avoid.hdi2
 ggsave("pie.avoid.hdi2.pdf",pie.avoid.hdi2,width=5.43 ,height=2.43)
 
@@ -506,7 +525,8 @@ pied %>%
         panel.border = element_blank(),
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        strip.background = element_blank()) -> pie.avoid.hdi3
+        strip.background = element_blank())+
+  scale_fill_manual(values = palette1_named) -> pie.avoid.hdi3
 pie.avoid.hdi3
 ggsave("pie.avoid.hdi3.pdf",pie.avoid.hdi3,width=5.43 ,height=2.43)
 
@@ -536,7 +556,8 @@ pied %>%
         panel.border = element_blank(),
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        strip.background = element_blank()) -> pie.avoid.hdi4
+        strip.background = element_blank())+
+  scale_fill_manual(values = palette1_named) -> pie.avoid.hdi4
 pie.avoid.hdi4
 ggsave("pie.avoid.hdi4.pdf",pie.avoid.hdi4,width=5.43 ,height=2.43)
 
