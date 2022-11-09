@@ -186,7 +186,7 @@ ggplot() +
   #scale_color_manual(name = cancer,values=df_AD_map$Color.Hex)+
   scale_fill_manual(values = palette1_named_prev)+
   #scale_fill_lancet()+
-  scale_linetype_manual(values=c("solid", "11"))
+  scale_linetype_manual(values=c("solid", "11"))->max_prev
 
 ggsave("map_AD_all_cancers_prev_max_country.pdf",width = 40, height = 30, pointsize = 12) 
 
@@ -263,7 +263,7 @@ df_AD_map%>%
   scale_fill_manual(values = palette1_named_treat)+
   #scale_color_manual(values=c("grey100", "grey10"))+
 #  scale_fill_lancet()+
-  scale_linetype_manual(values=c("solid", "11"))
+  scale_linetype_manual(values=c("solid", "11"))->max_treat
 
 ggsave("map_AD_all_cancers_treatable_max_country.pdf",width = 40, height = 30, pointsize = 12) 
 
@@ -343,7 +343,15 @@ df_AD_map%>%
   guides(fill=guide_legend(title="Cancer site with the highest number total avoidable deaths"))+
   scale_fill_manual(values = palette1_named_treat_prev)+
  # scale_fill_lancet()+
-  scale_linetype_manual(values=c("solid", "11"))
+  scale_linetype_manual(values=c("solid", "11"))->max_total
 
 ggsave("map_AD_all_cancers_treat_prev_max_country.pdf", width = 40, height = 30, pointsize = 12) 
+
+
+
+ggarrange(max_total, max_prev, max_treat, 
+          labels = c("a)", "b)", "c)"),
+          ncol = 1, nrow = 3,
+          font.label = list(size = 60, color = "black"))
+ggsave("map_AD_max.pdf",width = 40, height =60,limitsize = FALSE) 
 
