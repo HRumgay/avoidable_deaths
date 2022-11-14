@@ -49,7 +49,7 @@ AD_HDI_by_cancer_site_1<-AD_by_HDI %>%
 AD_HDI_by_cancer_site_11<-AD_HDI_by_cancer_site_1%>%
   group_by(hdi_group)%>%
   filter(AD_cat=="Total")%>% 
-  slice_max(AD, n = 4)%>%
+  slice_max(AD, n = 5)%>%
   select(cancer_code)%>%
   dplyr::mutate(max="max")
 
@@ -58,24 +58,7 @@ getPalette = colorRampPalette(brewer.pal(9, "Set1"))
 colourCount = 35
 
 
-# Figure 4 - Global burden of cancer by cancer site pie chart 
 
-# AD_by_cancer_site_3<-AD_cancer2%>%
-#   select(cancer, cancer_code, AD_treat)%>%
-#   dplyr::rename("AD"="AD_treat")%>%
-#   dplyr::mutate(AD_cat="Treatable")
-# 
-# AD_by_cancer_site_2<-AD_cancer2%>%
-#   select(cancer, cancer_code, AD_prev)%>%
-#   dplyr::rename("AD"="AD_prev")%>%
-#   dplyr::mutate(AD_cat="Preventable")
-# 
-# AD_by_cancer_site_1<-AD_cancer2%>%
-#   select(cancer, cancer_code, AD_treat_prev)%>%
-#   dplyr::rename("AD"="AD_treat_prev")%>%
-#   dplyr::mutate(AD_cat="Total")%>%
-#   full_join(AD_by_cancer_site_2)%>%
-#   full_join(AD_by_cancer_site_3)
 
 # Pie Chart
 
@@ -84,13 +67,13 @@ library(RColorBrewer)
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
 colourCount = 35
 
-#scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Set2"))(colourCount))+
-
 
 table_1_1
 # pie charts ----
 # alternative pie charts script using some elements from Bar_and_Pie_base.R script using globocan colours
-col <- read.csv("cancer_color_2018.csv", stringsAsFactors = F)
+col <- read.csv("~/Documents/R_Projects/Data/cancer_color_2018.csv", sep=",",stringsAsFactors = F)
+
+
 
 Avoidable_Deaths_Simulated_All %>% 
   group_by(cancer) %>% 
@@ -111,11 +94,11 @@ Avoidable_Deaths_Simulated_All %>%
   dplyr::arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat) %>% 
-  dplyr::mutate(AD=case_when(rankc<32~sum(AD[rankc<32]),
+  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
                       TRUE~AD),
-         percent=case_when(rankc<32~sum(percent[rankc<32]),
+         percent=case_when(rankc<30~sum(percent[rankc<30]),
                            TRUE~percent), 
-         rankc=case_when(rankc<32~1,
+         rankc=case_when(rankc<30~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -123,6 +106,7 @@ Avoidable_Deaths_Simulated_All %>%
                           TRUE~cancer)) %>% 
   select(cancer,Color.Hex,AD_cat,AD,percent,rankc) %>% 
   unique() -> AD_by_cancer_site_1
+
 
 Avoidable_Deaths_Simulated_All %>%
   filter(!is.na(cancer_code)) %>%
@@ -143,11 +127,11 @@ Avoidable_Deaths_Simulated_All %>%
   arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat, hdi_group) %>% 
-  dplyr::mutate(AD=case_when(rankc<32~sum(AD[rankc<32]),
+  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
                       TRUE~AD),
-         percent=case_when(rankc<32~sum(percent[rankc<32]),
+         percent=case_when(rankc<30~sum(percent[rankc<30]),
                            TRUE~percent), 
-         rankc=case_when(rankc<32~1,
+         rankc=case_when(rankc<30~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -168,11 +152,9 @@ piedp %>%
             position = position_stack(vjust=0.5),
             size=3) +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+  # to make into donut
   scale_fill_identity("Cancer site", labels = piedp$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
-  #labs(title = "Preventable deaths")+
   theme(plot.background= element_blank(),
         plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
         panel.background = element_blank(),
@@ -184,7 +166,7 @@ piedp %>%
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
         strip.background = element_blank(),
-        plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
+        plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   labs(title="Preventable", caption= paste(round(table_1_1$AD_prev,-3)," total deaths"))-> pie.prev
 pie.prev
@@ -202,11 +184,9 @@ piedt %>%
             position = position_stack(vjust=0.5),
             size=3) +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+   # to make into donut
   scale_fill_identity("Cancer site", labels = piedt$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
-  #labs(title = "Treatable deaths")+
   theme(plot.background= element_blank(),
         plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
         panel.background = element_blank(),
@@ -237,11 +217,9 @@ pieda %>%
             position = position_stack(vjust=0.5),
             size=3) +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+    # to make into donut
   scale_fill_identity("Cancer site", labels = pieda$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
-  #labs(title = "Avoidable deaths")+
   theme(plot.background= element_blank(),
         plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
         panel.background = element_blank(),
@@ -253,7 +231,7 @@ pieda %>%
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
         strip.background = element_blank(),
-        plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
+        plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   labs(title="Avoidable", caption= paste(round(table_1_1$AD_treat_prev,-3)," total deaths"))-> pie.avoid
 pie.avoid
@@ -278,14 +256,14 @@ palette1_named_pied =  setNames(object = cancer_colors_pied$Color.Hex, nm = canc
 
 
 pies9 <- as.data.table(AD_by_cancer_site_1)%>%
- # select(cancer, Color.Hex,percent)%>%
   select(-AD,-AD_cat,-rankc)%>%
   distinct()%>%
   group_by(cancer)%>%
   mutate(percent=sum(percent))%>%
     ungroup()%>%
     distinct()%>%
-  dplyr::mutate(rankc=row_number())
+  dplyr::mutate(rankc=row_number())%>%arrange(desc(cancer))%>%
+  mutate(cancer=as.factor(cancer))
 
 
 #plot1_legend<-
@@ -294,12 +272,9 @@ pies9 <- as.data.table(AD_by_cancer_site_1)%>%
                                                  labels = unique(Color.Hex)))) +
     geom_bar(width = 1, stat = "identity") +
     coord_polar(theta = "y") +
-    #xlim(c(0.5,3))+    # to make into donut
     scale_fill_identity("Cancer site", labels = pies9$cancer,
                         guide = "legend") +
     guides(fill = guide_legend(reverse = TRUE))+
-    
-    #labs(title = "Avoidable deaths")+
     theme(plot.background= element_blank(),
           plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
           panel.background = element_blank(),
@@ -345,7 +320,6 @@ pied1 %>%
             position = position_stack(vjust=0.5),
             size=2) +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+    # to make into donut
   scale_fill_identity("Cancer site", labels = pied1$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
@@ -360,7 +334,7 @@ pied1 %>%
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
         strip.background = element_blank(),
-        plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
+        plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   labs(title="Low HDI", caption= paste(round(AD_by_HDI_all2[1,]$AD_treat_prev,-3)," total deaths")) -> pie.avoid.hdi1
 pie.avoid.hdi1
@@ -377,7 +351,6 @@ pied2 %>%
             position = position_stack(vjust=0.5),
             size=2) +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+    # to make into donut
   scale_fill_identity("Cancer site", labels = pied2$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
@@ -392,7 +365,7 @@ pied2 %>%
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
         strip.background = element_blank(),
-        plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
+        plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   labs(title="Medium HDI", caption= paste(round(AD_by_HDI_all2[2,]$AD_treat_prev,-3)," total deaths")) -> pie.avoid.hdi2
 pie.avoid.hdi2
@@ -408,7 +381,6 @@ pied3 %>%
             position = position_stack(vjust=0.5),
             size=2) +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+    # to make into donut
   scale_fill_identity("Cancer site", labels = pied3$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
@@ -423,7 +395,7 @@ pied3 %>%
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
         strip.background = element_blank(),
-        plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
+        plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   labs(title="High HDI", caption= paste(round(AD_by_HDI_all2[3,]$AD_treat_prev,-3)," total deaths")) -> pie.avoid.hdi3
 pie.avoid.hdi3
@@ -440,7 +412,6 @@ pied4 %>%
             position = position_stack(vjust=0.5),
             size=2) +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+    # to make into donut
   scale_fill_identity("Cancer site", labels = pied4$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
@@ -455,7 +426,7 @@ pied4 %>%
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
         strip.background = element_blank(),
-        plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
+        plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   labs(title="Very High HDI", caption= paste(round(AD_by_HDI_all2[4,]$AD_treat_prev,-3)," total deaths")) -> pie.avoid.hdi4
 pie.avoid.hdi4
@@ -467,28 +438,26 @@ ggsave("pie.avoid.hdi4.pdf",pie.avoid.hdi4,width=5.43 ,height=2.43)
 
 
 pies10 <- as.data.table(AD_by_cancer_site_1_HDI)%>%
-  # select(cancer, Color.Hex,percent)%>%
   select(-AD,-AD_cat,-rankc, -hdi_group)%>%
   distinct()%>%
   group_by(cancer)%>%
   mutate(percent=sum(percent))%>%
   ungroup()%>%
   distinct()%>%
-  dplyr::mutate(rankc=row_number())
+  dplyr::mutate(rankc=row_number())%>%
+arrange(desc(cancer))%>%
+  mutate(cancer=as.factor(cancer))
 
 
-#plot1_legend<-
 pies10 %>%
-  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(rankc),
+  ggplot(aes(x = 2, y = percent, fill =
+               factor(rankc,levels = unique(rankc),
                                                labels = unique(Color.Hex)))) +
   geom_bar(width = 1, stat = "identity") +
   coord_polar(theta = "y") +
-  #xlim(c(0.5,3))+    # to make into donut
   scale_fill_identity("Cancer site", labels = pies10$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
-  
-  #labs(title = "Avoidable deaths")+
   theme(plot.background= element_blank(),
         plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
         panel.background = element_blank(),
@@ -513,12 +482,23 @@ get_only_legend <- function(plot) {
 }
 
 # extract legend from plot1 using above function
+
 legend2 <- get_only_legend(plot2_legend)   
 
 # final combined plot with shared legend
-combined_plothdi <-   grid.arrange(pie.avoid.hdi1,pie.avoid.hdi2,pie.avoid.hdi3,pie.avoid.hdi4, ncol = 2,nrow=2)
-Top_4_cancerhdi<- grid.arrange(combined_plothdi, legend2, ncol = 2, widths= c(0.85, 0.15))
+
+combined_plothdi <-   grid.arrange(pie.avoid.hdi1, 
+                                   pie.avoid.hdi2, 
+                                   pie.avoid.hdi3, 
+                                   pie.avoid.hdi4, ncol = 2,nrow=2)
+
+Top_4_cancerhdi <-    grid.arrange(combined_plothdi, 
+                                legend2, 
+                                ncol = 2, 
+                                widths= c(0.85, 0.15))
 
 Top_4_cancerhdi
+
 #Saving the output
 ggsave("piesHDI.pdf",Top_4_cancerhdi,width=15 ,height=10)
+

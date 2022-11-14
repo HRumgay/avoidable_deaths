@@ -305,35 +305,36 @@ labels_leg <-  c( paste("< ", break_quantile_t[2]),
 
 labels_leg <- rev(labels_leg)
 
+
 ggplot() + 
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group))+
+               aes(x=long, y=lat, fill=cutpoint, group = group))+
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group),   
+               aes(x=long, y=lat, fill=cutpoint, group = group),   
                colour="grey10", 
                size = 0.4,
                show.legend=FALSE)+
   geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
-               aes(x=long, y=lat,fill=cutpoint,group= group),
+               aes(x=long, y=lat, fill=cutpoint, group = group),
                colour="grey10",
                size = 0.4,
                show.legend=FALSE)+
   geom_polygon(data=df_map[df_map$id == 59,],
-               aes(x=long, y=lat,group= group),
+               aes(x=long, y=lat, group= group),
                fill = "#d6d6d6",
                colour="grey10",
                size = 0.4,
                show.legend=FALSE)+
   geom_polygon(data=df_poly[df_poly$poly_fill == 888,], 
-               aes(x=long, y=lat,group= group),
+               aes(x=long, y=lat, group = group),
                fill = "grey100" ,
                show.legend=FALSE)+
   geom_polygon(data=df_poly[df_poly$poly_fill == 999,], 
-               aes(x=long, y=lat,group= group),
+               aes(x=long, y=lat, group = group),
                fill = "#d6d6d6" ,
                show.legend=FALSE)+
   geom_path(data=df_poly ,
-            aes(x=long, y=lat, color=line_color,linetype=line_type,group= group),
+            aes(x=long, y=lat, color=line_color, linetype = line_type, group = group),
             size = 0.4,
             show.legend=FALSE)+
   geom_path(data = df_line[df_line$line_color != 0, ],
@@ -361,6 +362,7 @@ ggplot() +
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_linetype_manual(values=c("solid", "11"))->AD_map_total
 
+
 ggsave("map_AD_all_cancers_preventable_treatable_prop.pdf",width = 40, height = 20, pointsize = 12) 
 
 
@@ -368,5 +370,7 @@ ggarrange(AD_map_total, AD_map_prev, AD_map_treatable,
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
-ggsave("map_AD_prop.pdf",width = 40, height =60,limitsize = FALSE) 
+
+
+ggsave("map_AD_prop.pdf", width = 40, height =67, limitsize = FALSE) 
 

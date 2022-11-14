@@ -35,7 +35,7 @@ ES_France7<-ES_France1%>%mutate(country_code=638)
 # Palestine? - Imputed by HDI 0.690 average plus minus 0.1 HDI
 
 HDI_countries_palestine<-Survival_Modelled%>%
-  filter(0.690-0.05<=hdi_value &hdi_value<=0.690+0.05)%>%
+  filter(0.690 - 0.05<=hdi_value &hdi_value<=0.690 + 0.05)%>%
   select(country_code)%>%
   distinct()
 
@@ -183,8 +183,7 @@ simulated_overall<-Countries_Simulated%>%
     age==13~ 13,
     age==14~ 14,
     age==15~ 15,
-    age>=16 ~ 16,
-  ))%>%
+    age>=16 ~ 16))%>%
   mutate(
     age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
@@ -193,7 +192,7 @@ simulated_overall<-Countries_Simulated%>%
     ))%>%
   filter(age_cat!="0-15")%>%
   droplevels()%>%
-  left_join(ES2, by=c("country_code","age","sex"))%>%
+  left_join(ES2, by=c("country_code", "age", "sex"))%>%
   group_by(country_label,cancer_label, age,sex) %>%
   mutate(ES= case_when(cases!=0 ~ sum(ES*cases, na.rm=T)/sum(cases, na.rm=T),
                        cases==0 ~ ES)) %>%

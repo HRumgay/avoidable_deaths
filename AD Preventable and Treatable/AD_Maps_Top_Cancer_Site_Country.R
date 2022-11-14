@@ -11,6 +11,7 @@ library(rgdal)
 library(pastecs)
 library(ggsci)
 library(scales)
+library(ggpubr)
 
 AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
 cancerss<-Avoidable_Deaths_Simulated_All_age_cat_overall%>%select(cancer_code, cancer)%>%distinct()
@@ -22,6 +23,7 @@ cancer_colors<-read.csv("~/Documents/R_Projects/Data/cancer_color_2018.csv", sep
   filter(Color.Hex!="#")%>%
   left_join(cancerss, by=c("cancer_code"))%>%
   select(-cancer_code)
+  
 
 cancer_colors
 palette1_named = setNames(object = cancer_colors$Color.Hex, nm = cancer_colors$cancer)
@@ -121,7 +123,8 @@ allc<-AD_Map%>%
   group_by(country_code)%>%
   filter(AD_prev==max(AD_prev))
 df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
-df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
+df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]%>%
+  arrange(desc(cancer))
 
 #Color specific file
 allc_prev<-allc%>%select(cancer)%>%distinct()
@@ -197,7 +200,8 @@ allc<-AD_Map%>%
   group_by(country_code)%>%
   filter(AD_treat==max(AD_treat))
 df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
-df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
+df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]%>%
+  arrange(desc(cancer))
 
 #colors 
 allc_treat<-allc%>%select(cancer)%>%distinct()
@@ -274,7 +278,8 @@ allc<-AD_Map%>%
   group_by(country_code)%>%
   filter(AD_treat_prev==max(AD_treat_prev))
 df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
-df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
+df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]%>%
+  arrange(desc(cancer))
 
 #colors 
 allc_treat_prev<-allc%>%
@@ -353,5 +358,5 @@ ggarrange(max_total, max_prev, max_treat,
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
-ggsave("map_AD_max.pdf",width = 40, height =60,limitsize = FALSE) 
+ggsave("map_AD_max.pdf",width = 40, height =70,limitsize = FALSE) 
 
