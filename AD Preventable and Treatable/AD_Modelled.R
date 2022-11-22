@@ -282,7 +282,7 @@ Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
 Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
   group_by(country_code, cancer_code, age, sex)%>%
   mutate(AD_prev=af.comb * total_overall * (1 - rel_surv *  ES ))%>%
-  mutate(AD_treat=total_overall *(surv_ref-rel_surv) * ES)%>%
+  mutate(AD_treat=total_overall * (surv_ref-rel_surv) * ES)%>%
   mutate(AD_treat_not_prev=(1-af.comb)* total_overall *(surv_ref-rel_surv) * ES)%>%
   mutate(AD_unavoid = (1-af.comb)*total_overall*(1-surv_ref*ES))%>%
   mutate(Expect_deaths=(1-(rel_surv*ES))*total_overall)%>%
@@ -301,7 +301,7 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
 colorectal<-Avoidable_Deaths_Simulated_All3%>%
   filter(cancer_code%in%c("8","9"))%>%
   mutate(cancer="Colorectal",
-         cancer_code=8)%>%
+         cancer_code=38)%>%
   group_by(country_code, cancer_code, age, sex)%>%
   mutate(AD_prev=sum(AD_prev),
          AD_treat=sum(AD_treat),

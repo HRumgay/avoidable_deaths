@@ -124,6 +124,35 @@ Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Researc
   mutate(surv_ref=case_when(surv_ref>1~ 1,
                             surv_ref<=1~ surv_ref))
 
+pop20202 <- pop2020%>%
+  as.data.frame()%>%
+  filter(sex!=0)%>%
+  mutate(age = case_when(
+    age==1~ 1,
+    age==2~ 2,
+    age==3~ 3,
+    age==4~ 4,
+    age>4 & age<9 ~ 4,
+    age==9 ~ 9,
+    age==10 ~ 10,
+    age==11 ~ 11,
+    age==12 ~ 12,
+    age==13 ~ 13,
+    age==14 ~ 14,
+    age==15 ~ 15,
+    age>=16 ~ 16,
+  ))%>%
+  group_by(country_code, age,sex)%>%
+  mutate(py=sum(py))%>%
+  distinct()%>%
+  select(-country_label)
+
+
+Reference_Survival_Survcan<-Reference_Survival%>%
+  left_join(by=c("cancer_code","age")) #or combine directly in PAF file
+
+
+
 Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
   as.data.frame()%>%
   select( age_cat,
@@ -233,17 +262,54 @@ Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv
   mutate(surv_ref=case_when(surv_ref>1~ 1,
                             surv_ref<=1~ surv_ref))
 
-Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
-  as.data.frame()%>%
-  select( age_cat,
-          cancer_code,
-          rel_surv)%>%
-  dplyr::rename("surv_ref"="rel_surv")%>%
-  distinct()%>%
-  mutate(surv_ref=case_when(surv_ref>1~ 1,
-                            surv_ref<=1~ surv_ref))
 
+Reference_Survival_Survcan<-Reference_Survival%>%
+  left_join(PAFs,by=c("cancer_code","age"))%>%
+  select(age, cancer_code, surv_ref, cases)%>%
+  mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
+  mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
+  mutate(age = case_when(
+    age==0~ 0,
+    age==1~ 1,
+    age==2~ 2,
+    age==3~ 3,
+    age==4~ 4,
+    age>4 & age<9 ~ 4,
+    age==9 ~ 9,
+    age==10~ 10,
+    age==11~ 11,
+    age==12~ 12,
+    age==13~ 13,
+    age==14~ 14,
+    age==15~ 15,
+    age>=16 ~ 16,
+  ))%>%
+  mutate(
+    age_cat = case_when(
+      age>=4 & age<14 ~ "15-64",
+      age>=14 ~ "65-99",
+      age<4 ~"0-15"
+    ))%>%
+  filter(age_cat!="0-15")%>%
+  select(-age)%>%
+  ungroup()%>%
+  group_by(cancer_code,age_cat)%>%
+mutate(surv_ref=  sum(surv_ref*cases, na.rm=T)/sum(cases, na.rm=T))%>%
+  ungroup()%>%
+  select(-cases)%>%
+  distinct()
 
+  
+
+# Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
+#   as.data.frame()%>%
+#   select( age_cat,
+#           cancer_code,
+#           rel_surv)%>%
+#   dplyr::rename("surv_ref"="rel_surv")%>%
+#   distinct()%>%
+#   mutate(surv_ref=case_when(surv_ref>1~ 1,
+#                             surv_ref<=1~ surv_ref))
 
 
 load("~/Documents/R_Projects/Data/ES_dt.RData")
@@ -452,9 +518,9 @@ for (i in 1:nrow(cancer_codes)) {
           data = b1,
           base = "exp.ns",
           # degree = 3,
-          knots = k1
-          #  numHess=TRUE,
-          # fnoptim="optim"
+          knots = k1,
+           numHess=TRUE,
+           fnoptim="optim",n.gleg=100
         ))
   
   try(Cubic_age_2[[i]] <-
@@ -463,9 +529,9 @@ for (i in 1:nrow(cancer_codes)) {
           data = b2,
           base = "exp.ns",
           # degree = 3,
-          knots = k2
-          # numHess=TRUE,
-          # fnoptim="optim"
+          knots = k2,
+           numHess=TRUE,n.gleg=100,
+          fnoptim="optim"
         ))
   
   # try(Cubic_overall[[i]] <-
@@ -500,10 +566,10 @@ for (i in 1:nrow(cancer_codes)){
   
   try(Cubic_Cancer_age_1[[i]] <-
         update(Cubic_age_1[[i]], expected = "mx",      numHess=TRUE,
-               fnoptim="optim"))
+               fnoptim="optim",n.gleg=100))
   try(Cubic_Cancer_age_2[[i]] <-
         update(Cubic_age_2[[i]], expected = "mx",      numHess=TRUE,
-               fnoptim="optim"))
+               fnoptim="optim",n.gleg=100))
   # try(Cubic_Cancer_overall[[i]] <-
   #       update(Cubic_overall[[i]], expected = "mx",    numHess=TRUE,
   #              fnoptim="optim"))
@@ -643,6 +709,7 @@ colnames(All_Cause_Survival_age_1) <-
     "Five_Year_all_cause_Surv",
     "OS_Lower_CI",
     "OS_Upper_CI")
+
 colnames(All_Cause_Survival_age_2) <-
   c("cancer_code",
     "cancer",
@@ -685,8 +752,6 @@ NS_OS2$cancer_code <- as.numeric(as.character(NS_OS2$cancer_code))
 
 Thai_Surv$cancer_code <-
   as.numeric(as.character(Thai_Surv$cancer_code))
-
-
 
 
 NS_OS <-
@@ -777,16 +842,20 @@ PAFs2 <- PAFs_age_Cat %>%
   #  full_join(PAFS_Overall) %>%
   as.data.frame() %>%
   droplevels()%>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal"))%>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal"))%>%
+  mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
+  mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
   group_by(country_label, cancer_label, age_cat) %>%
   mutate(total_age_prev = sum(cases.prev)) %>%
-  mutate(af.comb.agecat = sum(cases.prev) / sum(cases)) %>%
+  mutate(af.comb = sum(cases.prev) / sum(cases)) %>%
   mutate(ES = sum(ES*cases) / sum(cases)) %>%
   dplyr::summarize(country_code,
                    country_label,
                    cancer_code,
                    cancer_label,
                    age_cat,
-                   af.comb.agecat,
+                   af.comb,
                    total_overall=sum(cases),
                    ES
   ) %>%
@@ -801,154 +870,73 @@ NS_OS_PAF <- NS_OS %>%
   left_join(Reference_Survival_Survcan,by=c("age_cat","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
   droplevels()%>%
   mutate(cancer=as.character(cancer))%>%
-  distinct()
+  distinct()%>%
+  mutate(cancer = replace(cancer, cancer == "Liver and intrahepatic bile ducts", "Liver"))%>%
+  mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))
+  
 
 #Three AD calcs
 
 
 #Applying the equation from Rutherford 2015 for AD. Needs to be updated to have scaled relative survival
-Avoidable_Deaths <- matrix(ncol = 13, nrow = nrow(NS_OS_PAF)) #AD(t)
-
-for (i in 1:nrow(NS_OS_PAF)){
-  Expected_5_year_surv_mx <-NS_OS_PAF[i,]$ES
-  #Preventable deaths
-  AD_prev <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
-    (1 - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
-    Expected_5_year_surv_mx
-  AD_prev_Lower <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * 
-    (1 - NS_OS_PAF[i,]$NS_Upper_CI) *
-    Expected_5_year_surv_mx
-  AD_prev_Upper <- (NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall *
-    (1 - NS_OS_PAF[i,]$NS_Lower_CI) *
-    Expected_5_year_surv_mx
-  
-  # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
-  
-  AD_treat <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$Five_Year_Net_Surv) *
-    Expected_5_year_surv_mx *(1 - NS_OS_PAF[i,]$af.comb.agecat) *
-    NS_OS_PAF[i,]$total_overall
-  AD_treat_Lower <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI) * 
-    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat)*
-    NS_OS_PAF[i,]$total_overall
-  AD_treat_Upper <-
-    (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI) * 
-    Expected_5_year_surv_mx * (1 - NS_OS_PAF[i,]$af.comb.agecat) * 
-    NS_OS_PAF[i,]$total_overall
-  
-  #Deaths not avoidable
-  
-  AD_unavoid <-
-    (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (1-NS_OS_PAF[i,]$surv_ref  * Expected_5_year_surv_mx)
-  # AD_unavoid_Lower <-
-  #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Upper_CI * Expected_5_year_surv_mx)
-  # AD_unavoid_Upper <-
-  #   (1 - NS_OS_PAF[i,]$af.comb.agecat) * NS_OS_PAF[i,]$total_overall * (NS_OS_PAF[i,]$surv_ref - NS_OS_PAF[i,]$NS_Lower_CI * Expected_5_year_surv_mx)
-  # 
-  Avoidable_Deaths[i, ] <- c(    NS_OS_PAF[i, ]$country_code,
-                                 NS_OS_PAF[i, ]$country_label,
-                                 NS_OS_PAF[i, ]$age_cat,
-                                 NS_OS_PAF[i, ]$cancer_code,
-                                 NS_OS_PAF[i, ]$cancer_label,
-                                 AD_treat,
-                                 AD_treat_Lower,
-                                 AD_treat_Upper,
-                                 AD_prev,
-                                 AD_prev_Lower,
-                                 AD_prev_Upper,
-                                 AD_unavoid,
-                                 # AD_unavoid_Lower,
-                                 #  AD_unavoid_Upper,
-                                 NS_OS_PAF[i,]$total_overall
-  )
-}
 
 
-
-colnames(Avoidable_Deaths) <- c("country_code",
-                                "country_label",
-                                "age_cat",
-                                "cancer_code",
-                                "cancer_label",
-                                "AD_treat",
-                                "AD_treat_Lower",
-                                "AD_treat_Upper",
-                                "AD_prev",
-                                "AD_prev_Lower",
-                                "AD_prev_Upper",
-                                "AD_unavoid",
-                                # "AD_unavoid_Lower",
-                                #  "AD_unavoid_Upper",
-                                "total")
-
-
-MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
-  filter(country_label=="Thailand")%>%
-  select(-country_label, -cancer_label, -X)
-
-Avoidable_Deaths<-Avoidable_Deaths%>%
-  as.data.frame()%>%
-  mutate(AD_treat=as.numeric(AD_treat))%>%
-  mutate(AD_treat_Lower=as.numeric(as.character(AD_treat_Lower)))%>%
-  mutate(AD_treat_Upper=as.numeric(as.character(AD_treat_Upper)))%>%
-  mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
-  mutate(AD_prev_Lower=as.numeric(as.character(AD_prev_Lower)))%>%
-  mutate(AD_prev_Upper=as.numeric(as.character(AD_prev_Upper)))%>%
-  mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
-  mutate(total=as.numeric(as.character(total)))%>%
-  mutate(AD_sum=AD_treat+AD_prev+AD_unavoid)%>%
-  mutate(country_code=as.numeric(as.character(country_code)))%>%
-  # filter(total<AD_treatprev)%>%
-  mutate(cancer_code=as.numeric(cancer_code))%>%
-#  left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
-as.data.frame()
-
-
-Avoidable_Deaths_overall<-Avoidable_Deaths%>%
-  group_by(cancer_code,age_cat)%>%
-  mutate(age_cat="Overall")%>%
-  mutate(total=sum(total))
-
-
-
-Avoidable_Deaths_overall<-Avoidable_Deaths%>%
-  as.data.frame()%>%
-  mutate(age_cat="Overall")%>%
-  ungroup()%>%
-  group_by(country_code,cancer_label,age_cat)%>%
-  dplyr::summarise(country_code, country_label,
-                   cancer_code, cancer_label,
-         total=sum(total),
-         AD_prev= sum(AD_prev),
-           AD_prev_Lower= sum(AD_prev_Lower),
-         AD_prev_Upper= sum(AD_prev_Upper),
-          AD_treat = sum(AD_treat),
-           AD_treat_Lower= sum(AD_treat_Lower),
-          AD_treat_Upper= sum(AD_treat_Upper),
-          AD_unavoid = sum(AD_unavoid),
-           AD_sum=sum(AD_sum),
+Avoidable_Deaths<-NS_OS_PAF%>%
+  group_by(country_code, cancer_code)%>%
+  mutate(AD_prev=af.comb * total_overall * (1 - Five_Year_Net_Surv *  ES ))%>%
+  mutate(AD_prev_Upper=af.comb * total_overall * (1 - NS_Lower_CI *  ES ))%>%
+  mutate(AD_prev_Lower=af.comb * total_overall * (1 - NS_Upper_CI *  ES ))%>%
+  mutate(AD_treat=total_overall *(surv_ref-Five_Year_Net_Surv) * ES)%>%
+  mutate(AD_treat_Upper=total_overall *(surv_ref-NS_Lower_CI) * ES)%>%
+  mutate(AD_treat_Lower=total_overall *(surv_ref- NS_Upper_CI)* ES)%>%
+  mutate(AD_treat_not_prev=(1-af.comb)* total_overall *(surv_ref-Five_Year_Net_Surv) * ES)%>%
+  mutate(AD_unavoid = (1-af.comb)*total_overall*(1-surv_ref*ES))%>%
+  mutate(Expect_deaths=(1-(Five_Year_Net_Surv*ES))*total_overall)%>%
+  mutate(Expect_deaths_Lower=(1-(NS_Upper_CI*ES))*total_overall)%>%
+  mutate(Expect_deaths_Upper=(1-(NS_Lower_CI*ES))*total_overall)%>%
+  select("country_code","country_label",
+         "age_cat",
+         #"age",
+         "cancer_code","cancer_label",
+         "AD_treat",
+         "AD_treat_Lower",
+         "AD_treat_Upper",
+       #  AD_treat_not_prev,
+         "AD_prev",
+         "AD_prev_Lower",
+         "AD_prev_Upper",
+         "AD_unavoid",
+         "Expect_deaths",
+        "Expect_deaths_Lower",
+        "Expect_deaths_Upper",
+         "total_overall"
+         #  "af.comb",
+         #"hdi_group"
          )%>%
-#  mutate(MIR=sum(total*MIR)/sum(total))%>%
-  distinct()%>%
-  as.data.frame()
-
-Avoidable_Deaths_age_cat<-Avoidable_Deaths%>%
-  group_by(cancer_code, age_cat)%>%
-  # mutate(AD_prev= sum(AD_prev))%>%
-  # mutate(AD_treat = sum(AD_treat))%>%
-  # mutate(AD_unavoid = sum(AD_unavoid))%>%
-  full_join(Avoidable_Deaths_overall)%>%
-  #  mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
-  #  mutate(total_overall=sum(total_overall))%>%
-  distinct()%>%
-  # arrange(cancer, age_cat)%>%
-  as.data.frame()#%>%
-#left_join(MIR_Age_Cats_Thailand, by=c("country_code","cancer_code", "age_cat"))
+  rename("cancer"="cancer_label")
 
 
+#Calculating the overall AD
 
-NS_OS_PAF
+Avoidable_Deaths_overall<-Avoidable_Deaths%>%
+  group_by(cancer_code)%>%
+  mutate(age_cat="Overall")%>%
+  mutate(AD_treat=sum(AD_treat))%>%
+  mutate(AD_treat_Lower=sum(AD_treat_Lower))%>%
+  mutate(AD_treat_Upper=sum(AD_treat_Upper))%>%
+  mutate(AD_prev=sum(AD_prev))%>%
+  mutate(AD_prev_Lower=sum(AD_prev_Lower))%>%
+  mutate(AD_prev_Upper=sum(AD_prev_Upper))%>%
+  mutate(AD_unavoid=sum(AD_unavoid))%>%
+  mutate(Expect_deaths=sum(Expect_deaths))%>%
+  mutate(Expect_deaths_Lower=sum(Expect_deaths_Lower))%>%
+  mutate(Expect_deaths_Upper=sum(Expect_deaths_Upper))%>%
+  mutate(total_overall=sum(total_overall))%>%
+  mutate(AD_sum = AD_treat+AD_prev+AD_unavoid)%>%
+  ungroup()%>%
+  droplevels()%>%
+  distinct()
+
 
 ###############
 #
@@ -970,11 +958,6 @@ write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 # # Random Forest model as a different approach
 # # Using the ranger package 
 # # 
-# # 
-# # 
-# # 
-# # 
-# 
 # 
 # # ranger model.Too complex for the whole dataset on this laptop
 # # would be interesting to try this again with a more powerful computer
