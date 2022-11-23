@@ -896,12 +896,10 @@ Avoidable_Deaths<-NS_OS_PAF%>%
   mutate(Expect_deaths_Upper=(1-(NS_Lower_CI*ES))*total_overall)%>%
   select("country_code","country_label",
          "age_cat",
-         #"age",
          "cancer_code","cancer_label",
          "AD_treat",
          "AD_treat_Lower",
          "AD_treat_Upper",
-       #  AD_treat_not_prev,
          "AD_prev",
          "AD_prev_Lower",
          "AD_prev_Upper",
@@ -909,12 +907,8 @@ Avoidable_Deaths<-NS_OS_PAF%>%
          "Expect_deaths",
         "Expect_deaths_Lower",
         "Expect_deaths_Upper",
-         "total_overall"
-         #  "af.comb",
-         #"hdi_group"
-         )%>%
+         "total_overall")%>%
   rename("cancer"="cancer_label")
-
 
 #Calculating the overall AD
 
@@ -958,7 +952,6 @@ write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 # # Random Forest model as a different approach
 # # Using the ranger package 
 # # 
-# 
 # # ranger model.Too complex for the whole dataset on this laptop
 # # would be interesting to try this again with a more powerful computer
 # #https://rviews.rstudio.com/2017/09/25/survival-analysis-with-r/

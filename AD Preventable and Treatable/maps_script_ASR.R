@@ -7,6 +7,7 @@ library(tidyverse)
 library(ggrepel)
 library(rgdal)
 library(pastecs)
+library(ggpubr)
 
 
 # load AD results
@@ -178,7 +179,7 @@ ggplot() +
                     drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))
+  scale_linetype_manual(values=c("solid", "11"))->AD_map_prev.asr
 
 ggsave("map_AD_all_cancers_prev_ASR.pdf",width = 40, height = 30, pointsize = 12) 
 
@@ -266,7 +267,7 @@ ggplot() +
                     drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))
+  scale_linetype_manual(values=c("solid", "11"))->AD_map_treatable.asr
 
 ggsave("map_AD_all_cancers_treatable_ASR.pdf",width = 40, height = 30, pointsize = 12) 
 
@@ -355,8 +356,16 @@ ggplot() +
                     drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))
+  scale_linetype_manual(values=c("solid", "11"))->AD_map_total.asr
 
 ggsave("map_AD_all_cancers_preventable_treatable_ASR.pdf",width = 40, height = 30, pointsize = 12) 
 
 
+
+ggarrange(AD_map_total.asr, AD_map_prev.asr, AD_map_treatable.asr, 
+          labels = c("a)", "b)", "c)"),
+          ncol = 1, nrow = 3,
+          font.label = list(size = 60, color = "black"))
+
+
+ggsave("map_AD_asr.pdf", width = 40, height =67, limitsize = FALSE) 
