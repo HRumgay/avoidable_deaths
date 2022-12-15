@@ -198,8 +198,11 @@ Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survc
 Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.csv") %>%
   as.data.frame()
 
+HDI_File<-Survival_Modelled%>%
+  select(country_code, country_label, hdi_value, hdi_group)%>%
+  distinct()
 
-
+write.csv(HDI_File, "~/Documents/R_Projects/Data/HDI_file_2019.csv")
 
 #HDI <-read.csv("~/Documents/R_Projects/Data/HDI_2019.csv") %>% as.data.frame()
 Thailand_Survcan <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()
@@ -792,6 +795,7 @@ NS_OS$age_cat <- as.factor(NS_OS$age_cat)
 #Prepping PAFs data processing and combining by age group
 
 PAFs_age_Cat <- PAFs %>%
+  distinct()%>%
   filter(country_label == "Thailand") %>%
   mutate(age_cat = case_when(age >= 4 & age < 14 ~ "15-64",
                              age >= 14 ~ "65-99",

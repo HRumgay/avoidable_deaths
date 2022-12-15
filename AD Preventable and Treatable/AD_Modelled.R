@@ -171,6 +171,7 @@ simulated_overall<-Countries_Simulated%>%
 # PAF combinations
 
 PAFs_age_Cat <- PAFs%>%
+  distinct()%>%
   mutate(age = case_when(
     age==0~ 0,
     age==1~ 1,
@@ -321,6 +322,7 @@ Avoidable_Deaths_Simulated_All2<-Avoidable_Deaths_Simulated_All3%>%
   mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))
 
  
+Avoidable_Deaths_Simulated_All2
 
 # Globocan population data 
 
@@ -476,7 +478,6 @@ AD_by_HDI <- Avoidable_Deaths_Simulated_All%>%
   ungroup()%>%
   mutate(hdi_group=as.numeric(hdi_group))%>%
   ungroup()%>%
-  group_by(hdi_group,cancer)%>%
   group_by(hdi_group,cancer)%>%
   mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
          AD_treat.asr=sum(AD_treat/py*100000*w),
@@ -635,7 +636,8 @@ AD_cancer <- Avoidable_Deaths_Simulated_All%>%
 
 
 # Calculating by region. Need a file that links countries to region 
-HDI_Region_Mapping2 <- HDI_Region_Mapping%>%select(-country_label)%>%
+HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
+  select(-country_label)%>%
   filter(area<=21)
 
 areas <- HDI_Region_Mapping%>%
@@ -748,9 +750,6 @@ countries_regions<-Avoidable_Deaths_Simulated_All%>%
   left_join(HDI_Region_Mapping2, by=c("country_code"))
 
 
-
-
-
 # Table 1 in the manuscript
 
 # Gives us number, percentage of total deaths 
@@ -791,8 +790,6 @@ table_1_1 <- Avoidable_Deaths_Simulated_All %>%
          AD_prev.asr,AD_treat.asr ,AD_treat_not_prev.asr,
          AD_treat_prev.asr, AD_unavoid.asr,Expect_deaths.asr)%>%
   distinct()
-
-
 
 
 # By Country and all cancer sites
@@ -956,9 +953,9 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
           "total_deaths","Expect_deaths.asr")
 
 # By risk factor 
-
-
-  
+#
+# In a seperate file
+#
   
   
 #writing the files
