@@ -220,3 +220,44 @@ sum(Incidence_check$cases)
 
 write.csv(check_summary, "~/Documents/R_Projects/Data/Survival_check.csv")
 
+
+
+PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
+  group_by(country_code, sex,
+           cancer_code, age)%>%
+  filter(sex!=0)%>%
+  mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+                            cases==0 ~ af.comb))%>%
+  ungroup()%>%
+  as.data.frame()#%>%
+#distinct()
+
+# PAF file check
+
+# checking for duplicate rows
+PAFs_duplicates2 <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
+  group_by(country_code, sex,
+           cancer_code, age)%>%
+  filter(sex!=0)%>%
+  # mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+  #                           cases==0 ~ af.comb))%>%
+  ungroup()%>%
+  as.data.frame()
+
+PAFs_duplicates<-PAFs_duplicates2%>%
+  group_by(country_code,cancer_code, sex, age)%>%
+  mutate(n=n())%>%
+  filter(n==2)
+
+# calculating the excess cases...
+sum(PAFs_duplicates$cases)/2
+
+# What cancer sites are problematic with doubles
+
+PAFs_duplicates %>%
+  ungroup() %>%
+  select(cancer_label) %>%
+  distinct()
+
+
+

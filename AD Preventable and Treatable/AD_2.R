@@ -189,8 +189,9 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~ af.comb))%>%
   ungroup()%>%
-  as.data.frame()%>%
-  distinct()
+  as.data.frame()#%>%
+  #distinct()
+
 
 Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
 Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
@@ -222,6 +223,9 @@ MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
   as.data.frame()%>%
   select(-mortality,-incidence)%>%
   mutate(MIR=replace(MIR,MIR==Inf, NA))
+
+
+
 
 #same file but Globocan age groups for modeled data
 MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR.csv")%>%

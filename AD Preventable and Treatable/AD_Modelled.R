@@ -18,7 +18,7 @@
 ES3<-ES_dt%>%
   filter(time==1000)%>%
   select(-time)%>%
-  rename("ES"="SurvExp")
+  dplyr::rename("ES"="SurvExp")
 
 
 # Imputing missing countries 
@@ -202,9 +202,9 @@ PAFs_age_Cat <- PAFs%>%
                        cases==0 ~ ES)) %>%
   summarize(country_code,country_label, cancer_code, cancer_label,
             age, sex,age_cat, 
-            cases=sum(cases, na.rm=T),
-            cases.prev=sum(cases.prev, na.rm=T), 
-            cases.notprev=sum(cases.notprev, na.rm=T),
+             cases=sum(cases, na.rm=T),
+             cases.prev=sum(cases.prev, na.rm=T), 
+             cases.notprev=sum(cases.notprev, na.rm=T),
             af.comb= case_when(cases!=0 ~  sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
                                cases.prev==0 ~ 0),
             total_overall=sum(cases, na.rm=T),
@@ -296,7 +296,7 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
          "total_overall",
        #  "af.comb",
          "hdi_group")%>%
-  rename("cancer"="cancer_label")
+  dplyr::rename("cancer"="cancer_label")
 
 
 colorectal<-Avoidable_Deaths_Simulated_All3%>%
@@ -564,7 +564,7 @@ AD_country_all_cancers <-Avoidable_Deaths_Simulated_All%>%
   group_by(country_label, cancer, age,sex)%>%
   mutate(py=sum(py))%>%
   ungroup()%>%
-  select(-age,-sex,-total_overall,-af.comb,-AD_sum)%>%
+  select(-age,-sex,-total_overall,-AD_sum)%>% #-af.comb,
   mutate(AD_treat_prev=AD_treat+AD_prev)%>%
   ungroup()%>%
   select(  -hdi_group,  )%>%
