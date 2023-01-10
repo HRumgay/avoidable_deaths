@@ -172,7 +172,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total ASR Avoidable Deaths (Preventable)",
+  scale_fill_manual(name = "Total ASR of Preventable Deaths (Deaths per 100,000 People) ",
                     values= colors_blue_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -260,7 +260,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total ASR Avoidable Deaths (Treatable)",
+  scale_fill_manual(name = "Total ASR of Treatable Deaths (Deaths per 100,000 People)",
                     values= colors_blue_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -349,7 +349,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total Overall ASR Avoidable Deaths",
+  scale_fill_manual(name = "Total ASR of Avoidable Deaths (Deaths per 100,000 People)",
                     values= colors_blue_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -362,7 +362,7 @@ ggsave("map_AD_all_cancers_preventable_treatable_ASR.pdf",width = 40, height = 3
 
 
 
-ggarrange(AD_map_total.asr, AD_map_prev.asr, AD_map_treatable.asr, 
+ggarrange(AD_map_prev.asr, AD_map_treatable.asr,AD_map_total.asr,  
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))

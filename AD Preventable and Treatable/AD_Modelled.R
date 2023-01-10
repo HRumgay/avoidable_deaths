@@ -2,8 +2,8 @@
 ###############################################
 #
 # Net survival and Avoidable deaths - Simulated data
-#  Date: 17/07/2022
-# Version 2.3
+# Date: 10/01/2023
+# Version 3.0
 #
 #
 #Load files and packages in AD_2.R file
@@ -302,7 +302,7 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
 colorectal<-Avoidable_Deaths_Simulated_All3%>%
   filter(cancer_code%in%c("8","9"))%>%
   mutate(cancer="Colorectal",
-         cancer_code=38)%>%
+         cancer_code=8)%>%
   group_by(country_code, cancer_code, age, sex)%>%
   mutate(AD_prev=sum(AD_prev),
          AD_treat=sum(AD_treat),

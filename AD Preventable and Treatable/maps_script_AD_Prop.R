@@ -175,7 +175,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total preventable proportion of deaths avoidable (%)",
+  scale_fill_manual(name = "Proportion of preventable deaths (%)",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -263,7 +263,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total treatable proportion of deaths avoidable (%)",
+  scale_fill_manual(name = "Proportion of treatable deaths (%)",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -353,7 +353,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total proportion of deaths avoidable (%)",
+  scale_fill_manual(name = "Proportion of avoidable deaths (%)",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -366,7 +366,7 @@ ggplot() +
 ggsave("map_AD_all_cancers_preventable_treatable_prop.pdf",width = 40, height = 20, pointsize = 12) 
 
 
-ggarrange(AD_map_total, AD_map_prev, AD_map_treatable, 
+ggarrange( AD_map_prev, AD_map_treatable, AD_map_total,
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))

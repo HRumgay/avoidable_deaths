@@ -1,12 +1,10 @@
 ###############################################
 #
 # Net survival and Avoidable deaths
-# Date: 17/07/2022
-# Version 2.3
+# Date: 10/01/2023
+# Version 3.0
 #
 # Works for multiple cancer sites currently.
-#
-# Needs to be synced
 #
 ###############################################
 
@@ -204,7 +202,7 @@ HDI_File<-Survival_Modelled%>%
   select(country_code, country_label, hdi_value, hdi_group)%>%
   distinct()
 
-write.csv(HDI_File, "~/Documents/R_Projects/Data/HDI_file_2019.csv")
+#write.csv(HDI_File, "~/Documents/R_Projects/Data/HDI_file_2019.csv")
 
 #HDI <-read.csv("~/Documents/R_Projects/Data/HDI_2019.csv") %>% as.data.frame()
 Thailand_Survcan <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()

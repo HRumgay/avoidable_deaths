@@ -27,7 +27,7 @@ AD_HDI_by_cancer_site_3<-AD_by_HDI %>%
   dplyr::rename("AD"="AD_treat")%>%
   dplyr::mutate(AD_cat="Treatable")
 
-AD_HDI_by_cancer_site_1<-AD_by_HDI %>%
+AD_HDI_by_cancer_site_2<-AD_by_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group,cancer, cancer_code, AD_prev)%>%
   dplyr::rename("AD"="AD_prev")%>%
@@ -73,7 +73,7 @@ table_1_1
 # alternative pie charts script using some elements from Bar_and_Pie_base.R script using globocan colours
 col <- read.csv("~/Documents/R_Projects/Data/cancer_color_2018.csv", sep=",",stringsAsFactors = F)
 
-
+view(col)
 
 Avoidable_Deaths_Simulated_All %>% 
   group_by(cancer) %>% 
@@ -84,7 +84,9 @@ Avoidable_Deaths_Simulated_All %>%
   filter(!is.na(cancer_code)) %>% 
   select(cancer,cancer_code,AD_prev,AD_treat,AD_treat_prev,Expect_deaths)%>% 
   unique() %>% 
-  left_join(col %>% select(cancer_label:Color.Hex) %>% filter(cancer_label!="Colorectum")) %>% 
+  left_join(col %>% 
+              select(cancer_label:Color.Hex) %>%
+              filter(cancer_label!="Colorectum")) %>% 
   pivot_longer(AD_prev:Expect_deaths,
                names_to="AD_cat",
                values_to = "AD") %>%
@@ -145,7 +147,7 @@ piedp <- as.data.table(AD_by_cancer_site_1 %>%filter(AD_cat=="AD_prev") )
 piedp %>%
   ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(piedp$rankc),
                                                labels = unique(piedp$Color.Hex)), 
-             width=table_1_1$AD_prev/table_1_1$AD_treat_prev)) +
+             width=2*sqrt(table_1_1$AD_prev/table_1_1$AD_treat_prev/pi))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
                                scales::percent(percent, accuracy = 1)), x = 2.75),
@@ -177,7 +179,7 @@ piedt <- as.data.table(AD_by_cancer_site_1 %>%filter(AD_cat=="AD_treat") )
 piedt %>%
   ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(piedt$rankc),
                                                labels = unique(piedt$Color.Hex)),
-             width=table_1_1$AD_treat/table_1_1$AD_treat_prev)) +
+           width=2*sqrt(table_1_1$AD_treat/table_1_1$AD_treat_prev/pi))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
                                scales::percent(percent, accuracy = 1)), x = 2.75),

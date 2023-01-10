@@ -1,5 +1,3 @@
-
-
 ## script to plot maps of cancer deaths by 
 
 library(data.table)
@@ -185,7 +183,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  guides(fill=guide_legend(title="Cancer site with the highest number preventable avoidable deaths by cancer site"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number preventable deaths"))+
   #scale_color_manual(name = cancer,values=df_AD_map$Color.Hex)+
   scale_fill_manual(values = palette1_named_prev)+
   #scale_fill_lancet()+
@@ -204,7 +202,7 @@ df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]%>%
   arrange(desc(cancer))
 
 #colors 
-allc_treat<-allc%>%select(cancer)%>%distinct()
+allc_treat<-allc%>%ungroup()%>%select(cancer)%>%distinct()
 
 cancer_colors_treat<- cancer_colors%>%filter(cancer%in%allc_treat$cancer)
 palette1_named_treat =  setNames(object = cancer_colors_treat$Color.Hex, nm = cancer_colors_treat$cancer)
@@ -263,11 +261,11 @@ df_AD_map%>%
         legend.background = element_rect(fill= "transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest number treatable avoidable deaths by cancer site"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number treatable deaths"))+
   scale_fill_manual(values = palette1_named_treat)+
   #scale_color_manual(values=c("grey100", "grey10"))+
 #  scale_fill_lancet()+
-  scale_linetype_manual(values=c("solid", "11"))->max_treat
+  scale_linetype_manual(values=c("solid", "11"))-> max_treat
 
 ggsave("map_AD_all_cancers_treatable_max_country.pdf",width = 40, height = 30, pointsize = 12) 
 
@@ -345,7 +343,7 @@ df_AD_map%>%
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest number total avoidable deaths"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number avoidable deaths"))+
   scale_fill_manual(values = palette1_named_treat_prev)+
  # scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))->max_total
@@ -354,7 +352,7 @@ ggsave("map_AD_all_cancers_treat_prev_max_country.pdf", width = 40, height = 30,
 
 
 
-ggarrange(max_total, max_prev, max_treat, 
+ggarrange(max_prev, max_treat,max_total,  
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
