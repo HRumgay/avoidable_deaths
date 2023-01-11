@@ -941,6 +941,7 @@ table_1_11<-table_1_1%>%mutate(across(1:6,round, -2))%>%
 AD_by_HDI
 
 AD_by_HDI_all2<-AD_by_HDI_all%>%
+  arrange(hdi_group)%>%
   mutate(across(2:6, round, -2))%>%
   mutate(across(9:14, round, 1))%>%
   mutate(across(15:17, round, -2))%>%
