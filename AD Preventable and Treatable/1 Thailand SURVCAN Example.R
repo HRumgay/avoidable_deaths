@@ -50,13 +50,13 @@ PAFs<-PAFs10%>%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~    af.comb))%>%
   ungroup()%>%
-  as.data.frame()
+  as.data.frame()%>%distinct()
 
 survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()
 Cancer_codes_Survcan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
 
-Survival_Modelled <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_allsites_allcountries.csv") %>% 
+Survival_Modelled <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_allsites_allcountries.23.01.23.csv") %>% 
    as.data.frame()
 
 
@@ -86,7 +86,7 @@ MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visi
 
 Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
 
-Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.csv")%>%
+Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.23.01.23.csv")%>%
   as.data.frame()%>%
   select( age,
           cancer_code,
@@ -161,16 +161,16 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~ af.comb))%>%
   ungroup()%>%
-  as.data.frame()#%>%
-  #distinct()
+  as.data.frame()%>%
+  distinct()
 
 
 Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
 Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
 
 
-Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.csv") %>%
-  as.data.frame()
+Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.23.01.23.csv") %>%
+  as.data.frame()%>%distinct()
 
 HDI_File<-Survival_Modelled%>%
   select(country_code, country_label, hdi_value, hdi_group)%>%
@@ -232,7 +232,7 @@ Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expec
 
 sapply(Reference_Survival, class)
 
-Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.csv")%>%
+Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.23.01.23.csv")%>%
   as.data.frame()%>%
   select( age,
           cancer_code,

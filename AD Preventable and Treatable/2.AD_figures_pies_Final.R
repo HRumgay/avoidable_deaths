@@ -19,6 +19,7 @@ table_1_11
 
 
 
+
 # Pie Charts
 
 AD_HDI_by_cancer_site_3<-AD_by_HDI %>%
@@ -77,7 +78,7 @@ view(col)
 
 Avoidable_Deaths_Simulated_All %>% 
   group_by(cancer) %>% 
-  dplyr::mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T),
+  dplyr::mutate(AD_treat_prev=sum(AD_treat, AD_prev,na.rm=T),
          AD_prev=sum(AD_prev,na.rm=T),
          AD_treat=sum(AD_treat,na.rm=T),
          Expect_deaths=sum(Expect_deaths,na.rm=T)) %>% 
@@ -113,7 +114,7 @@ Avoidable_Deaths_Simulated_All %>%
 Avoidable_Deaths_Simulated_All %>%
   filter(!is.na(cancer_code)) %>%
   group_by(cancer,cancer_code,hdi_group) %>% 
-  dplyr::mutate(AD_treat_prev=sum(AD_treat_not_prev,AD_prev,na.rm=T),
+  dplyr::mutate(AD_treat_prev=sum(AD_treat, AD_prev,na.rm=T),
          AD_prev=sum(AD_prev,na.rm=T),
          AD_treat=sum(AD_treat,na.rm=T),
          Expect_deaths=sum(Expect_deaths,na.rm=T)) %>% 
@@ -141,6 +142,7 @@ Avoidable_Deaths_Simulated_All %>%
                           TRUE~cancer)) %>% 
   select(hdi_group, cancer,Color.Hex,AD_cat,AD,percent,rankc) %>% 
   unique() -> AD_by_cancer_site_1_HDI
+
 
 #preventable pie
 piedp <- as.data.table(AD_by_cancer_site_1 %>%filter(AD_cat=="AD_prev") )
@@ -212,9 +214,8 @@ ggsave("pie.treat.pdf",pie.treat,width=5.43 ,height=2.43)
 pieda <- as.data.table(AD_by_cancer_site_1 %>%filter(AD_cat=="AD_treat_prev") )
 pieda %>%
   ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(pieda$rankc),
-                                               labels = unique(pieda$Color.Hex),
-                                               width=2), 
-             width=1)) +
+                                               labels = unique(pieda$Color.Hex)), 
+             width=2)) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
                                scales::percent(percent, accuracy = 1)), x = 2.75),
