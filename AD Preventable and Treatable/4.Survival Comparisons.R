@@ -242,19 +242,76 @@ surv_differences_all<-countries_5y%>%
   filter(abs(surv_dif)>0.20)
  
 
-#Forest plot of all age groups
+#Forest plot of all age groups and HDI
 
 library(ggplot2)
 # Basic dot plot
-p2<-ggplot(surv_differences_all, aes(x=cancer_label, y=surv_dif)) + 
+
+p2<- surv_differences_all%>%
+  ggplot(aes(x=cancer_label, y=surv_dif)) + 
   geom_point()+ 
   coord_flip()+
-  labs(title="Absolute Net Survival Difference larger than 0.2 between various consecutive Globocan age groups",
+  labs(title="Absolute Net Survival Difference larger than 0.2 between various consecutive Globocan age groups\\
+       All HDI groups",
+       x = "Cancer", y = "Net Survival Difference")+
+  facet_grid(hdi_group ~ age_group)
+p2
+ggsave("surv_Differences_all_age_groups_HDI_All.pdf",width = 20, height = 10, pointsize = 12) 
+
+p2_1<- surv_differences_all%>%
+  filter(hdi_group=="1")%>%
+  ggplot(aes(x=cancer_label, y=surv_dif)) + 
+  geom_point()+ 
+  coord_flip()+
+  labs(title="Absolute Net Survival Difference larger than 0.2 between various consecutive Globocan age groups\\
+       HDI group=1",
        x = "Cancer", y = "Net Survival Difference")+
   facet_grid(1 ~ age_group)
-p2
+p2_1
+ggsave("surv_Differences_all_age_groups_1.pdf",width = 20, height = 10, pointsize = 12) 
 
-ggsave("surv_Differences_all_age_groups.pdf",width = 20, height = 10, pointsize = 12) 
+p2_2<- surv_differences_all%>%
+  filter(hdi_group=="2")%>%
+  ggplot(aes(x=cancer_label, y=surv_dif)) + 
+  geom_point()+ 
+  coord_flip()+
+  labs(title="Absolute Net Survival Difference larger than 0.2 between various consecutive Globocan age groups\\
+       HDI group=2",
+       x = "Cancer", y = "Net Survival Difference")+
+  facet_grid(1~ age_group)
+
+p2_2
+
+ggsave("surv_Differences_all_age_groups_2.pdf",width = 20, height = 10, pointsize = 12) 
+
+p2_3<- surv_differences_all%>%
+  filter(hdi_group=="3")%>%
+  ggplot(aes(x=cancer_label, y=surv_dif)) + 
+  geom_point()+ 
+  coord_flip()+
+  labs(title="Absolute Net Survival Difference larger than 0.2 between various consecutive Globocan age groups\\
+       HDI group=3",
+       x = "Cancer", y = "Net Survival Difference")+
+  facet_grid(1 ~ age_group)
+
+p2_3
+
+ggsave("surv_Differences_all_age_groups_3.pdf",width = 20, height = 10, pointsize = 12) 
+
+p2_4<- surv_differences_all%>%
+  filter(hdi_group=="4")%>%
+  ggplot(aes(x=cancer_label, y=surv_dif)) + 
+  geom_point()+ 
+  coord_flip()+
+  labs(title="Absolute Net Survival Difference larger than 0.2 between various consecutive Globocan age groups\\
+       HDI group=4",
+       x = "Cancer", y = "Net Survival Difference")+
+  facet_grid(1 ~ age_group)
+
+p2_4
+
+ggsave("surv_Differences_all_age_groups_4.pdf",width = 20, height = 10, pointsize = 12) 
+
 
 
 

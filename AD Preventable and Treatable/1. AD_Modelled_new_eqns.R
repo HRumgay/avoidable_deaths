@@ -96,17 +96,7 @@ ES3<-p%>%
 #   full_join(ES_palestine)%>%
 #   full_join(ES_Guam)
 
-ES2<-ES3#%>%
-  # dplyr::group_by(country_code, age)%>%
-  # left_join(ES_Additional, by=c("country_code", "age", "sex"))%>%
-  # dplyr::mutate(ES=case_when(
-  #   country_code%in%c(254, 258, 312, 474, 540, 638, # French territories
-  #                     630, 275, 316 #puerto rico
-  #   ) ~ ES3, 
-  #   TRUE~ ES))%>%
-  # select(-ES3)
-
-
+ES2<-ES3
 
 
 
@@ -570,6 +560,8 @@ AD_by_HDI_all <-Avoidable_Deaths_Simulated_All%>%
 
 
 AD_by_HDI_all 
+
+
 # By country for all cancer sites (number and proportion): 
 
 AD_country_all_cancers <-Avoidable_Deaths_Simulated_All%>%
@@ -881,9 +873,9 @@ Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_a
   as.data.frame()%>%
   dplyr::filter(age_cat=="Overall")%>% 
   ungroup()%>%
-  dplyr::dplyr::group_by(country_code,cancer_code)%>%
+  dplyr::group_by(country_code,cancer_code)%>%
   dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  select(-Expect_deaths,-AD_sum)%>%
+  #select(-Expect_deaths,-AD_sum)%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat, AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -1004,5 +996,4 @@ AD_country_all_cancers2
 AD_cancer2
 table_1_11
 Avoidable_Deaths_Simulated_All_age_cat_overall
-
 

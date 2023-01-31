@@ -31,7 +31,7 @@ Reference_Survival_old<-read.csv("~/Documents/R_Projects/Data/Reference_Survival
 # ES_dt_old<-ES_dt
 # Expected survival
 
-ES3<-p%>%
+ES2<-p%>%
   as.data.frame()%>%
   dplyr::filter(year==2019)%>%
   dplyr::rename(ES="es")%>%
@@ -933,7 +933,7 @@ AD_cancer2_old <- AD_cancer_old%>%
 AD_Region_old<-AD_Region2_old%>%
   dplyr::mutate(across(2:5, round, -2))%>%
   dplyr::mutate(across(7:7,round, -2))%>%
-dplyr::mutate(across(8:13,round, 1))%>%
+  dplyr::mutate(across(8:13,round, 1))%>%
   dplyr::mutate(across(14:14,round, -2))%>%
   dplyr::mutate(across(15:19, round,3)*100)%>% #dplyr::mutate to show proportion as percentage in export
   arrange(continent, country_label)%>%
@@ -1001,5 +1001,10 @@ AD_country_all_cancers2_old
 AD_cancer2_old
 table_1_11_old
 Avoidable_Deaths_Simulated_All_age_cat_overall_old
+
+
+
+
+
 
 

@@ -184,18 +184,18 @@ Thailand_Survcan <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_cc_Oliver
 Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.csv") %>% as.data.frame() %>%
   left_join(country_codes, by = c("region" = "country_label"))
 
-# Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
+Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
 
-# popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()%>%
-#   left_join(country_codes)
-# 
-# p <- read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
-#   as.data.frame()
-# 
-# MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
-#   as.data.frame()%>%
-#   select(-mortality,-incidence)%>%
-#   mutate(MIR=replace(MIR,MIR==Inf, NA))
+popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()%>%
+  left_join(country_codes)
+
+p <- read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
+  as.data.frame()
+
+MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
+  as.data.frame()%>%
+  select(-mortality,-incidence)%>%
+  mutate(MIR=replace(MIR,MIR==Inf, NA))
 
 
 
@@ -280,58 +280,58 @@ mutate(surv_ref=  sum(surv_ref*cases, na.rm=T)/sum(cases, na.rm=T))%>%
   select(-cases)%>%
   distinct()
 
-#   
-# 
-# Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
-#   as.data.frame()%>%
-#   select( age_cat,
-#           cancer_code,
-#           rel_surv)%>%
-#   dplyr::rename("surv_ref"="rel_surv")%>%
-#   distinct()%>%
-#   mutate(surv_ref=case_when(surv_ref>1~ 1,
-#                             surv_ref<=1~ surv_ref))
+
+
+Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
+  as.data.frame()%>%
+  select( age_cat,
+          cancer_code,
+          rel_surv)%>%
+  dplyr::rename("surv_ref"="rel_surv")%>%
+  distinct()%>%
+  mutate(surv_ref=case_when(surv_ref>1~ 1,
+                            surv_ref<=1~ surv_ref))
 
 
 load("~/Documents/R_Projects/Data/ExpectedSurvival.RData")
 
-# 
-# ES2<-p%>%
-#   as.data.frame()%>%
-# 
-#   dplyr::rename(ES="es")%>%
-#   select(-country_label, -year)
 
-# 
-# 
-# 
-# # 
-# # ES_age_Cats<-ES2%>%  
-# #   mutate(age = case_when(
-# #     age==0~ 0,
-# #     age==1~ 1,
-# #     age==2~ 2,
-# #     age==3~ 3,
-# #   age==4~ 4,
-# #   age>4 & age<=9~ 9,
-# #   age==10~ 10,
-# #   age==11~ 11,
-# #   age==12~ 12,
-# #   age==13~ 13,
-# #   age==14~ 14,
-# #   age==15~ 15,
-# #   age>=16 ~ 16))%>%
-# #   mutate(
-# #     age_cat = case_when(
-# #       age>=4 & age<14 ~ "15-64",
-# #       age>=14 ~ "65-99",
-# #       age<4 ~"0-15"
-# #     ))%>%left_join
-# # 
-# 
-# # 
-# 
-# 
+ES2<-p%>%
+  as.data.frame()%>%
+
+  dplyr::rename(ES="es")%>%
+  select(-country_label, -year)
+
+#
+#
+#
+
+ES_age_Cats<-ES2%>%
+  mutate(age = case_when(
+    age==0~ 0,
+    age==1~ 1,
+    age==2~ 2,
+    age==3~ 3,
+  age==4~ 4,
+  age>4 & age<=9~ 9,
+  age==10~ 10,
+  age==11~ 11,
+  age==12~ 12,
+  age==13~ 13,
+  age==14~ 14,
+  age==15~ 15,
+  age>=16 ~ 16))%>%
+  mutate(
+    age_cat = case_when(
+      age>=4 & age<14 ~ "15-64",
+      age>=14 ~ "65-99",
+      age<4 ~"0-15"
+    ))%>%left_join
+# #
+#
+
+#
+#
 # ten_cancer_sites <-
 #   Cancer_codes %>% 
 #   filter(cancer_code %in% c(6, 7, 11, 13, 15, 20, 23, 27, 30, 38))%>%
