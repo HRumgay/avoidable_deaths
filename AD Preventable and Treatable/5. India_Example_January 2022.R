@@ -1,40 +1,60 @@
 
-#Survcan_website_NS<-
-  read.csv("~/Documents/R_Projects/Data/SURVCAN_NS_5y.csv")%>%
-  group_by(Cancer.label)%>%
-  select(Cancer.label)%>%distinct()
 
+Survcan_website_NS <- read.csv("~/Documents/R_Projects/Data/India_surv.csv")%>%
+  group_by(cancer_code)%>%
+  as.data.frame()%>%
+  mutate(ES=obs_surv/rel_surv)
 # Malaysia seems like a good reference here. China and Turkey seem like they could be political
 # 
+Survcan_website_NS
 
-
-
-Reference_india <-  Survival_Modelled%>%
-  filter(country_label=="Malaysia")%>%
+Reference_USA <-  Survival_Modelled%>%
+  filter(country_label=="United States of America")%>%
   as.data.frame()%>%
   select( age,
           cancer_code,
           rel_surv)%>%
   dplyr::rename("surv_ref"="rel_surv")%>%
   distinct()%>%
-  mutate(surv_ref=case_when(surv_ref>1~ 1,
-                            surv_ref<=1~ surv_ref))  
-  
-  PAF_India<-Simulated_Data_PAF_1%>%
-  filter(country_label=="India")%>%
-  dplyr::mutate(rel_surv=as.double(rel_surv))%>%
-  dplyr::mutate(af.comb=as.double(af.comb))%>% 
-  dplyr::mutate(total_overall=as.double(total_overall))%>% 
-  arrange(country_label,cancer_code,age,sex)%>%
-  left_join(Reference_india, by=c("age","cancer_code"))%>%
-              filter(cancer_label%in%c("Prostate","Breast", "Stomach", "Stomach", "Liver", 
-                                       "Trachea, bronchus and lung", "Liver and intrahepatic bile ducts",
-                                       "Cervix uteri", "Non-Hodgkin lymphoma",
-                                       "Bladder", "Rectum", "Colon", "Lip, oral cavity",
-                                       "Nasopharynx", "Ovary", "Leukaemia",
-                                       "Oesophagus"))
+  mutate(surv_ref=case_when(surv_ref >1 ~ 1,
+                            surv_ref <=1 ~ surv_ref))%>%
+dplyr::rename("ref_USA"="surv_ref")
+
+#Reference_India_max<-max NS in india
+
+
+# If using the 
+# PAF_India<-Simulated_Data_PAF_1%>%
+#   filter(country_label=="India")%>%
+#   dplyr::mutate(rel_surv=as.double(rel_surv))%>%
+#   dplyr::mutate(af.comb=as.double(af.comb))%>% 
+#   dplyr::mutate(total_overall=as.double(total_overall))%>%
+#   arrange(country_label,cancer_code,age,sex)%>%
+#   left_join(Reference_USA, by=c("age","cancer_code"))%>%
+#               filter(cancer_label%in%c("Prostate","Breast", "Stomach", "Stomach", "Liver", 
+#                                        "Trachea, bronchus and lung", "Liver and intrahepatic bile ducts",
+#                                        "Cervix uteri", "Non-Hodgkin lymphoma",
+#                                        "Bladder", "Rectum", "Colon", "Lip, oral cavity",
+#                                        "Nasopharynx", "Ovary", "Leukaemia",
+#                                        "Oesophagus"))%>%
+#   
   
  
+PAF_India_USA <- Simulated_Data_PAF_1%>%
+  select(country_code,country_label,age, sex, 
+         cancer_code,cancer_label,
+         total_overall)%>%
+  filter(country_label=="India")%>%
+  dplyr::mutate(total_overall=as.double(total_overall))%>%
+  arrange(country_label,cancer_code,age,sex)%>%
+  filter(cancer_label%in%c("Prostate","Breast", "Stomach", "Stomach", "Liver",
+                           "Trachea, bronchus and lung", "Liver and intrahepatic bile ducts",
+                           "Cervix uteri", "Non-Hodgkin lymphoma",
+                           "Bladder", "Rectum", "Colon", "Lip, oral cavity",
+                           "Nasopharynx", "Ovary", "Leukaemia",
+                           "Oesophagus"))%>%
+  left_join(Reference_USA, by=c("age","cancer_code"))#%>%
+#  left_join(Reference_India_max)
 
 
 # Avoidable deaths
@@ -48,18 +68,15 @@ Reference_india <-  Survival_Modelled%>%
 
 Avoidable_Deaths_Simulated_All3_india <-  PAF_India%>%
   dplyr::group_by(country_code, cancer_code, age, sex)%>%
-  
-  dplyr::mutate(AD_prev= total_overall * af.comb *ES* (1 - rel_surv))%>%
-  dplyr::mutate(AD_treat=(1-af.comb) *total_overall * (surv_ref-rel_surv) * ES)%>%
-  #dplyr::mutate(AD_treat_not_prev = (1-af.comb) * total_overall * (surv_ref-rel_surv) * ES)%>% #scenario 1
-  dplyr::mutate(AD_unavoid =total_overall*(1-ES*surv_ref-af.comb*ES*(1-surv_ref)))%>%
-  dplyr::mutate(Expect_deaths=total_overall*(1-ES*rel_surv))%>%
-  #  dplyr::mutate(AD_sum=AD_prev+AD_treat_not_prev+AD_unavoid)%>%
-  # dplyr::mutate(Expect_deaths=(1-(rel_surv*ES))*total_overall)#%>%
+  dplyr::mutate(AD_treat_USA= total_overall * (ref_USA-rel_surv) * ES)%>%
+  dplyr::mutate(AD_treat_India=total_overall * (ref_India-rel_surv) * ES)%>% # Rutherford model
+  dplyr::mutate(AD_treat=total_overall*0.5 * (ref_USA-rel_surv) * ES +total_overall*0.5 * (ref_India-rel_surv) * ES)%>%
+  dplyr::mutate(AD_unavoid =total_overall * (1-ES*surv_ref-af.comb*ES*(1-surv_ref)))%>%
+  dplyr::mutate(Expect_deaths=total_overall * (1-ES*rel_surv))%>%
   select("country_code","country_label","age_cat","age","cancer_code","cancer_label",   
+         "AD_treat_India",
+         "AD_treat_USA",
          "AD_treat",
-         # "AD_treat_not_prev",
-         "AD_prev",
          "AD_unavoid",
          "Expect_deaths",
          "total_overall",
@@ -72,7 +89,8 @@ colorectal_india<-Avoidable_Deaths_Simulated_All3_india%>%
   dplyr::mutate(cancer="Colorectal",
                 cancer_code=8)%>%
   dplyr::group_by(country_code, cancer_code, age, sex)%>%
-  dplyr::mutate(AD_prev=sum(AD_prev),
+  dplyr::mutate(AD_treat_USA=sum(AD_treat_USA),
+                AD_treat_India=sum(AD_treat_India),
                 AD_treat=sum(AD_treat),
                 #  AD_treat_not_prev=sum(AD_treat_not_prev),
                 AD_unavoid=sum(AD_unavoid),
@@ -88,7 +106,6 @@ Avoidable_Deaths_Simulated_All2_india<-Avoidable_Deaths_Simulated_All3_india%>%
   full_join(colorectal_india)%>%
   dplyr::mutate(cancer = replace(cancer, cancer == "Liver and intrahepatic bile ducts", "Liver"))%>%
   dplyr::mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))
-
 
 Avoidable_Deaths_Simulated_All2_india
 
@@ -152,36 +169,40 @@ weights2 <- weights2%>%dplyr::mutate(age = case_when(
 Avoidable_Deaths_Simulated_All_india<- Avoidable_Deaths_Simulated_All2_india%>%
   as.data.frame()%>%
   dplyr::mutate(age=as.numeric(as.character(age)))%>%
-  dplyr::mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
+  dplyr::mutate(AD_treat_USA=as.numeric(as.character(AD_treat_USA)))%>%
   dplyr::mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   dplyr::mutate(total_overall=as.numeric(as.character(total_overall)))%>%
+  dplyr::mutate(AD_treat_India=as.numeric(as.character(AD_treat_India)))%>%
   dplyr::mutate(AD_treat=as.numeric(as.character(AD_treat)))%>%
-  #dplyr::mutate(AD_treat_not_prev=as.numeric(as.character(AD_treat_not_prev)))%>%
-  dplyr::mutate(AD_sum=AD_prev + AD_unavoid + AD_treat)%>%
+  dplyr::mutate(AD_sum=AD_treat_USA + AD_unavoid + AD_treat_India)%>%
   dplyr::mutate(cancer_code=as.numeric(cancer_code))%>%
   as.data.frame()%>%distinct()%>%
   dplyr::mutate(country_code=as.integer(country_code))%>%
   left_join(pop20202, c("sex", "country_code", "age"))%>%
   left_join(weights2)%>%
-  dplyr::mutate(AD_treat = case_when(AD_treat<0 ~ 0, 
+  dplyr::mutate(AD_treat_India = case_when(AD_treat_India<0 ~ 0, 
                                      # Numerical calculation error causes the countries which are references  to go slightly negative. 
                                      # By definition this is zero This is rounded to 0
-                                     TRUE ~ AD_treat))
+                                     TRUE ~ AD_treat_India))%>%
+  dplyr::mutate(AD_treat_USA = case_when(AD_treat_USA<0 ~ 0, 
+                                           TRUE ~ AD_treat_USA))%>%
+  dplyr::mutate(AD_treat = case_when(AD_treat<0 ~ 0, 
+                                           TRUE ~ AD_treat))
 
 
 ## added new ASR code below
 Avoidable_Deaths_Simulated_All_overall_india <- Avoidable_Deaths_Simulated_All_india%>%
   dplyr::mutate(age_cat="Overall")%>%
   dplyr::group_by(country_code, cancer_code, age_cat)%>%
-  dplyr::mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
-                AD_treat.asr=sum(AD_treat/py*100000*w),
+  dplyr::mutate(AD_treat_USA.asr=sum(AD_treat_USA/py*100000*w), #ASR calculation here
+                AD_treat_India.asr=sum(AD_treat_India/py*100000*w),
                 AD_sum.asr=sum(AD_sum/py*100000*w),
                 # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
                 AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
                 Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   select( -total_overall)%>%
-  dplyr::mutate(AD_prev = sum(AD_prev,na.rm=T))%>%
-  dplyr::mutate(AD_treat = sum(AD_treat,na.rm=T))%>%
+  dplyr::mutate(AD_treat_USA = sum(AD_treat_USA,na.rm=T))%>%
+  dplyr::mutate(AD_treat_India = sum(AD_treat_India,na.rm=T))%>%
   dplyr::mutate(AD_sum = sum(AD_sum,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev = sum(AD_treat_not_prev,na.rm=T))%>%
   dplyr::mutate(AD_unavoid = sum(AD_unavoid,na.rm=T))%>%
@@ -198,15 +219,15 @@ Avoidable_Deaths_Simulated_All_overall_india <- Avoidable_Deaths_Simulated_All_i
 Avoidable_Deaths_Simulated_All_age_cat_india <- Avoidable_Deaths_Simulated_All_india%>%
   ungroup()%>%
   dplyr::group_by(country_code, cancer_code, age_cat)%>%
-  dplyr::mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
-                AD_treat.asr=sum(AD_treat/py*100000*w),
+  dplyr::mutate(AD_treat_USA.asr=sum(AD_treat_USA/py*100000*w), #ASR calculation here
+                AD_treat_India.asr=sum(AD_treat_India/py*100000*w),
                 AD_sum.asr=sum(AD_sum/py*100000*w),
                 #  AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
                 AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
                 Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
   select(-total_overall)%>%
-  dplyr::mutate(AD_prev = sum(AD_prev,na.rm=T))%>%
-  dplyr::mutate(AD_treat = sum(AD_treat,na.rm=T))%>%
+  dplyr::mutate(AD_treat_USA = sum(AD_treat_USA,na.rm=T))%>%
+  dplyr::mutate(AD_treat_India = sum(AD_treat_India,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev = sum(AD_treat_not_prev,na.rm=T))%>%
   dplyr::mutate(AD_unavoid = sum(AD_unavoid,na.rm=T))%>%
   dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
@@ -222,102 +243,102 @@ Avoidable_Deaths_Simulated_All_age_cat_india <- Avoidable_Deaths_Simulated_All_i
 
 
 # By country for all cancer sites (number and proportion): 
-
-AD_country_all_cancers_india <-Avoidable_Deaths_Simulated_All_india%>%
-  dplyr::mutate(age_cat="Overall")%>%
-  as.data.frame()%>%
-  droplevels()%>%
-  ungroup()%>%
-  dplyr::group_by(country_label, cancer, age,sex)%>%
-  dplyr::mutate(py=sum(py))%>%
-  ungroup()%>%
-  select(-age,-sex,-total_overall,-AD_sum)%>% #-af.comb,
-  dplyr::mutate(AD_treat_prev=AD_treat+AD_prev)%>%
-  ungroup()%>%
-  select(  -hdi_group,  )%>%
-  dplyr::group_by(country_code)%>%
-  dplyr::mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
-                AD_treat.asr=sum(AD_treat/py*100000*w),
-                AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
-                # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
-                AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-                Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
-  dplyr::mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
-  dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
-  dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
-  dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
-  #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
-  dplyr::mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
-  dplyr::mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
-  dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
-  #dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
-  dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
-  dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
-  dplyr::mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
-  dplyr::mutate(cancer="All Cancer Sites")%>%
-  dplyr::mutate(cancer_code=1000)%>%
-  select(-py,-w)%>%
-  distinct()%>%
-  ungroup()%>%
-  distinct()%>%
-  as.data.frame()
+# 
+# AD_country_all_cancers_india <-Avoidable_Deaths_Simulated_All_india%>%
+#   dplyr::mutate(age_cat="Overall")%>%
+#   as.data.frame()%>%
+#   droplevels()%>%
+#   ungroup()%>%
+#   dplyr::group_by(country_label, cancer, age,sex)%>%
+#   dplyr::mutate(py=sum(py))%>%
+#   ungroup()%>%
+#   select(-age,-sex,-total_overall,-AD_sum)%>% #-af.comb,
+#   dplyr::mutate(AD_treat=AD_treat_India+AD_treat_USA)%>%
+#   ungroup()%>%
+#   select(  -hdi_group,  )%>%
+#   dplyr::group_by(country_code)%>%
+#   dplyr::mutate(AD_treat_USA.asr=sum(AD_treat_USA/py*100000*w), #ASR calculation here
+#                 AD_treat_India.asr=sum(AD_treat_India/py*100000*w),
+#                 AD_treat.asr=sum((AD_treat_India+AD_treat_USA)/py*100000*w),
+#                 # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+#                 AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+#                 Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+#   dplyr::mutate(total_deaths=sum(AD_treat_USA, AD_unavoid, AD_treat_India,na.rm=T))%>%
+#   dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
+#   dplyr::mutate(AD_treat=sum(AD_treat_India,AD_treat_USA,na.rm=T))%>%
+#   dplyr::mutate(AD_treat_India=sum(AD_treat_India,na.rm=T))%>%
+#   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
+#   dplyr::mutate(AD_treat_USA=sum(AD_treat_USA,na.rm=T))%>%
+#   dplyr::mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+#   dplyr::mutate(pAD_treat_India=AD_treat_India/total_deaths)%>%
+#   #dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
+#   dplyr::mutate(pAD_treat_USA=AD_treat_USA/total_deaths)%>%
+#   dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
+#   dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
+#   dplyr::mutate(cancer="All Cancer Sites")%>%
+#   dplyr::mutate(cancer_code=1000)%>%
+#   select(-py,-w)%>%
+#   distinct()%>%
+#   ungroup()%>%
+#   distinct()%>%
+#   as.data.frame()
 
 
 # By cancer site
 
-AD_cancer_india <- Avoidable_Deaths_Simulated_All_india%>%
-  dplyr::mutate(age_cat="Overall")%>%
-  dplyr::group_by(cancer, age,sex)%>%
-  dplyr::mutate(py=sum(py))%>%
-  ungroup()%>%
-  dplyr::mutate(AD_treat_prev=AD_treat+AD_prev)%>%
-  ungroup()%>%
-  select(-hdi_group,  -AD_sum,-age,-sex)%>%
-  dplyr::mutate(country_code=1000)%>%
-  dplyr::mutate(country_label="All Countries")%>%
-  dplyr::group_by(cancer)%>%
-  dplyr::mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
-                AD_treat.asr=sum(AD_treat/py*100000*w),
-                AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
-                # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
-                AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-                Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
-  dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  select(-Expect_deaths)%>%
-  dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
-  dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
-  #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
-  dplyr::mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
-  dplyr::mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
-  dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
-  # dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
-  dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
-  dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
-  dplyr::mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
-  select(-py,-w,-total_overall)%>%
-  distinct()%>%
-  ungroup()%>%
-  distinct()%>%
-  as.data.frame()
-
+# AD_cancer_india <- Avoidable_Deaths_Simulated_All_india%>%
+#   dplyr::mutate(age_cat="Overall")%>%
+#   dplyr::group_by(cancer, age,sex)%>%
+#   dplyr::mutate(py=sum(py))%>%
+#   ungroup()%>%
+#   dplyr::mutate(AD_treat=AD_treat_India+AD_treat_USA)%>%
+#   ungroup()%>%
+#   select(-hdi_group,  -AD_sum,-age,-sex)%>%
+#   dplyr::mutate(country_code=1000)%>%
+#   dplyr::mutate(country_label="All Countries")%>%
+#   dplyr::group_by(cancer)%>%
+#   dplyr::mutate(AD_treat_USA.asr=sum(AD_treat_USA/py*100000*w), #ASR calculation here
+#                 AD_treat_India.asr=sum(AD_treat_India/py*100000*w),
+#                 AD_treat.asr=sum((AD_treat_India+AD_treat_USA)/py*100000*w),
+#                 # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
+#                 AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
+#                 Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+#   dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
+#   select(-Expect_deaths)%>%
+#   dplyr::mutate(AD_treat=sum(AD_treat_India,AD_treat_USA,na.rm=T))%>%
+#   dplyr::mutate(AD_treat_India=sum(AD_treat_India,na.rm=T))%>%
+#   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
+#   dplyr::mutate(AD_treat_USA=sum(AD_treat_USA,na.rm=T))%>%
+#   dplyr::mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+#   dplyr::mutate(pAD_treat_India=AD_treat_India/total_deaths)%>%
+#   # dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
+#   dplyr::mutate(pAD_treat_USA=AD_treat_USA/total_deaths)%>%
+#   dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
+#   dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
+#   select(-py,-w,-total_overall)%>%
+#   distinct()%>%
+#   ungroup()%>%
+#   distinct()%>%
+#   as.data.frame()
+# 
 
 
 # By Country and all cancer sites
 
- AD_country_all_cancers2_india<-AD_country_all_cancers_india%>%  
-  ungroup()%>%
-  distinct()%>%
-  dplyr::mutate(across(6:10,round, -2))%>%
-  dplyr::mutate(across(11:15,round, 1))%>%
-  dplyr::mutate(across(16:16,round, -2))%>%
-  dplyr::mutate(across(17:20, round,3)*100)%>% #dplyr::mutate to show proportion as percentage in export
-  select("country_code","country_label",
-         "cancer_code", "cancer", 
-         "AD_prev",        "pAD_prev",    "AD_prev.asr",
-         "AD_treat",       "pAD_treat" ,"AD_treat.asr",
-         "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
-         "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
-         "total_deaths","Expect_deaths.asr")
+ # AD_country_all_cancers2_india<-AD_country_all_cancers_india%>%  
+ #  ungroup()%>%
+ #  distinct()%>%
+ #  dplyr::mutate(across(6:10,round, -2))%>%
+ #  dplyr::mutate(across(11:15,round, 1))%>%
+ #  dplyr::mutate(across(16:16,round, -2))%>%
+ #  dplyr::mutate(across(17:20, round,3)*100)%>% #dplyr::mutate to show proportion as percentage in export
+ #  select("country_code","country_label",
+ #         "cancer_code", "cancer", 
+ #         "AD_treat_USA",        "pAD_treat_USA",    "AD_treat_USA.asr",
+ #         "AD_treat_India",       "pAD_treat_India" ,"AD_treat_India.asr",
+ #         "AD_treat",  "pAD_treat","AD_treat.asr",
+ #         "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
+ #         "total_deaths","Expect_deaths.asr")
 
 
 
@@ -329,38 +350,34 @@ Avoidable_Deaths_Simulated_All_india
 Avoidable_Deaths_Simulated_All_age_cat_india
 Avoidable_Deaths_Simulated_All_age_cat_overall_india<-Avoidable_Deaths_Simulated_All_age_cat_india%>% #Object to plot overall age standardized on world maps 
   as.data.frame()%>%
-  dplyr::filter(age_cat=="Overall")%>% 
+  dplyr::filter(age_cat=="Overall")%>%
   ungroup()%>%
   dplyr::group_by(country_code,cancer_code)%>%
   dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  #select(-Expect_deaths,-AD_sum)%>%
-  dplyr::mutate(AD_treat_prev=sum(AD_treat, AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
-  #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
-  dplyr::mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
+  dplyr::mutate(AD_treat_India=sum(AD_treat_India,na.rm=T))%>%
+  dplyr::mutate(AD_treat_USA=sum(AD_treat_USA,na.rm=T))%>%
   dplyr::mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
-  dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
-  #dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
-  dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
+  dplyr::mutate(pAD_treat_India=AD_treat_India/total_deaths)%>%
+  dplyr::mutate(pAD_treat_USA=AD_treat_USA/total_deaths)%>%
   dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
-  dplyr::mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
+  dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
   as.data.frame()%>%
   select( "country_code","country_label","cancer_code", "cancer", 
-          "AD_prev","pAD_prev",    
-          "AD_treat",  "pAD_treat" ,
-          # AD_treat_not_prev, pAD_treat_not_prev,
-          "AD_treat_prev", "pAD_treat_prev",
+          "AD_treat_USA","pAD_treat_USA",    
+          "AD_treat_India",  "pAD_treat_India" ,
+          "AD_treat", "pAD_treat",
           "AD_unavoid",   "pAD_unavoid" ,        
-          "total_deaths"  )%>%
-  dplyr::mutate(across(5:5,round,0 ))%>%
-  dplyr::mutate(across(6:6, round,4)*100)%>% 
-  dplyr::mutate(across(7:7,round,0 ))%>%
-  dplyr::mutate(across(8:8, round,4)*100)%>% 
-  dplyr::mutate(across(9:9,round,0 ))%>%
-  dplyr::mutate(across(10:10, round,4)*100)%>% 
-  dplyr::mutate(across(11:11,round,0 ))%>%
-  dplyr::mutate(across(12:12, round,4)*100)%>% 
-  dplyr::mutate(across(13:13,round,0 ))
+          "total_deaths"  )#%>%
+  # dplyr::mutate(across(5:5,round,0 ))%>%
+  # dplyr::mutate(across(6:6, round,4)*100)%>% 
+  # dplyr::mutate(across(7:7,round,0 ))%>%
+  # dplyr::mutate(across(8:8, round,4)*100)%>% 
+  # dplyr::mutate(across(9:9,round,0 ))%>%
+  # dplyr::mutate(across(10:10, round,4)*100)%>% 
+  # dplyr::mutate(across(11:11,round,0 ))%>%
+  # dplyr::mutate(across(12:12, round,4)*100)%>% 
+  # dplyr::mutate(across(13:13,round,0 ))
 
 Avoidable_Deaths_Simulated_All_age_cat_overall_india
 
@@ -373,21 +390,21 @@ write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall_india, "~/Documents/R_P
 AD_by_cancer_site_india <-Avoidable_Deaths_Simulated_All_age_cat_overall_india
 
 AD_by_cancer_site_3_india<-AD_by_cancer_site_india%>%
-  select(cancer, cancer_code, AD_treat, pAD_treat)%>%
-  rename("AD"="AD_treat")%>%
-  rename("pAD"="pAD_treat")%>%
+  select(cancer, cancer_code, AD_treat_India, pAD_treat_India)%>%
+  rename("AD"="AD_treat_India")%>%
+  rename("pAD"="pAD_treat_India")%>%
   dplyr::mutate(AD_cat="Treatable")
 
 AD_by_cancer_site_2_india<-AD_by_cancer_site_india%>%
-  select(cancer, cancer_code, AD_prev, pAD_prev)%>%
-  rename("AD"="AD_prev")%>%
-  rename("pAD"="pAD_prev")%>%
+  select(cancer, cancer_code, AD_treat_USA, pAD_treat_USA)%>%
+  rename("AD"="AD_treat_USA")%>%
+  rename("pAD"="pAD_treat_USA")%>%
   dplyr::mutate(AD_cat="Preventable")
 
 AD_by_cancer_site_1_india <- AD_by_cancer_site_india%>%
-  select(cancer, cancer_code, AD_treat_prev, pAD_treat_prev)%>%
-  rename("AD"="AD_treat_prev")%>%
-  rename("pAD"="pAD_treat_prev")%>%
+  select(cancer, cancer_code, AD_treat, pAD_treat)%>%
+  rename("AD"="AD_treat")%>%
+  rename("pAD"="pAD_treat")%>%
   dplyr::mutate(AD_cat="Avoidable")%>%
   full_join(AD_by_cancer_site_2_india)%>%
   full_join(AD_by_cancer_site_3_india)
