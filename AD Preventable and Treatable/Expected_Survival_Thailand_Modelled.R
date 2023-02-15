@@ -44,7 +44,7 @@ country_codes <-
   mutate(country_label = replace(country_label, country_label == "Iran, Islamic Republic of", "Iran")) %>%
   mutate(country_label = replace(country_label, country_label == "Korea, Republic of", "South Korea")) %>%
   mutate(country_label = replace(country_label, country_label == "France, Martinique", "Martinique")) %>%
-  mutate(country_label = replace(country_label, country_label ==  "Côte d'Ivoire","Cote d'Ivoire")) %>%
+  mutate(country_label = replace(country_label, country_label ==  "C?te d'Ivoire","Cote d'Ivoire")) %>%
   select(country_code, country_label)%>% 
   full_join(missing_CC)
 

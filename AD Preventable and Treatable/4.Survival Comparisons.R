@@ -4,6 +4,13 @@
 #Aggregated overall survival and incidence currently checked here
 #
 #################################################################
+
+
+
+
+
+
+
 PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
   group_by(country_code, sex,
                    cancer_code, age)%>%

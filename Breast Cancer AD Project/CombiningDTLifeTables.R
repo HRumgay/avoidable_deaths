@@ -3,31 +3,32 @@
 #Script to Combine all SURVCAN life tables into one 
 #
 ##########################
-
+library(readstata13)
 #Life tables - used for analysis
 #To clean all names from the _ symbol
 life_file_list<-list.files('\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\lifetables\\Expanded_2018', full.names=TRUE)
-life<-plyr::ldply(life_file_list,read.dta13)
-life<-life%>%as.data.frame()%>%
+life32<-plyr::ldply(life_file_list,read.dta13)
+life<-life32%>%as.data.frame()%>%
   clean_names()%>%
   filter(!is.na(mx))%>%
   select(-country)%>%
   filter(region!="Martinique")%>%
-  filter(region!="Mauritius")
+  filter(region!="Mauritius")%>%
+  filter(sex==2)
 
 
 Iran<-read.dta13(life_file_list[15])%>%as.data.frame()
-Iran<-Iran%>% clean_names()%>%rename("country"="region")
+Iran<-Iran%>% clean_names()#%>%rename("country"="region")
 
 Martinique<-read.dta13(life_file_list[21])%>%as.data.frame()
-Martinique<-Martinique%>%select(-country)%>% clean_names()%>%rename("country"="region")
+Martinique<-Martinique%>%select(-country)%>% clean_names()#%>%rename("country"="region")
 
 Mauritius<-read.dta13(life_file_list[22])%>%as.data.frame()
- Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
+ Mauritius<-Mauritius%>%clean_names()#%>%dplyr::rename("region"="country")
  
  
 puerto_rico<-read.dta13(life_file_list[27])%>%as.data.frame()
- puerto_rico<- puerto_ricos%>%clean_names()%>%rename("region"="country")
+ puerto_rico<- puerto_rico%>%clean_names()#%>%rename("region"="country")
 
 life<-life%>%full_join(Mauritius)%>%full_join(Martinique)
 

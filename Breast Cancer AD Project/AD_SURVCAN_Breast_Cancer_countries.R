@@ -10,9 +10,17 @@
 #
 ###############################################
 
-
 #Avoidable Deaths due to Risk Factors for various Cancer sites
-
+library(readxl)
+library(dplyr)
+library(tidyverse)
+library(stringr)
+library(haven)
+library(mexhaz)
+library(readr)
+library(ggplot2)
+library(relsurv)
+library(janitor)
 
 
 
@@ -54,7 +62,7 @@ country_codes <-
 #life tables
 
 life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
-  mutate(region = replace(region, region == "Cote d'Ivoire", "Côte d'Ivoire")) %>%
+  mutate(region = replace(region, region == "Cote d'Ivoire", "C?te d'Ivoire")) %>%
   mutate(region = replace(region, region == "France", "Martinique")) %>%
   mutate(region=replace(region,region=="Korea","South Korea"))%>%
   mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
@@ -66,27 +74,24 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
   mutate(region=replace(region,region=="Ethiopy","Ethiopia"))%>%
   left_join(country_codes, by = c("region"="country_label"))%>%
   dplyr::rename("country"="region")%>%
-  select(-country)
+  select(-country)%>%
+  distinct()
   
 
-PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_08.06.2022_Prostate.csv")
+PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")
 
 PAFs<-PAFs10%>%
   mutate(cancer_label=as.character(cancer_label))%>%
-  mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
-  mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
-  mutate(cancer_code  = replace(cancer_code, cancer_code == 8, 38))%>%
-  mutate(cancer_code  = replace(cancer_code, cancer_code == 9, 38))%>%
+  filter(cancer_label=="Breast")%>%
+  distinct()%>%
   group_by(country_code, sex, 
            cancer_code, age)%>%
   filter(sex!=0)%>%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~    af.comb))%>%
-  # mutate(cases.prev=sum(cases.prev))%>%
-  # mutate(cases.notprev=sum(cases.notprev))%>%
-  # mutate(cases=sum(cases))%>%
   ungroup()%>%
-  as.data.frame()
+  as.data.frame()%>%
+  distinct()
 
 survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()
@@ -113,31 +118,31 @@ MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visi
   mutate(MIR=replace(MIR,MIR==Inf, NA))
 
 #same file but Globocan age groups for modeled data 
-MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR.csv")%>%
-  as.data.frame()%>%
-  select(-mortality,
-         -incidence)%>%
-  mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
-  mutate(age = case_when(
-    age==4~ 4,
-    age>4 & age<=9~ 9,
-    age==10~ 10,
-    age==11~ 11,
-    age==12~ 12,
-    age==13~ 13,
-    age==14~ 14,
-    age==15~ 15,
-    age>=16 ~ 16,
-  ))%>%
-  mutate(age_cat = case_when(
-    age>=4 & age<14 ~ "15-64",
-    age>=14 ~ "65-99",
-    age<4 ~"0-15"))%>%
-  select(-sex, -X)%>%
-  group_by(country_code, cancer_code, age)%>%
-  mutate(MIR=sum(MIR*py)/sum(py))%>%
-  mutate(py=sum(py))%>%distinct()%>%
-  ungroup()
+# MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR.csv")%>%
+#   as.data.frame()%>%
+#   select(-mortality,
+#          -incidence)%>%
+#   mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
+#   mutate(age = case_when(
+#     age==4~ 4,
+#     age>4 & age<=9~ 9,
+#     age==10~ 10,
+#     age==11~ 11,
+#     age==12~ 12,
+#     age==13~ 13,
+#     age==14~ 14,
+#     age==15~ 15,
+#     age>=16 ~ 16,
+#   ))%>%
+#   mutate(age_cat = case_when(
+#     age>=4 & age<14 ~ "15-64",
+#     age>=14 ~ "65-99",
+#     age<4 ~"0-15"))%>%
+#   select(-sex, -X)%>%
+#   group_by(country_code, cancer_code, age)%>%
+#   mutate(MIR=sum(MIR*py)/sum(py))%>%
+#   mutate(py=sum(py))%>%distinct()%>%
+#   ungroup()
 
 
 #Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
@@ -218,6 +223,7 @@ country_codes
 
 #Prepping cancer real world data
 bcan_SURV2 <- bcan_SURV %>%
+  distinct()%>%
   filter(surv_ddtot>0)%>%
   filter(include == "Included") %>%
   filter(age >= 15) %>%
@@ -230,7 +236,7 @@ bcan_SURV2 <- bcan_SURV %>%
     labels = c("<15", "15-64", "65-99")
   )) %>% #create age categories (to be adjusted)
   ungroup()%>%
-  mutate(country=replace(country,country=="Cote d'Ivoire", "Côte d'Ivoire"))%>%
+  mutate(country=replace(country,country=="Cote d'Ivoire", "C?te d'Ivoire"))%>%
   mutate(country=replace(country,country=="France", "Martinique"))%>%
   left_join(country_codes, by = c("country"="country_label"))%>%
   droplevels()%>%
@@ -238,13 +244,12 @@ bcan_SURV2 <- bcan_SURV %>%
   mutate(last_FU_year = round(year + surv_ddtot/365.25))%>%  #creating variable for year of death
   mutate(sex = replace(sex, sex == "Male", 1)) %>%
   mutate(sex = replace(sex, sex == "Female", 2)) %>%
-  mutate(sex = as.integer(sex)) %>%
-  left_join(life_table, by = c(
-    "last_FU_age" = "age",
+  mutate(sex = as.integer(sex))%>% 
+ left_join(life_table, by = c("last_FU_age" = "age",
     "last_FU_year" = "year",
-    "country_code")) %>%
+    "country_code"="country_code")) %>%
   droplevels()%>%
-  #filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
+  #filter(last_FU_year > 2008 & last_FU_year <= 2012) %>%
  #filter(!is.na(mx)) %>% 
   droplevels() %>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))
@@ -255,7 +260,7 @@ bcan_SURV2 <- bcan_SURV %>%
 
 bcan_SURV3 <- bcan_SURV2%>%
   mutate(surv_yydd=surv_ddtot/365.25)%>%
-  mutate(event1=case_when(dead==1 & surv_yydd<=5 ~ 1,
+  mutate(event1=case_when(dead==1 & surv_yydd<=5 ~ 1, #censoring survival after five years
                           dead==1 & surv_yydd>5 ~ 0,
                           dead==0 ~ 0
   )) %>%
@@ -339,9 +344,9 @@ country_names_Survcan <- bSURV %>% select(country_code, country)%>%distinct()
 # country_names_Survcan <- country_names_Survcan%>%#For regression needs to be in this form
 # as.data.frame()%>%mutate(country=as.character(country))%>%slice(-c(4,13,19,22,31))
 
-country_codes <- as_tibble(names(table(bSURV$country_code))) #Needs to be tibble for predictions
-names(country_codes)[names(country_codes) == "value"] <- "country_code"
-country_codes <- as.data.frame(country_codes)#%>%slice(-c(4,13,19,22,31)) #For regression needs to be in this form
+country_codes2 <- as_tibble(names(table(bSURV$country_code))) #Needs to be tibble for predictions
+names(country_codes2)[names(country_codes2) == "value"] <- "country_code"
+country_codes2 <- as.data.frame(country_codes2)#%>%slice(-c(4,13,19,22,31)) #For regression needs to be in this form
 
 
 cancer_types <- names(table(bSURV$cancer))%>%as.data.frame() 
@@ -368,9 +373,9 @@ Cubic_age_2 <- list()
 
 #Cubic base model BY Cancer type
 
-for (i in 1:nrow(country_codes)) {
-  b1 <- bSURV_Lower %>% filter(country_code == country_codes[i,])
-  b2 <- bSURV_Upper %>% filter(country_code == country_codes[i,])
+for (i in 1:nrow(country_codes2)) {
+  b1 <- bSURV_Lower %>% filter(country_code == country_codes2[i,])
+  b2 <- bSURV_Upper %>% filter(country_code == country_codes2[i,])
 
   
   
@@ -414,9 +419,9 @@ Cubic_Cancer_age_2 <- list()
 #Cubic_Cancer_overall <- list()
 
 #Cubic excess hazard by country
-for (i in 1:nrow(country_codes)){
-  b1 <- bSURV_Lower %>% filter(country_code == country_codes[i,])%>%as.data.frame()
-  b2 <- bSURV_Upper %>% filter(country_code == country_codes[i,])%>%as.data.frame()
+for (i in 1:nrow(country_codes2)){
+  b1 <- bSURV_Lower %>% filter(country_code == country_codes2[i,])%>%as.data.frame()
+  b2 <- bSURV_Upper %>% filter(country_code == country_codes2[i,])%>%as.data.frame()
   
   k1 <- median(b1$surv_yydd)
   k2 <- median(b2$surv_yydd)
@@ -449,8 +454,8 @@ Predictions_Cubic_All_Cause_age_2 <- list()
 #Predictions_Cubic_All_Cause_age_3 <- list()
 
 
-country_codes_tibble<-
-  country_codes %>%
+country_codes2_tibble<-
+  country_codes2 %>%
   mutate(country_code=as.integer(country_code))%>%
   as_tibble()
 
@@ -463,18 +468,18 @@ cancer_codes_tibble <-
   as_tibble() #predict only works with tibble data structure...
 #Cubic predictions by country
 
-for (i in 1:nrow(country_codes_tibble)) {
-  try(AC1 <- predict(Cubic_age_1[[i]], time.pts = time, data.val = country_codes_tibble[i,]))
-  try(AC2 <- predict(Cubic_age_2[[i]], time.pts = time, data.val = country_codes_tibble[i,]))
+for (i in 1:nrow(country_codes2_tibble)) {
+  try(AC1 <- predict(Cubic_age_1[[i]], time.pts = time, data.val = country_codes2_tibble[i,]))
+  try(AC2 <- predict(Cubic_age_2[[i]], time.pts = time, data.val = country_codes2_tibble[i,]))
   # try(AC3 <- predict(Cubic_overall[[i]], time.pts = time, data.val = cancer_codes_tibble[i,]))
   
   
   try(HP1 <- predict(Cubic_Cancer_age_1[[i]],
                      time.pts = time,
-                     data.val = country_codes_tibble[i,]))
+                     data.val = country_codes2_tibble[i,]))
   try(HP2 <- predict(Cubic_Cancer_age_2[[i]],
                      time.pts = time,
-                     data.val = country_codes_tibble[i,]))
+                     data.val = country_codes2_tibble[i,]))
 
   
   
@@ -491,17 +496,17 @@ for (i in 1:nrow(country_codes_tibble)) {
 
 #Extracting prediction data five year avoidable deaths prediction and survival
 
-Net_Survival_Five_Year_age_1 <- matrix(ncol = 4, nrow = nrow(country_codes)) #R(t)
-Net_Survival_Five_Year_age_2 <- matrix(ncol = 4, nrow = nrow(country_codes)) #R(t)
+Net_Survival_Five_Year_age_1 <- matrix(ncol = 4, nrow = nrow(country_codes2)) #R(t)
+Net_Survival_Five_Year_age_2 <- matrix(ncol = 4, nrow = nrow(country_codes2)) #R(t)
 # Net_Survival_Five_Year_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes)) #R(t)
 
 
 
-All_Cause_Survival_age_1 <- matrix(ncol = 4, nrow = nrow(country_codes))    #S(t)
-All_Cause_Survival_age_2 <- matrix(ncol = 4, nrow = nrow(country_codes) )    #S(t)
+All_Cause_Survival_age_1 <- matrix(ncol = 4, nrow = nrow(country_codes2))    #S(t)
+All_Cause_Survival_age_2 <- matrix(ncol = 4, nrow = nrow(country_codes2) )    #S(t)
 # All_Cause_Survival_age_3 <- matrix(ncol = 5, nrow = nrow(cancer_codes) )    #S(t)
 
-for (i in 1:nrow(country_codes_tibble)) {
+for (i in 1:nrow(country_codes2_tibble)) {
   s <-  Predictions_Cubic_Net_age_1[[i]]$results
   s <-  s %>% filter(time.pts == 5)
   s2 <-  Predictions_Cubic_Net_age_2[[i]]$results
@@ -516,14 +521,14 @@ for (i in 1:nrow(country_codes_tibble)) {
   sp2 <-  sp2 %>% filter(time.pts == 5)
 
   try(Net_Survival_Five_Year_age_1[i,] <-
-      c(country_codes[i,],
+      c(country_codes2[i,],
       #country_names_Survcan[i,1], 
       s$surv, 
       s$surv.inf, 
       s$surv.sup))
   
   try(Net_Survival_Five_Year_age_2[i,] <-
-        c(country_codes[i,],
+        c(country_codes2[i,],
           #country_names_Survcan[i,1], 
           s2$surv, 
           s2$surv.inf, 
@@ -531,13 +536,13 @@ for (i in 1:nrow(country_codes_tibble)) {
 
 
   try(All_Cause_Survival_age_1[i,] <-
-    c(country_codes[i,],
+    c(country_codes2[i,],
       #country_names_Survcan[i,], 
       sp$surv, 
       sp$surv.inf, 
       sp$surv.sup))
   try(All_Cause_Survival_age_2[i,] <-
-    c(country_codes[i,],
+    c(country_codes2[i,],
      # country_names_Survcan[i,], 
       sp2$surv, 
       sp2$surv.inf, 

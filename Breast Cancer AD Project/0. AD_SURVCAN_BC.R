@@ -12,10 +12,9 @@
 
 
 #Avoidable Deaths due to Risk Factors for various Cancer sites
-
-
-
-
+library("survival")
+library("mexhaz")
+library("tidyverse")
 
 # 
 # 
@@ -42,28 +41,28 @@ colnames(missing_CC) <- c("country_label","country_code")
 country_codes <-
   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>% 
   filter(country_code<900) %>% 
-  mutate(country_label = replace(country_label, country_label == "Iran, Islamic Republic of", "Iran")) %>%
-  mutate(country_label = replace(country_label, country_label == "Korea, Republic of", "South Korea")) %>%
-  mutate(country_label = replace(country_label, country_label == "France, Martinique", "Martinique")) %>%
+  dplyr::mutate(country_label = replace(country_label, country_label == "Iran, Islamic Republic of", "Iran")) %>%
+  dplyr::mutate(country_label = replace(country_label, country_label == "Korea, Republic of", "South Korea")) %>%
+  dplyr::mutate(country_label = replace(country_label, country_label == "France, Martinique", "Martinique")) %>%
   select(country_code, country_label)%>% 
   full_join(missing_CC)
   
-  #mutate(region = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
+  #dplyr::mutate(region = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
   
 
 #life tables
 
 life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
-  mutate(region = replace(region, region == "Cote d'Ivoire", "C?te d'Ivoire")) %>%
-  mutate(region = replace(region, region == "France", "Martinique")) %>%
-  mutate(region=replace(region,region=="Korea","South Korea"))%>%
-  mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
-  mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
-  mutate(region=replace(region,region=="Saudi_Arabia","Saudi Arabia"))%>%
-  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
-  mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
-  mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
-  mutate(region=replace(region,region=="Ethiopy","Ethiopia"))%>%
+  dplyr::mutate(region = replace(region, region == "Cote d'Ivoire", "C?te d'Ivoire")) %>%
+  dplyr::mutate(region = replace(region, region == "France", "Martinique")) %>%
+  dplyr::mutate(region=replace(region,region=="Korea","South Korea"))%>%
+  dplyr::mutate(region=replace(region,region=="South_Africa","South Africa"))%>%
+  dplyr::mutate(region=replace(region,region=="Cote_D`ivoire","Cote d'Ivoire"))%>%
+  dplyr::mutate(region=replace(region,region=="Saudi_Arabia","Saudi Arabia"))%>%
+  dplyr::mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  dplyr::mutate(region=replace(region,region=="Bahain","Bahrain"))%>%
+  dplyr::mutate(region=replace(region,region=="Costa_Rica","Costa Rica"))%>%
+  dplyr::mutate(region=replace(region,region=="Ethiopy","Ethiopia"))%>%
   left_join(country_codes, by = c("region"="country_label"))%>%
   dplyr::rename("country"="region")%>%
   select(-country)
@@ -72,19 +71,16 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
 PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_08.06.2022_Prostate.csv")
 
 PAFs<-PAFs10%>%
-  mutate(cancer_label=as.character(cancer_label))%>%
-  mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
-  mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
-  mutate(cancer_code  = replace(cancer_code, cancer_code == 8, 38))%>%
-  mutate(cancer_code  = replace(cancer_code, cancer_code == 9, 38))%>%
+  dplyr::mutate(cancer_label=as.character(cancer_label))%>%
+  dplyr::mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
+  dplyr::mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
+  dplyr::mutate(cancer_code  = replace(cancer_code, cancer_code == 8, 38))%>%
+  dplyr::mutate(cancer_code  = replace(cancer_code, cancer_code == 9, 38))%>%
   group_by(country_code, sex, 
            cancer_code, age)%>%
   filter(sex!=0)%>%
-  mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+  dplyr::mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~    af.comb))%>%
-  # mutate(cases.prev=sum(cases.prev))%>%
-  # mutate(cases.notprev=sum(cases.notprev))%>%
-  # mutate(cases=sum(cases))%>%
   ungroup()%>%
   as.data.frame()
 
@@ -110,15 +106,15 @@ p <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Olive
 
 MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
   as.data.frame()%>%select(-mortality,-incidence)%>%
-  mutate(MIR=replace(MIR,MIR==Inf, NA))
+  dplyr::mutate(MIR=replace(MIR,MIR==Inf, NA))
 
 #same file but Globocan age groups for modeled data 
 MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR.csv")%>%
   as.data.frame()%>%
   select(-mortality,
          -incidence)%>%
-  mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
-  mutate(age = case_when(
+  dplyr::mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
+  dplyr::mutate(age = case_when(
     age==4~ 4,
     age>4 & age<=9~ 9,
     age==10~ 10,
@@ -129,14 +125,14 @@ MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visi
     age==15~ 15,
     age>=16 ~ 16,
   ))%>%
-  mutate(age_cat = case_when(
+  dplyr::mutate(age_cat = case_when(
     age>=4 & age<14 ~ "15-64",
     age>=14 ~ "65-99",
     age<4 ~"0-15"))%>%
   select(-sex, -X)%>%
   group_by(country_code, cancer_code, age)%>%
-  mutate(MIR=sum(MIR*py)/sum(py))%>%
-  mutate(py=sum(py))%>%distinct()%>%
+  dplyr::mutate(MIR=sum(MIR*py)/sum(py))%>%
+  dplyr::mutate(py=sum(py))%>%distinct()%>%
   ungroup()
 
 
@@ -198,21 +194,21 @@ bcan_SURV2 <- bcan_SURV %>%
   filter(age <= 99) %>%
   filter(!is.na(age)) %>%
   filter(!is.na(surv_ddtot)) %>%
-  mutate(age_cat = cut(
+  dplyr::mutate(age_cat = cut(
     age,
     breaks = c(-Inf, 15, 64 , 99),
     labels = c("<15", "15-64", "65-99")
   )) %>% #create age categories (to be adjusted)
   ungroup()%>%
-  mutate(country=replace(country,country=="Cote d'Ivoire", "C?te d'Ivoire"))%>%
-  mutate(country=replace(country,country=="France", "Martinique"))%>%
+  dplyr::mutate(country=replace(country,country=="Cote d'Ivoire", "C?te d'Ivoire"))%>%
+  dplyr::mutate(country=replace(country,country=="France", "Martinique"))%>%
   left_join(country_codes, by = c("country"="country_label"))%>%
   droplevels()%>%
-  mutate(last_FU_age = round(age + surv_ddtot/365.25)) %>% #creating variable for age of death
-  mutate(last_FU_year = round(year + surv_ddtot/365.25))%>%  #creating variable for year of death
-  mutate(sex = replace(sex, sex == "Male", 1)) %>%
-  mutate(sex = replace(sex, sex == "Female", 2)) %>%
-  mutate(sex = as.integer(sex)) %>%
+  dplyr::mutate(last_FU_age = round(age + surv_ddtot/365.25)) %>% #creating variable for age of death
+  dplyr::mutate(last_FU_year = round(year + surv_ddtot/365.25))%>%  #creating variable for year of death
+  dplyr::mutate(sex = replace(sex, sex == "Male", 1)) %>%
+  dplyr::mutate(sex = replace(sex, sex == "Female", 2)) %>%
+  dplyr::mutate(sex = as.integer(sex)) %>%
   left_join(life_table, by = c(
     "last_FU_age" = "age",
     "last_FU_year" = "year",
@@ -222,23 +218,23 @@ bcan_SURV2 <- bcan_SURV %>%
  #filter(!is.na(mx)) %>% 
   droplevels() %>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))
-#  mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
-#  mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
+#  dplyr::mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
+#  dplyr::mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
  # filter(cancer_code %in% ten_cancer_sites$cancer_code)
 #  filter(is.na(bSURV$mx))
 
 bcan_SURV3 <- bcan_SURV2%>%
-  mutate(surv_yydd=surv_ddtot/365.25)%>%
-  mutate(event1=case_when(dead==1 & surv_yydd<=5 ~ 1,
+  dplyr::mutate(surv_yydd=surv_ddtot/365.25)%>%
+  dplyr::mutate(event1=case_when(dead==1 & surv_yydd<=5 ~ 1,
                           dead==1 & surv_yydd>5 ~ 0,
                           dead==0 ~ 0)) %>%
   ungroup()%>%
   group_by(country)%>%
-mutate(end_FU=max(year))%>%
+dplyr::mutate(end_FU=max(year))%>%
 filter(year>=end_FU-5)%>%
   ungroup()
 #      group_by(country,age_cat)%>%
-#      mutate(max=max(surv_yydd))%>%
+#      dplyr::mutate(max=max(surv_yydd))%>%
 #      filter(max>=5)%>%ungroup()
 
 
@@ -263,7 +259,7 @@ bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)%>%
   group_by(country)%>%
  filter(year>=end_FU-5)
 # 
-#  mutate(surv_yydd=case_when(surv_yydd<=5 ~ 5,
+#  dplyr::mutate(surv_yydd=case_when(surv_yydd<=5 ~ 5,
 #                           surv_yydd>5 ~ surv_yydd
  # )
  # )
@@ -274,7 +270,7 @@ bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)%>%
 
 
 #age categories
-#bSURV_overall <- bSURV %>% mutate(age_cat = "Overall")
+#bSURV_overall <- bSURV %>% dplyr::mutate(age_cat = "Overall")
 bSURV_Lower <- bSURV %>% filter(age_cat == "15-64")%>% ungroup()%>%  droplevels()
 bSURV_Upper <- bSURV %>% filter(age_cat == "65-99")%>% ungroup()%>%  droplevels()
 bSURV_age_cats <- bSURV #bSURV_overall %>% full_join(bSURV)
@@ -309,7 +305,7 @@ country_names_Survcan <- bSURV %>% select(country_code, country)%>%distinct()
 #   country_names_Survcan<- as_tibble(names(table(bSURV$country)))
 # names(country_names_Survcan)[names(country_names_Survcan) == "value"] <- "country"
 # country_names_Survcan <- country_names_Survcan%>%#For regression needs to be in this form
-# as.data.frame()%>%mutate(country=as.character(country))%>%slice(-c(4,13,19,22,31))
+# as.data.frame()%>%dplyr::mutate(country=as.character(country))%>%slice(-c(4,13,19,22,31))
 
 country_codes <- as_tibble(names(table(bSURV$country_code))) #Needs to be tibble for predictions
 names(country_codes)[names(country_codes) == "value"] <- "country_code"
@@ -423,7 +419,7 @@ Predictions_Cubic_All_Cause_age_2 <- list()
 
 country_codes_tibble<-
   country_codes %>%
-  mutate(country_code=as.integer(country_code))%>%
+  dplyr::mutate(country_code=as.integer(country_code))%>%
   as_tibble()
 
 cancer_types_tibble <-
@@ -431,7 +427,7 @@ cancer_types_tibble <-
 
 cancer_codes_tibble <-
   cancer_codes %>% 
-  mutate(cancer_code=as.integer(cancer_code))%>%
+  dplyr::mutate(cancer_code=as.integer(cancer_code))%>%
   as_tibble() #predict only works with tibble data structure...
 #Cubic predictions by country
 
@@ -552,28 +548,28 @@ colnames(All_Cause_Survival_age_2) <-
 
 
 Net_Survival_Five_Year_age_1 <-
-  Net_Survival_Five_Year_age_1 %>% mutate(age_cat = Age_names_all[1,])
+  Net_Survival_Five_Year_age_1 %>% dplyr::mutate(age_cat = Age_names_all[1,])
 Net_Survival_Five_Year_age_2 <-
-  Net_Survival_Five_Year_age_2 %>% mutate(age_cat = Age_names_all[2,])
+  Net_Survival_Five_Year_age_2 %>% dplyr::mutate(age_cat = Age_names_all[2,])
 
 
 All_Cause_Survival_age_1 <-
-  All_Cause_Survival_age_1 %>% mutate(age_cat = Age_names_all[1,])
+  All_Cause_Survival_age_1 %>% dplyr::mutate(age_cat = Age_names_all[1,])
 All_Cause_Survival_age_2 <-
-  All_Cause_Survival_age_2 %>% mutate(age_cat = Age_names_all[2,])
+  All_Cause_Survival_age_2 %>% dplyr::mutate(age_cat = Age_names_all[2,])
 
 
 
 Net_Survival_Five_Year <-
   Net_Survival_Five_Year_age_1 %>% 
   full_join(Net_Survival_Five_Year_age_2)%>% 
-  mutate(country_code=as.numeric(country_code))%>% 
+  dplyr::mutate(country_code=as.numeric(country_code))%>% 
   left_join(country_names_Survcan)
 
 All_Cause_Survival <-
   All_Cause_Survival_age_1 %>% 
   full_join(All_Cause_Survival_age_2) %>% 
-  mutate(country_code=as.numeric(country_code))%>% 
+  dplyr::mutate(country_code=as.numeric(country_code))%>% 
   left_join(country_names_Survcan)
 
 
@@ -611,7 +607,7 @@ NS_OS <-
          age_cat
   ) %>%
   distinct()%>%
-  mutate(cancer_code=20)
+  dplyr::mutate(cancer_code=20)
 
 NS_OS$Five_Year_Net_Surv <- as.numeric(NS_OS$Five_Year_Net_Surv)
 NS_OS$NS_Lower_CI <- as.numeric(NS_OS$NS_Lower_CI)
@@ -639,7 +635,7 @@ NS_OS$age_cat <- as.factor(NS_OS$age_cat)
 
 PAFs_age_Cat <- PAFs %>%
 #  filter(country_label == "Thailand") %>%
-  mutate(age_cat = case_when(age >= 4 & age < 14 ~ "15-64",
+  dplyr::mutate(age_cat = case_when(age >= 4 & age < 14 ~ "15-64",
                              age >= 14 ~ "65-99",
                              age<4 ~ "0-15")) %>%
   filter(age_cat != "0-15") %>%
@@ -665,7 +661,7 @@ PAFs_age_Cat <- PAFs %>%
 
 
 # PAFS_Overall <- PAFs_age_Cat %>% 
-#   mutate(age_cat = "Overall") %>%
+#   dplyr::mutate(age_cat = "Overall") %>%
 #   group_by(country_label, cancer_label, age_cat) %>%
 #   summarize(
 #     country_code,
@@ -689,9 +685,9 @@ PAFs2 <- PAFs_age_Cat %>%
   as.data.frame() %>%
   droplevels()%>%
   group_by(country_label, cancer_label, age_cat) %>%
-  mutate(total_age_prev = sum(cases.prev)) %>%
-  mutate(af.comb.agecat = sum(cases.prev) / sum(cases)) %>%
-  mutate(ES = sum(ES*cases) / sum(cases)) %>%
+  dplyr::mutate(total_age_prev = sum(cases.prev)) %>%
+  dplyr::mutate(af.comb.agecat = sum(cases.prev) / sum(cases)) %>%
+  dplyr::mutate(ES = sum(ES*cases) / sum(cases)) %>%
   summarize(country_code,
             country_label,
             cancer_code,
@@ -713,7 +709,7 @@ NS_OS_PAF <- NS_OS %>%
   left_join(PAFs2, by = c("country_code","cancer_code" = "cancer_code", "age_cat" ="age_cat")) %>% 
   left_join(Reference_Survival_Survcan,by=c("age_cat","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
   droplevels()%>%
-  mutate(cancer=as.character(cancer))%>%
+  dplyr::mutate(cancer=as.character(cancer))%>%
   distinct()
 
 #Format this nicely to match the equations below
@@ -1061,15 +1057,15 @@ AD_cancer_old <- Avoidable_Deaths_Simulated_All_old%>%
 
 
 # Calculating by region. Need a file that links countries to region 
-HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
-  select(-country_label)%>%
-  dplyr::filter(area<=21)
-
-areas <- HDI_Region_Mapping%>%
-  dplyr::filter(country_code>=910& country_code<=931 | 
-                  country_code==905 | country_code==906| 
-                  country_code==954| country_code==957 )%>%
-  select(area, country_label)
+# HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
+#   select(-country_label)%>%
+#   dplyr::filter(area<=21)
+# 
+# areas <- HDI_Region_Mapping%>%
+#   dplyr::filter(country_code>=910& country_code<=931 | 
+#                   country_code==905 | country_code==906| 
+#                   country_code==954| country_code==957 )%>%
+#   select(area, country_label)
 
 
 

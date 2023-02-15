@@ -40,10 +40,6 @@ PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\
 
 PAFs<-PAFs10%>%
   mutate(cancer_label=as.character(cancer_label))%>%
-  #mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
-  #mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
-  #mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
-  #mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
   group_by(country_code, sex,
            cancer_code, age)%>%
   filter(sex!=0)%>%
@@ -71,12 +67,12 @@ Thailand_popmort <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research
   left_join(country_codes, by = c("region" = "country_label"))
 Thailand_pop <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_pop.csv") %>% as.data.frame()
 
-# popmort2<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort.dta")%>%as.data.frame()%>%
+popmort2<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort.dta")%>%as.data.frame()
 #   left_join(country_codes)
-# popmort<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort2.dta")%>%as.data.frame()
+ popmort<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort2.dta")%>%as.data.frame()
 # 
-# p <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_group.dta")%>%
-#   as.data.frame()
+ p <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_group.dta")%>%
+   as.data.frame()
 
 MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
   as.data.frame()%>%select(-mortality,-incidence)%>%
