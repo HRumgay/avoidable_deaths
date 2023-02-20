@@ -15,12 +15,15 @@
 library("survival")
 library("mexhaz")
 library("tidyverse")
+library(readxl)
+library(readstata13)
+library(haven)
 
 # 
 # 
 # #Data set imports
 # #GLobocan
-# g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\Globocan.csv")
+g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\Globocan.csv")
 # pops_g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\source\\Pops.csv")
 # 
 # pops_sorted<-read.csv("C:\\Users\\langseliuso\\OneDrive - IARC\\Desktop\\Avoidable Deaths Breast Cancer Project\\R Analysis\\population2.csv")
@@ -30,12 +33,16 @@ library("tidyverse")
 # HDI3<-read.csv("\\\\Inti\\cin\\Studies\\Prevalence\\2020\\_data\\hdi\\hdi_2020.csv")
 # 
 
+HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
+
 
 #Reading all the variables
 
 
+load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\GCO_pop2020.RData")
+
 # GCO_country_info.csv has correct country_label variable to match with pop_mort2
-missing_CC<-data.frame(c("Seychelles"), c(10001))
+missing_CC<-data.frame(c("Seychelles"), c(690))
 colnames(missing_CC) <- c("country_label","country_code")
 
 country_codes <-
@@ -70,15 +77,16 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
 
 PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_08.06.2022_Prostate.csv")
 
-PAFs<-PAFs10%>%
+PAFs11<-PAFs10%>%
   dplyr::mutate(cancer_label=as.character(cancer_label))%>%
-  dplyr::mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
-  dplyr::mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
-  dplyr::mutate(cancer_code  = replace(cancer_code, cancer_code == 8, 38))%>%
-  dplyr::mutate(cancer_code  = replace(cancer_code, cancer_code == 9, 38))%>%
+  # dplyr::mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal")) %>%
+  # dplyr::mutate(cancer_label = replace(cancer_label, cancer_label == "Rectum", "Colorectal")) %>%
+  # dplyr::mutate(cancer_code  = replace(cancer_code, cancer_code == 8, 38))%>%
+  # dplyr::mutate(cancer_code  = replace(cancer_code, cancer_code == 9, 38))%>%
   group_by(country_code, sex, 
            cancer_code, age)%>%
   filter(sex!=0)%>%
+  as.data.frame()%>%
   dplyr::mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~    af.comb))%>%
   ungroup()%>%
@@ -89,6 +97,13 @@ Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research vi
 Cancer_codes_Survcan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
 
 HDI <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI_2019.csv") %>% as.data.frame()
+
+Survival_Modelled <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_allsites_allcountries.23.01.23.csv") %>% 
+  as.data.frame()
+
+
+
+
 
 
 bcan_SURV <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\SURVCANALL_cc_breast_11May2022.csv")# %>% as.data.frame() Data\\Oliver_Langselius\\SURVCANALL_cc.csv
@@ -101,39 +116,41 @@ popmort2<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\
   left_join(country_codes)
 popmort<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort2.dta")%>%as.data.frame()
 
+
 p <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_group.dta")%>%
   as.data.frame()
 
-MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
-  as.data.frame()%>%select(-mortality,-incidence)%>%
-  dplyr::mutate(MIR=replace(MIR,MIR==Inf, NA))
-
-#same file but Globocan age groups for modeled data 
-MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR.csv")%>%
-  as.data.frame()%>%
-  select(-mortality,
-         -incidence)%>%
-  dplyr::mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
-  dplyr::mutate(age = case_when(
-    age==4~ 4,
-    age>4 & age<=9~ 9,
-    age==10~ 10,
-    age==11~ 11,
-    age==12~ 12,
-    age==13~ 13,
-    age==14~ 14,
-    age==15~ 15,
-    age>=16 ~ 16,
-  ))%>%
-  dplyr::mutate(age_cat = case_when(
-    age>=4 & age<14 ~ "15-64",
-    age>=14 ~ "65-99",
-    age<4 ~"0-15"))%>%
-  select(-sex, -X)%>%
-  group_by(country_code, cancer_code, age)%>%
-  dplyr::mutate(MIR=sum(MIR*py)/sum(py))%>%
-  dplyr::mutate(py=sum(py))%>%distinct()%>%
-  ungroup()
+# 
+# MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
+#   as.data.frame()%>%select(-mortality,-incidence)%>%
+#   dplyr::mutate(MIR=replace(MIR,MIR==Inf, NA))
+# 
+# #same file but Globocan age groups for modeled data 
+# MIR_Globocan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR.csv")%>%
+#   as.data.frame()%>%
+#   select(-mortality,
+#          -incidence)%>%
+#   dplyr::mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
+#   dplyr::mutate(age = case_when(
+#     age==4~ 4,
+#     age>4 & age<=9~ 9,
+#     age==10~ 10,
+#     age==11~ 11,
+#     age==12~ 12,
+#     age==13~ 13,
+#     age==14~ 14,
+#     age==15~ 15,
+#     age>=16 ~ 16,
+#   ))%>%
+#   dplyr::mutate(age_cat = case_when(
+#     age>=4 & age<14 ~ "15-64",
+#     age>=14 ~ "65-99",
+#     age<4 ~"0-15"))%>%
+#   select(-sex, -X)%>%
+#   group_by(country_code, cancer_code, age)%>%
+#   dplyr::mutate(MIR=sum(MIR*py)/sum(py))%>%
+#   dplyr::mutate(py=sum(py))%>%distinct()%>%
+#   ungroup()
 
 
 #Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
@@ -171,19 +188,6 @@ ten_cancer_sites <-
   filter(cancer_code %in% c(20))
 
 
-#Checking cancer codes in various files
-a<-PAFs%>%summarize(cancer_code,cancer_label)%>%distinct()%>%filter(cancer_code%in%ten_cancer_sites$cancer_code)
-b<-simulated_overall%>%
-  ungroup()%>%
-  summarize(cancer_code, cancer_label)%>%
-  distinct()
-survcancancer<-bSURV%>%
-  ungroup()%>%
-  summarize(cancer_code, cancer)%>%
-  distinct()
-
-country_codes
-
 
 
 #Prepping cancer real world data
@@ -202,7 +206,7 @@ bcan_SURV2 <- bcan_SURV %>%
   ungroup()%>%
   dplyr::mutate(country=replace(country,country=="Cote d'Ivoire", "C?te d'Ivoire"))%>%
   dplyr::mutate(country=replace(country,country=="France", "Martinique"))%>%
-  left_join(country_codes, by = c("country"="country_label"))%>%
+  dplyr::left_join(country_codes, by = c("country"="country_label"))%>%
   droplevels()%>%
   dplyr::mutate(last_FU_age = round(age + surv_ddtot/365.25)) %>% #creating variable for age of death
   dplyr::mutate(last_FU_year = round(year + surv_ddtot/365.25))%>%  #creating variable for year of death
@@ -212,7 +216,7 @@ bcan_SURV2 <- bcan_SURV %>%
   left_join(life_table, by = c(
     "last_FU_age" = "age",
     "last_FU_year" = "year",
-    "country_code")) %>%
+    "country_code"))%>% 
   droplevels()%>%
   #filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
  #filter(!is.na(mx)) %>% 
@@ -230,16 +234,22 @@ bcan_SURV3 <- bcan_SURV2%>%
                           dead==0 ~ 0)) %>%
   ungroup()%>%
   group_by(country)%>%
-dplyr::mutate(end_FU=max(year))%>%
-filter(year>=end_FU-5)%>%
-  ungroup()
-#      group_by(country,age_cat)%>%
-#      dplyr::mutate(max=max(surv_yydd))%>%
-#      filter(max>=5)%>%ungroup()
+# dplyr::mutate(end_FU=max(year))%>% #trie two options here. One with same diagnosis period as 
+# filter(year>=end_FU-5)%>%          #in the survcan study and one with five latest diagnosis years used    
+  filter(2008>=year & year<=2012)%>%
+  ungroup()%>%
+      group_by(country,age_cat)%>%
+      dplyr::mutate(max=max(surv_yydd))%>%
+      filter(max>=5)%>%ungroup()
+
+#using for missing incidence in globocan for Seychelles
+seychelles_inc <- bcan_SURV3%>%filter(country=="Seychelles")%>%
+  group_by(country,age_cat)%>%
+  summarize(cases=n())
 
 
-a<-bcan_SURV2%>%select(country,country_code)%>%distinct()%>%as.data.frame()
-b<-life_table%>%select(country,country_code)%>%distinct()%>%as.data.frame()
+#a<-bcan_SURV2%>%select(country,country_code)%>%distinct()%>%as.data.frame()
+#b<-life_table%>%select(country,country_code)%>%distinct()%>%as.data.frame()
 
 
 
@@ -686,14 +696,14 @@ PAFs2 <- PAFs_age_Cat %>%
   droplevels()%>%
   group_by(country_label, cancer_label, age_cat) %>%
   dplyr::mutate(total_age_prev = sum(cases.prev)) %>%
-  dplyr::mutate(af.comb.agecat = sum(cases.prev) / sum(cases)) %>%
+  dplyr::mutate(af.comb = sum(cases.prev) / sum(cases)) %>%
   dplyr::mutate(ES = sum(ES*cases) / sum(cases)) %>%
   summarize(country_code,
             country_label,
             cancer_code,
             cancer_label,
             age_cat,
-            af.comb.agecat,
+            af.comb,
             total_overall=sum(cases),
             ES
   ) %>%
@@ -702,7 +712,23 @@ PAFs2 <- PAFs_age_Cat %>%
   ungroup()%>%
   select(-country_label)
 
+#Adding missing HDI countries
 
+
+HDI_martinique<-HDI%>%
+  filter(country_label=="France")%>%
+  mutate(country_label="Martinique")%>%
+  mutate(country_code = 474)
+
+HDI_PuertoRico<-HDI%>%
+  filter(country_label=="United States of America")%>%
+  mutate(country_label="Puerto Rico")%>%
+  mutate(country_code = 630)
+
+HDI2<-HDI%>%
+  full_join(HDI_martinique)%>%
+  full_join(HDI_PuertoRico)%>%
+  select(-country_label)
 
 
 NS_OS_PAF <- NS_OS %>% 
@@ -710,8 +736,16 @@ NS_OS_PAF <- NS_OS %>%
   left_join(Reference_Survival_Survcan,by=c("age_cat","cancer_code"))%>% #Add aggregated values here for the Thailand data. Need to combine age groups
   droplevels()%>%
   dplyr::mutate(cancer=as.character(cancer))%>%
-  distinct()
-
+  distinct()%>%
+  dplyr::mutate(total_overall = case_when(
+    is.na(total_overall) & age_cat=="15-64" ~ seychelles_inc[1,]$cases,
+    is.na(total_overall) & age_cat=="65-99" ~ seychelles_inc[2,]$cases,
+    !is.na(total_overall) ~ total_overall))%>%
+  filter(!is.na(Five_Year_all_cause_Surv))%>%
+  left_join(HDI2)%>%
+  fill(cancer_label)
+    
+    
 #Format this nicely to match the equations below
 
 
@@ -721,14 +755,17 @@ NS_OS_PAF <- NS_OS %>%
 
 # Applying the equation from Rutherford 2015 for AD.
 
+
+
 Avoidable_Deaths_Simulated_All2_old<-NS_OS_PAF%>%
-  group_by(country_code, cancer_code, age, sex)%>%
-  dplyr::mutate(AD_prev=af.comb * total_overall * (1 - rel_surv *  ES ))%>%
-  dplyr::mutate(AD_treat=total_overall * (surv_ref-rel_surv) * ES)%>%
-  dplyr::mutate(AD_treat_not_prev = (1-af.comb)* total_overall * (surv_ref-rel_surv) * ES)%>%
+  group_by(country_code, cancer_code, age_cat)%>%
+  dplyr::mutate(ES=Five_Year_all_cause_Surv/Five_Year_Net_Surv)%>%
+  dplyr::mutate(AD_prev=af.comb * total_overall * (1 - Five_Year_Net_Surv *  ES ))%>%
+  dplyr::mutate(AD_treat=total_overall * (surv_ref-Five_Year_Net_Surv) * ES)%>%
+  dplyr::mutate(AD_treat_not_prev = (1-af.comb)* total_overall * (surv_ref-Five_Year_Net_Surv) * ES)%>%
   dplyr::mutate(AD_unavoid = (1-af.comb)*total_overall*(1-surv_ref*ES))%>%
-  dplyr::mutate(Expect_deaths=(1-(rel_surv*ES))*total_overall)%>%
-  select("country_code","country_label","age_cat","age","cancer_code","cancer_label",   
+  dplyr::mutate(Expect_deaths=(1-(Five_Year_Net_Surv*ES))*total_overall)%>%
+  dplyr::select("country_code","country","age_cat","cancer_code","cancer_label",   
          "AD_treat",
          AD_treat_not_prev,
          "AD_prev",
@@ -736,8 +773,10 @@ Avoidable_Deaths_Simulated_All2_old<-NS_OS_PAF%>%
          "Expect_deaths",
          "total_overall",
          #  "af.comb",
-         "hdi_group")%>%
-  dplyr::rename("cancer"="cancer_label")
+         "hdi_group"
+         )%>%
+  dplyr::rename("cancer"="cancer_label")%>%
+  as.data.frame()
 
 
 
@@ -750,22 +789,15 @@ Avoidable_Deaths_Simulated_All2_old
 pop20202 <- pop2020%>%
   as.data.frame()%>%
   dplyr::filter(sex!=0)%>%
-  dplyr::mutate(age = case_when(
-    age==1~ 1,
-    age==2~ 2,
-    age==3~ 3,
-    age==4~ 4,
-    age>4 & age<9 ~ 4,
-    age==9 ~ 9,
-    age==10 ~ 10,
-    age==11 ~ 11,
-    age==12 ~ 12,
-    age==13 ~ 13,
-    age==14 ~ 14,
-    age==15 ~ 15,
-    age>=16 ~ 16,
+  dplyr::mutate(age_cat = case_when(
+    age>=0 & age<=3 ~ "0-14",
+    age>=4 & age<=13 ~ "15-64",
+    age>=14 ~ "65-99"
   ))%>%
-  group_by(country_code, age,sex)%>%
+  dplyr::filter(age_cat!="0-14")%>%
+  filter(sex==2)%>%
+  select(-age,-sex)%>%
+  group_by(country_code, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   distinct()%>%
   select(-country_label)
@@ -779,24 +811,16 @@ age <- c(1:18)
 weights2 <- data.frame(w2, age)
 
 
-weights2 <- weights2%>%dplyr::mutate(age = case_when(
-  age==1~ 1,
-  age==2~ 2,
-  age==3~ 3,
-  age==4~ 4,
-  age>4 & age<9 ~ 4,
-  age==9 ~ 9,
-  age==10 ~ 10,
-  age==11 ~ 11,
-  age==12 ~ 12,
-  age==13 ~ 13,
-  age==14 ~ 14,
-  age==15 ~ 15,
-  age>=16 ~ 16,
-))%>%
-  dplyr::filter(age>3)%>%
+weights2 <- weights2%>%
+  dplyr::mutate(age_cat = case_when(
+  age>=0 & age<=3 ~ "0-14",
+  age>=4 & age<=13 ~ "15-64",
+  age>=14 ~ "65-99"
+  ))%>%
+  dplyr::filter(age_cat!="0-14")%>%
   dplyr::mutate(total=sum(w2))%>%
-  group_by(age)%>%
+  select(-age)%>%
+  group_by(age_cat)%>%
   dplyr::mutate(w=sum(w2)/total)%>%
   select(-w2, -total)%>%
   distinct()
@@ -804,7 +828,6 @@ weights2 <- weights2%>%dplyr::mutate(age = case_when(
 
 Avoidable_Deaths_Simulated_All_old<- Avoidable_Deaths_Simulated_All2_old%>%
   as.data.frame()%>%
-  dplyr::mutate(age=as.numeric(as.character(age)))%>%
   dplyr::mutate(AD_prev=as.numeric(as.character(AD_prev)))%>%
   dplyr::mutate(AD_unavoid=as.numeric(as.character(AD_unavoid)))%>%
   dplyr::mutate(total_overall=as.numeric(as.character(total_overall)))%>%
@@ -814,7 +837,7 @@ Avoidable_Deaths_Simulated_All_old<- Avoidable_Deaths_Simulated_All2_old%>%
   dplyr::mutate(cancer_code=as.numeric(cancer_code))%>%
   as.data.frame()%>%distinct()%>%
   dplyr::mutate(country_code=as.integer(country_code))%>%
-  left_join(pop20202, c("sex", "country_code", "age"))%>%
+  left_join(pop20202, c( "country_code", "age_cat"))%>%
   left_join(weights2)%>%
   dplyr::mutate(AD_treat = case_when(AD_treat<0 ~ 0, 
                                      # Numerical calculation error causes the countries which are references  to go slightly negative. 
@@ -840,7 +863,6 @@ Avoidable_Deaths_Simulated_All_overall_old <- Avoidable_Deaths_Simulated_All_old
   dplyr::mutate(AD_unavoid = sum(AD_unavoid,na.rm=T))%>%
   dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
   dplyr::mutate(py=sum(py))%>%
-  select( -age,-sex)%>%
   ungroup()%>%
   group_by(cancer_code, country_code,age_cat)%>%
   dplyr::mutate(w=sum(w/2))%>%
@@ -865,7 +887,6 @@ Avoidable_Deaths_Simulated_All_age_cat_old <- Avoidable_Deaths_Simulated_All_old
   dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
   dplyr::mutate(AD_sum = sum(AD_sum,na.rm=T))%>%
   dplyr::mutate(py=sum(py))%>%
-  select( -age,-sex)%>%
   ungroup()%>%
   group_by(cancer_code, country_code,age_cat)%>%
   dplyr::mutate(w=sum(w/2))%>%
@@ -886,14 +907,14 @@ AD_by_HDI_old <- Avoidable_Deaths_Simulated_All_old%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
-  group_by(hdi_group, cancer, age,sex)%>%
+  group_by(hdi_group, cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   dplyr::mutate(AD_treat_prev=sum(AD_prev+AD_treat_not_prev))%>%
   dplyr::mutate(AD_treat=sum(AD_treat))%>%
   dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev))%>%
   ungroup()%>%
-  select(-country_label,-country_code,  hdi_group, cancer, cancer_code, AD_treat, AD_prev, 
-         AD_unavoid, AD_sum,-sex, -age, age_cat,-total_overall)%>%
+  select(-country,-country_code,  hdi_group, cancer, cancer_code, AD_treat, AD_prev, 
+         AD_unavoid, AD_sum, age_cat,-total_overall)%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
@@ -934,11 +955,11 @@ AD_by_HDI_all_old <-Avoidable_Deaths_Simulated_All_old%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
-  group_by(hdi_group, cancer, age,sex)%>%
+  group_by(hdi_group, cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
-  select(-country_label,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
-         AD_unavoid, Expect_deaths, AD_sum,-sex, -age, age_cat,-total_overall)%>%
+  select(-country,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
+         AD_unavoid, Expect_deaths, AD_sum, age_cat,-total_overall)%>%
   
   as.data.frame()%>%
   droplevels()%>%
@@ -965,27 +986,26 @@ AD_by_HDI_all_old <-Avoidable_Deaths_Simulated_All_old%>%
   dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
   dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   dplyr::mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
-  dplyr::mutate(cancer="All Cancer Sites")%>%
+  dplyr::mutate(cancer="Breast")%>%
   dplyr::mutate(w=sum(w)/n())%>%
   select(-AD_sum,-py)%>%
-  
   ungroup()%>%
   distinct()%>%
   as.data.frame()
 
 
 AD_by_HDI_all_old 
-# By country for all cancer sites (number and proportion): 
+# By country for Breast (number and proportion): 
 
 AD_country_all_cancers_old <-Avoidable_Deaths_Simulated_All_old%>%
   dplyr::mutate(age_cat="Overall")%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
-  group_by(country_label, cancer, age,sex)%>%
+  group_by(country, cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
-  select(-age,-sex,-total_overall,-AD_sum)%>% #-af.comb,
+  select(-total_overall,-AD_sum)%>% #-af.comb,
   dplyr::mutate(AD_treat_prev=AD_treat+AD_prev)%>%
   ungroup()%>%
   select(  -hdi_group,  )%>%
@@ -1008,7 +1028,7 @@ AD_country_all_cancers_old <-Avoidable_Deaths_Simulated_All_old%>%
   dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
   dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   dplyr::mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
-  dplyr::mutate(cancer="All Cancer Sites")%>%
+  dplyr::mutate(cancer="Breast")%>%
   dplyr::mutate(cancer_code=1000)%>%
   select(-py,-w)%>%
   distinct()%>%
@@ -1021,14 +1041,14 @@ AD_country_all_cancers_old <-Avoidable_Deaths_Simulated_All_old%>%
 
 AD_cancer_old <- Avoidable_Deaths_Simulated_All_old%>%
   dplyr::mutate(age_cat="Overall")%>%
-  group_by(cancer, age,sex)%>%
+  group_by(cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
   dplyr::mutate(AD_treat_prev=AD_treat+AD_prev)%>%
   ungroup()%>%
-  select(-hdi_group,  -AD_sum,-age,-sex)%>%
+  select(-hdi_group,  -AD_sum,-age_cat)%>%
   dplyr::mutate(country_code=1000)%>%
-  dplyr::mutate(country_label="All Countries")%>%
+  dplyr::mutate(country="All Countries")%>%
   group_by(cancer)%>%
   dplyr::mutate(AD_prev.asr=sum(AD_prev/py*100000*w), #ASR calculation here
                 AD_treat.asr=sum(AD_treat/py*100000*w),
@@ -1057,15 +1077,16 @@ AD_cancer_old <- Avoidable_Deaths_Simulated_All_old%>%
 
 
 # Calculating by region. Need a file that links countries to region 
-# HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
-#   select(-country_label)%>%
-#   dplyr::filter(area<=21)
-# 
-# areas <- HDI_Region_Mapping%>%
-#   dplyr::filter(country_code>=910& country_code<=931 | 
-#                   country_code==905 | country_code==906| 
-#                   country_code==954| country_code==957 )%>%
-#   select(area, country_label)
+
+HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
+  select(-country_label)%>%
+  dplyr::filter(area<=21)
+
+areas <- HDI_Region_Mapping%>%
+  dplyr::filter(country_code>=910& country_code<=931 |
+                  country_code==905 | country_code==906|
+                  country_code==954| country_code==957 )%>%
+  select(area, country_label)
 
 
 
@@ -1076,11 +1097,11 @@ AD_Region2_old <- Avoidable_Deaths_Simulated_All_old%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
-  group_by(area, cancer, age,sex)%>%
+  group_by(area, cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
-  select(-country_label,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
-         AD_unavoid, Expect_deaths, -sex, -age, age_cat,-total_overall)%>%
+  select(-country,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
+         AD_unavoid, Expect_deaths, age_cat,-total_overall)%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
@@ -1107,14 +1128,14 @@ AD_Region2_old <- Avoidable_Deaths_Simulated_All_old%>%
   dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
   dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
   dplyr::mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
-  dplyr::mutate(cancer="All Cancer Sites")%>%
+ # dplyr::mutate(cancer="Breast")%>%
   dplyr::mutate(cancer_code=1000)%>%
   select(-py,-w)%>%
   distinct()%>%
   left_join(areas, by=c("area"))%>%
   ungroup()%>%
   distinct()%>%
-  left_join(HDI_Region_Mapping, by=c("area", "country_label"))%>%
+  #left_join(HDI_Region_Mapping, by=c("area"))%>%
   as.data.frame()
 
 #region and cancer site
@@ -1124,11 +1145,11 @@ AD_Region_cancer_sites_old <- Avoidable_Deaths_Simulated_All_old%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
-  group_by(area, cancer, age,sex)%>%
+  group_by(area, cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
-  select(-country_label,-country_code,-cancer_code, hdi_group,  AD_treat, AD_prev, 
-         AD_unavoid, Expect_deaths, -sex, -age, age_cat,-total_overall)%>%
+  select(-country,-country_code,-cancer_code, hdi_group,  AD_treat, AD_prev, 
+         AD_unavoid, Expect_deaths, age_cat,-total_overall)%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
@@ -1160,7 +1181,7 @@ AD_Region_cancer_sites_old <- Avoidable_Deaths_Simulated_All_old%>%
   left_join(areas, by=c("area"))%>%
   ungroup()%>%
   distinct()%>%
-  left_join(HDI_Region_Mapping, by=c("area", "country_label"))%>%
+#  left_join(HDI_Region_Mapping, by=c("area", "country"))%>%
   as.data.frame()%>%
   group_by(area)
 
@@ -1175,9 +1196,9 @@ countries_regions_old<-Avoidable_Deaths_Simulated_All_old%>%
 
 # Gives us number, percentage of total deaths 
 table_1_1_old <- Avoidable_Deaths_Simulated_All_old %>%
-  select(-country_label, -country_code, -cancer_code, hdi_group)%>%
+  select(-country, -country_code, -cancer_code, hdi_group)%>%
   dplyr::mutate(age_cat="Overall")%>%
-  group_by(cancer, age,sex)%>%
+  group_by(cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
   as.data.frame()%>%
@@ -1213,16 +1234,16 @@ table_1_1_old <- Avoidable_Deaths_Simulated_All_old %>%
   distinct()
 
 
-# By Country and all cancer sites
+# By Country and Breast
 
 AD_country_all_cancers2_old<-AD_country_all_cancers_old%>%  
   ungroup()%>%
-  distinct()%>%
+  distinct()
   dplyr::mutate(across(6:11,round, -2))%>%
   dplyr::mutate(across(12:17,round, 1))%>%
   dplyr::mutate(across(18:18,round, -2))%>%
   dplyr::mutate(across(19:23, round,3)*100)%>% #dplyr::mutate to show proportion as percentage in export
-  select("country_code","country_label",
+  select("country_code","country",
          "cancer_code", "cancer", 
          "AD_prev",        "pAD_prev",    "AD_prev.asr",
          "AD_treat",       "pAD_treat" ,"AD_treat.asr",
@@ -1233,9 +1254,9 @@ AD_country_all_cancers2_old<-AD_country_all_cancers_old%>%
 
 # Gives us number, percentage of total deaths 
 table_1_1_old <- Avoidable_Deaths_Simulated_All_old %>%
-  select(-country_label, -country_code, -cancer_code, hdi_group)%>%
+  select(-country, -country_code, -cancer_code, hdi_group)%>%
   dplyr::mutate(age_cat="Overall")%>%
-  group_by(cancer, age,sex)%>%
+  group_by(cancer, age_cat)%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
   as.data.frame()%>%
@@ -1296,7 +1317,7 @@ Avoidable_Deaths_Simulated_All_age_cat_overall_old<-Avoidable_Deaths_Simulated_A
   dplyr::mutate(across(6:10,round,0 ))%>%
   dplyr::mutate(across(13:13,round,0))%>%
   dplyr::mutate(across(14:19, round,4)*100)%>% #dplyr::mutate to show proportion as percentage in export
-  select( "country_code","country_label","cancer_code", "cancer", 
+  select( "country_code","country","cancer_code", "cancer", 
           "AD_prev","pAD_prev",    
           "AD_treat",  "pAD_treat" ,
           AD_treat_not_prev, pAD_treat_not_prev,
@@ -1311,7 +1332,7 @@ Avoidable_Deaths_Simulated_All_age_cat_overall_old<-Avoidable_Deaths_Simulated_A
 AD_cancer2_old <- AD_cancer_old%>%
   dplyr::mutate(across(6: 11, round, -2))%>%
   dplyr::mutate(across(12:16, round,4)*100)%>% #dplyr::mutate to show proportion as percentage in export
-  select( "country_code", "country_label",
+  select( "country_code", "country",
           "cancer_code", "cancer", 
           "AD_prev",        "pAD_prev",    
           "AD_treat",       "pAD_treat" ,
@@ -1332,8 +1353,8 @@ AD_Region_old<-AD_Region2_old%>%
   dplyr::mutate(across(8:13,round, 1))%>%
   dplyr::mutate(across(14:14,round, -2))%>%
   dplyr::mutate(across(15:19, round,3)*100)%>% #dplyr::mutate to show proportion as percentage in export
-  arrange(continent, country_label)%>%
-  select("continent","area","country_label","age_cat", "cancer_code", "cancer", 
+  arrange(continent, country)%>%
+  select("continent","area","country","age_cat", "cancer_code", "cancer", 
          "AD_prev",        "pAD_prev",    "AD_prev.asr",
          "AD_treat",       "pAD_treat" ,"AD_treat.asr",
          "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
@@ -1413,9 +1434,9 @@ Avoidable_Deaths_Simulated_All_age_cat_overall_old
 #
 ###############
 
-
-write.csv(Avoidable_Deaths, "~/Documents/R_Projects/Data/Thai_AD.csv")
-write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
+ 
+# write.csv(Avoidable_Deaths, "~/Documents/R_Projects/Data/Thai_AD.csv")
+# write.csv(NS_OS, "~/Documents/R_Projects/Data/Thai_NS_OS.csv")
 
 
 

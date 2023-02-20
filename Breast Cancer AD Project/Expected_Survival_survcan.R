@@ -115,22 +115,16 @@ expected_survcan<-list()
 # 
 SURVCAN_popmort<-life_table_complete%>%
    dplyr::rename("country"="region")%>%
-  # dplyr::mutate(
-  #   age_cat = case_when(
-  #     age>=15 & age<65 ~ "15-64",
-  #     age>= 65~ "65-99",
-  #     age<15 ~"0-15"    
-  #     ))%>%
-  #   ungroup()%>%
-  # select(-age,-prob)%>%
+  dplyr::mutate(
+    age_cat = case_when(
+      age>=15 & age<65 ~ "15-64",
+      age>= 65~ "65-99",
+      age<15 ~"0-15"
+      ))%>%
+    ungroup()%>%
+  # select(-age)%>%
   # dplyr::rename("age"="age_cat")%>%
-  #   group_by(country, year,sex,age)%>%
-  # # dplyr::mutate(mx=sum(mx))%>%
-  # # distinct()%>%
-  # # dplyr::mutate(prob=1-sum(mx))%>%
-  # # distinct()%>%
-  # ungroup()%>%
-  # filter(age!="0-15")%>%
+  filter(age!=0)%>%
   as.data.table()
 
 
@@ -159,16 +153,16 @@ ES_list <- lapply(unique(country_codes_survcan$country_code), function(k) {
   women4<-women3[country_code==k,]
   
   men <-
-    matrix(NA, 2, 15, dimnames = list(c(seq(1,2, by = 1)), c(seq(2000, 2014, by =
+    matrix(NA, 100, 15, dimnames = list(c(seq(1,100, by = 1)), c(seq(2000, 2014, by =
                                                                    1))))
   
   women <-
-    matrix(NA, 2, 15, dimnames = list(c(seq(1,2, by = 1)), c(seq(2000, 2014, by =
+    matrix(NA, 100, 15, dimnames = list(c(seq(1,100, by = 1)), c(seq(2000, 2014, by =
                                                                      1))))
   
   
   for(j in 2000:2014){ 
-    for(i in 1:2){
+    for(i in 1:100){
       men2<-men4[year==j,]
       men[i,j-1999] <- men2[i,]$prob
       
@@ -352,4 +346,13 @@ ES_list <- lapply(unique(country_codes_survcan$country_code), function(k) {
 ES_dt_all <- do.call(rbind.data.frame, ES_list)
 
 dfds<-ES_dt_all%>%filter(time==1000)
-save(ES_dt_all, file="ES_dt_all_survcan.RData")
+save(dfds, file="ES_dt_all_survcan.RData")
+
+#Really can't get the code to work here so tryin altgggggggg
+library(survival)
+# Estimate of expected  survival stratified by prior surgery 
+fit1 <- survexp( ~ 1, rmap=list(sex=sex, year=year,   
+                                      age=age_cat), method='conditional', data=men3)
+summary(fit1, times=1:10*182.5, scale=365) #expected survival by 1/2 years
+
+
