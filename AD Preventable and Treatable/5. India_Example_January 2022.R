@@ -571,7 +571,7 @@ AD_by_cancer_site_3_india %>%
              rotate = TRUE,                                # Rotate vertically
              group = "Scenario",                                # Order by groups
              dot.size = 12,                                 # Large dot size
-             label = round(AD_by_cancer_site_1_india$pAD,1),                        # Add mpg values as dot labels
+             label = round(AD_by_cancer_site_3_india$pAD,1),                        # Add mpg values as dot labels
              font.label = list(color = "white", size = 10, 
                                vjust = 0.5),               # Adjust label parameters
              xlab="Cancer Site", 
