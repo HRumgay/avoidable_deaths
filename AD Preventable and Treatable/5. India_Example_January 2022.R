@@ -690,13 +690,19 @@ AD_India_Pie<-AD_by_cancer_site_1%>%
 
 
 #preventable pie
-piedt<- AD_India_Pie 
+
+piedt2<- AD_India_Pie%>%
+  filter(cancer_label!="Other Cancer Sites") 
+
+piedt<- AD_India_Pie%>%
+  filter(cancer_label=="Other Cancer Sites")%>%
+  full_join(piedt2)
 
 
 
 
 #treatable pie
-piedt <- as.data.table(AD_India_Pie  %>%
+piedt <- as.data.table(piedt  %>%
                          filter(Scenario=="AD_treat"))
 piedt %>%
   ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(piedt$rankc),
