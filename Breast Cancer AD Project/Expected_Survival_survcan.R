@@ -139,6 +139,6 @@ p$hdi_value<-NULL
 
 
 #---- save file ----
-save(p,file = "data/ExpectedSurvival.RData")
+#save(p,file ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\ExpectedSurvival.RData")
 
 
