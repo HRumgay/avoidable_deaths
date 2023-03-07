@@ -518,6 +518,16 @@ PAFs_age_Cat3 <- PAFs %>%
   droplevels()
 
 
+Seychelles_incidence<-bSURV%>%
+  filter(country_code==690)%>%
+  group_by(age_cat)%>%
+  summarize(country_code, cancer_code, total_overall=n())%>%
+  mutate(country_label="Seychelles",
+         cancer_label="Breast")%>%
+  ungroup()%>%
+  distinct()
+  
+  
 PAFs_age_Cat<- PAFs %>%
   #  filter(country_label == "Thailand") %>%
   mutate(age_cat = "Overall") %>%
@@ -544,6 +554,7 @@ PAFs_age_Cat<- PAFs %>%
 
 
 
+
 PAFs2 <- PAFs_age_Cat %>%
   #  full_join(PAFS_Overall) %>%
   as.data.frame() %>%
@@ -562,8 +573,23 @@ PAFs2 <- PAFs_age_Cat %>%
   distinct() %>%
   arrange(cancer_label, age_cat) %>%
   ungroup()%>%
+  full_join(Seychelles_incidence)%>%
   select(-country_label)
 
+HDI_PR<-HDI%>%
+  filter(country_code==840)%>%
+  mutate(country_code=630,
+         country_label="Puerto Rico")
+
+
+HDI_Martinque<-HDI%>%
+  filter(country_label=="France")%>%
+  mutate(country_code=474,
+         country_labe="Martinique")
+
+HDI<-HDI%>%
+  full_join(HDI_Martinque)%>%
+  full_join(HDI_PR)
 
 NS_OS_PAF <- NS_OS %>%
   #filter(age_cat!="Overall")%>%
@@ -695,6 +721,7 @@ Avoidable_Deaths_overall2 <- Avoidable_Deaths %>%
 
 
 Avoidable_Deaths_age_cat <- Avoidable_Deaths %>%
+  filter(age_cat!="Overall")%>%
   group_by(country_code, cancer_code, age_cat) %>%
   mutate(AD = sum(AD)) %>%
   full_join(Avoidable_Deaths_overall) %>%
@@ -867,8 +894,7 @@ AD_HDI2 <- AD_HDI %>%
     "pAD_med","pAD_Lower_med", "pAD_Upper_med",
     "AD_max", "AD_Lower_max", "AD_Upper_max",
     "pAD_max", "pAD_Lower_max", "pAD_Upper_max",
-    "total_deaths"
-  ) %>%
+    "total_deaths") %>%
   arrange(age_cat, country_label)
 
 AD_region2 <- AD_region %>%
@@ -881,8 +907,7 @@ AD_region2 <- AD_region %>%
     "pAD", "pAD_Lower", "pAD_Upper",
     "pAD_med", "pAD_Lower_med", "pAD_Upper_med",
     "pAD_max","pAD_Lower_max",
-    "pAD_Upper_max"
-  ) %>%
+    "pAD_Upper_max") %>%
   dplyr::mutate(across(6:15, round,-1)) %>%
   dplyr::mutate(across(16:24, round, 3) * 100) %>% #dplyr::mutate to show proportion as percentage in export
   select(
@@ -894,9 +919,9 @@ AD_region2 <- AD_region %>%
     "pAD_med","pAD_Lower_med", "pAD_Upper_med",
     "AD_max", "AD_Lower_max", "AD_Upper_max",
     "pAD_max", "pAD_Lower_max", "pAD_Upper_max",
-    "total_deaths"
-  ) %>%
+    "total_deaths") %>%
   arrange(age_cat, area)
+
 AD_all2 <- AD_all %>%
   dplyr::mutate(across(6:15, round,-1)) %>%
   dplyr::mutate(across(17:25, round, 3) * 100) %>% #dplyr::mutate to show proportion as percentage in export
@@ -909,10 +934,9 @@ AD_all2 <- AD_all %>%
     "pAD_med","pAD_Lower_med", "pAD_Upper_med",
     "AD_max", "AD_Lower_max", "AD_Upper_max",
     "pAD_max", "pAD_Lower_max", "pAD_Upper_max",
-    "total_deaths"
-  ) %>%
+    "total_deaths") %>%
   arrange(age_cat, country_label)
-NS_OS_PAF
+
 AD_table_main <- AD_region2 %>%
   full_join(AD_HDI2) %>%
   full_join(AD_all2) %>%
@@ -994,3 +1018,4 @@ AD_continent_n <- Avoidable_Deaths_age_cat %>%
 
 #write.csv2(AD_table_main, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_main_Survcan.csv", row.names = F)
 #write.csv2(AD_table_countries, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_countries_Survcan.csv", row.names = F)
+

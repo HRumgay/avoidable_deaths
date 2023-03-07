@@ -144,3 +144,5 @@ ten_cancer_sites <-
   filter(cancer_code %in% c(20))#%>%6, 7, 11, 13, 15, 20, 23, 27, 30, 38
 # mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
 
+HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
+
