@@ -10,6 +10,8 @@
 #
 ###############################################
 
+setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\Breast Cancer AD Project")
+
 #Avoidable Deaths due to Risk Factors for various Cancer sites
 library(readxl)
 library(dplyr)
