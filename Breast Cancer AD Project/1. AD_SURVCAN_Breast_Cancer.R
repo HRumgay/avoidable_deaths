@@ -852,6 +852,9 @@ AD_all <-
   distinct() %>%
   as.data.frame()
 
+AD_table_main
+AD_region2
+AD_HDI2
 Avoidable_Deaths_age_cat2 <- Avoidable_Deaths_age_cat %>%
   dplyr::mutate(across(6:15, round,-1)) %>%
   dplyr::mutate(across(17:25, round, 3) * 100) %>% #dplyr::mutate to show proportion as percentage in export
@@ -869,6 +872,8 @@ Avoidable_Deaths_age_cat2 <- Avoidable_Deaths_age_cat %>%
     "total_deaths"
   ) %>%
   arrange(age_cat, country_label)
+
+
 
 AD_HDI2 <- AD_HDI %>%
   rename("country_label" = "hdi_group") %>%
@@ -896,6 +901,7 @@ AD_HDI2 <- AD_HDI %>%
     "pAD_max", "pAD_Lower_max", "pAD_Upper_max",
     "total_deaths") %>%
   arrange(age_cat, country_label)
+
 
 AD_region2 <- AD_region %>%
   select("area","country_label", "age_cat",
@@ -937,6 +943,10 @@ AD_all2 <- AD_all %>%
     "total_deaths") %>%
   arrange(age_cat, country_label)
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 AD_table_main <- AD_region2 %>%
   full_join(AD_HDI2) %>%
   full_join(AD_all2) %>%
@@ -981,6 +991,11 @@ AD_table_countries <- Avoidable_Deaths_age_cat2 %>%
     "Number 3",
     "Proportion 3 (%)"
   )
+
+AD_table_countries
+
+
+
 check_ncountries <- Avoidable_Deaths_age_cat %>%
   group_by(age_cat) %>%
   mutate(n_countries = n()) %>%
