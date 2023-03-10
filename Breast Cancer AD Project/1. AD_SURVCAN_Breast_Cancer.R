@@ -60,7 +60,7 @@ bcan_SURV3 <- bcan_SURV2%>%
 #      mutate(max=max(surv_yydd))%>%
 #      filter(max>=5)%>%ungroup()
 
-a
+
 # a<-bcan_SURV2%>%select(country,country_code)%>%distinct()%>%as.data.frame()
 # b<-life_table%>%select(country,country_code)%>%distinct()%>%as.data.frame()
 
@@ -773,12 +773,15 @@ AD_HDI <- Avoidable_Deaths_age_cat %>%
   as.data.frame()
 # Calculating by region. Need a file that links countries to region
 region_Seychelles2 <- data.frame(c(690), c(1), c(1), c("Seychelles"))
+
 colnames(region_Seychelles2) <-
   c("country_code", "continent", "area", "country_label")
+
 HDI_Region_Mapping2 <- HDI_Region_Mapping %>%
   full_join(region_Seychelles2) %>%
   select(-country_label) %>%
   dplyr::filter(area <= 21)
+
 areas <- HDI_Region_Mapping %>%
   dplyr::filter(
       country_code >= 910 & country_code <= 931 |
@@ -786,6 +789,7 @@ areas <- HDI_Region_Mapping %>%
       country_code == 954 | country_code == 957
   ) %>%
   select(area, country_label)
+
 AD_region <- Avoidable_Deaths_age_cat %>%
   select(-country_label) %>%
   left_join(HDI_Region_Mapping2) %>%
@@ -852,9 +856,6 @@ AD_all <-
   distinct() %>%
   as.data.frame()
 
-AD_table_main
-AD_region2
-AD_HDI2
 Avoidable_Deaths_age_cat2 <- Avoidable_Deaths_age_cat %>%
   dplyr::mutate(across(6:15, round,-1)) %>%
   dplyr::mutate(across(17:25, round, 3) * 100) %>% #dplyr::mutate to show proportion as percentage in export
@@ -943,10 +944,7 @@ AD_all2 <- AD_all %>%
     "total_deaths") %>%
   arrange(age_cat, country_label)
 
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
 AD_table_main <- AD_region2 %>%
   full_join(AD_HDI2) %>%
   full_join(AD_all2) %>%

@@ -1,12 +1,9 @@
 ###############################################
 #
-# Net survival and Avoidable deaths
-#  Date: 09/06/2022
-# Version 2.22
+# Net survival and Avoidable deaths - SURVCAN Breast Cancer
+#  Date: 08/03/2023
+# Version 2.23
 #
-# Works for multiple cancer sites currently.
-#
-#Needs to be synced
 #
 ###############################################
 
@@ -25,7 +22,7 @@ library(relsurv)
 library(janitor)
 
 
-
+#test
 
 # 
 # 

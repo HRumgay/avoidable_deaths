@@ -20,20 +20,20 @@ Avoidable_Deaths_age_cat2
 
 # Pie Charts
 
-AD_HDI_by_cancer_site_3<-AD_by_HDI %>%
+AD_HDI_by_cancer_site_3<-AD_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group,cancer, cancer_code, AD_treat)%>%
   dplyr::rename("AD"="AD_treat")%>%
   dplyr::mutate(AD_cat="Treatable")
 
-AD_HDI_by_cancer_site_2<-AD_by_HDI %>%
+AD_HDI_by_cancer_site_2<-AD_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group,cancer, cancer_code, AD_prev)%>%
   dplyr::rename("AD"="AD_prev")%>%
   dplyr::mutate(AD_cat="Preventable")%>%
   dplyr::mutate(hdi_group=as.numeric(hdi_group))
 
-AD_HDI_by_cancer_site_1<-AD_by_HDI %>%
+AD_HDI_by_cancer_site_1<-AD_HDI %>%
   filter(age_cat=="Overall")%>%
   select(hdi_group, cancer, cancer_code, AD_treat_prev)%>%
   dplyr::mutate(hdi_group=as.numeric(hdi_group))%>%
