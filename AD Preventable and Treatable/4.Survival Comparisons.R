@@ -24,7 +24,8 @@ PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%
 #Checking survival aggregated by age group and other
 check2<- countries_5y%>%
   left_join(PAFs)%>%
-  select(country_code,country_label, cancer_code, cancer_label,
+  select(country_code,country_label, 
+         cancer_code, cancer_label,
          age, rel_surv, cases)%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%

@@ -1,6 +1,6 @@
 ###############################################
 #
-# Net survival and Avoidable deaths
+# Net survival and Avoidable deaths - File Lead
 # Date: 20/01/2023
 # Version 4.0
 #
@@ -19,7 +19,9 @@ library(readr)
 library(ggplot2)
 library(relsurv)
 library(janitor)
+library(data.table)
 
+setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
 
 
 ########################
@@ -36,9 +38,10 @@ country_codes <-
   filter(country_code<900) %>%
   select(country_code, country_label)
 
-PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")
+PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")%>%as.data.table()
 
 PAFs<-PAFs10%>%
+  #as.data.frame()%>%
   mutate(cancer_label=as.character(cancer_label))%>%
   group_by(country_code, sex,
            cancer_code, age)%>%
@@ -46,7 +49,9 @@ PAFs<-PAFs10%>%
   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
                             cases==0 ~    af.comb))%>%
   ungroup()%>%
-  as.data.frame()%>%distinct()
+  as.data.frame()%>%
+  distinct()
+
 
 survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()
@@ -143,6 +148,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langsel
 HDI_Region_Mapping<-read.csv("~/Documents/R_Projects/Data/HDI2018_GLOBOCAN2020.csv")
 
 # population data
+
 load("~/Documents/R_Projects/Data/GCO_pop2020.RData")
 
 country_codes <-
