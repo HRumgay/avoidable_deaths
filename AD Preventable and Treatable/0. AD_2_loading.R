@@ -41,7 +41,7 @@ country_codes <-
 PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")%>%as.data.table()
 
 PAFs<-PAFs10%>%
-  #as.data.frame()%>%
+  as_tibble()%>%
   mutate(cancer_label=as.character(cancer_label))%>%
   group_by(country_code, sex,
            cancer_code, age)%>%
