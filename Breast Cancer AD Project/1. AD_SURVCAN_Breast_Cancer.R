@@ -7,10 +7,6 @@ ten_cancer_sites <-
 # mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
 
 
-
-
-
-
 #Prepping cancer real world data
 bcan_SURV2 <- bcan_SURV %>%
   distinct()%>%
@@ -38,6 +34,10 @@ bcan_SURV2 <- bcan_SURV %>%
   droplevels()%>%
   #filter(last_FU_year > 2008 & last_FU_year <= 2012) %>%
   #filter(!is.na(mx)) %>% 
+  group_by(country_code)%>%
+  mutate(n=n())%>%
+  ungroup()%>%
+  filter(n>=30)%>% #filter so at least 30 patients
   droplevels() %>%
   left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))
 
@@ -50,15 +50,12 @@ bcan_SURV3 <- bcan_SURV2%>%
   mutate(event1=case_when(dead==1 & surv_yydd<=5 ~ 1, #censoring survival after five years
                           dead==1 & surv_yydd>5 ~ 0,
                           dead==0 ~ 0
-  ))#  %>%
-  # ungroup()%>%
-  # group_by(country)%>%
-  # mutate(end_FU=max(year))%>%
-  # filter(year>=end_FU-5)%>%
-  # ungroup()
-#      group_by(country,age_cat)%>%
-#      mutate(max=max(surv_yydd))%>%
-#      filter(max>=5)%>%ungroup()
+  ))%>%
+  group_by(country_code, age_cat)%>%
+  mutate(n_events=n())%>%
+  ungroup()%>%
+  filter(n_events>=10)%>% #filter each subgroup so at least 10 events...
+  ungroup()
 
 
 # a<-bcan_SURV2%>%select(country,country_code)%>%distinct()%>%as.data.frame()
@@ -80,7 +77,12 @@ bcan_SURV11 <- bcan_SURV3%>%
 bSURV<-bcan_SURV3%>%left_join(bcan_SURV11)%>%
   ungroup()%>%
   group_by(country, age_cat)%>%
-  filter(year>=end_FU-5)
+  ungroup()%>%
+  filter(year>=end_FU-5)%>%
+  group_by(country_code, age_cat)%>%
+  mutate(max_fu=max(surv_yydd))%>%
+  ungroup()%>%
+  filter(max_fu>=5)
 # 
 #  mutate(surv_yydd=case_when(surv_yydd<=5 ~ 5,
 #                           surv_yydd>5 ~ surv_yydd
@@ -619,6 +621,7 @@ NS_OS_PAF <- NS_OS %>%
 
 Avoidable_Deaths <- NS_OS_PAF %>%
   mutate(
+    es=Five_Year_all_cause_Surv/Five_Year_Net_Surv,
     AD = (surv_ref - Five_Year_Net_Surv) * es  * total_overall,
     AD_Lower = (surv_ref - NS_Upper_CI) *   es * total_overall,
     AD_Upper = (surv_ref - NS_Lower_CI) *  es * total_overall,
@@ -664,7 +667,7 @@ Avoidable_Deaths <- NS_OS_PAF %>%
       Five_Year_Net_Surv != max_ref ~ AD_Upper_max
     )) %>%
   #fixing any negative values so they aren't in the total
-  select(
+  select(#"es",
     "country_code", "country_label", "age_cat",
     "cancer_code", "cancer_label",
     "AD","AD_Lower", "AD_Upper",
@@ -1006,6 +1009,7 @@ AD_HDI_n <- Avoidable_Deaths_age_cat %>%
   group_by(age_cat, hdi_group) %>%
   select(age_cat, hdi_group, country_code, country_label) %>%
   mutate(n_countries = n())
+AD_HDI_n
 #Checking number of countries in each subregion
 AD_region_n <- Avoidable_Deaths_age_cat %>%
   select(-country_label) %>%
@@ -1016,7 +1020,7 @@ AD_region_n <- Avoidable_Deaths_age_cat %>%
   select(age_cat, area, country_label) %>%
   mutate(n_countries = n()) %>%
   distinct()
-#Checking number of countries in each region - seems more reasonable to group by region...
+AD_region_n
 #Checking number of countries in each region - seems more reasonable to group by region as we avoid regions represented by one country...
 AD_continent_n <- Avoidable_Deaths_age_cat %>%
   # select(-country_label)%>%
@@ -1027,7 +1031,7 @@ AD_continent_n <- Avoidable_Deaths_age_cat %>%
   select(country_label, age_cat, continent) %>%
   mutate(n_countries = n()) %>%
   distinct()
-
+AD_region_n
 
 #write.csv2(AD_table_main, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_main_Survcan.csv", row.names = F)
 #write.csv2(AD_table_countries, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_countries_Survcan.csv", row.names = F)

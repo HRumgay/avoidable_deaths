@@ -31,7 +31,9 @@ library(janitor)
 # g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\Globocan.csv")
 # pops_g<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\source\\Pops.csv")
 # 
-# pops_sorted<-read.csv("C:\\Users\\langseliuso\\OneDrive - IARC\\Desktop\\Avoidable Deaths Breast Cancer Project\\R Analysis\\population2.csv")
+
+#pops_sorted<-read.csv("C:\\Users\\langseliuso\\OneDrive - IARC\\Desktop\\Avoidable Deaths Breast Cancer Project\\R Analysis\\population2.csv")
+
 # bc<- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\SURVCANALL_cc_breast.csv")
 # #Loading prevelance project incidence and mortality
 # prev<-read.dta13("\\\\Inti\\cin\\Studies\\Prevalence\\2020\\_data\\incidence\\prelim\\incident_mortality_asr-2020.dta")
@@ -87,8 +89,8 @@ PAFs<-PAFs10%>%
   group_by(country_code, sex, 
            cancer_code, age)%>%
   filter(sex!=0)%>%
-  mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
-                            cases==0 ~    af.comb))%>%
+  # mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+  #                           cases==0 ~    af.comb))%>%
   ungroup()%>%
   as.data.frame()%>%
   distinct()
@@ -142,6 +144,8 @@ ten_cancer_sites <-
   Cancer_codes %>% 
   filter(cancer_code %in% c(20))#%>%6, 7, 11, 13, 15, 20, 23, 27, 30, 38
 # mutate(cancer_label=replace(cancer_label,cancer_label=="Unspecified sites","Colorectal"))
+
+
 
 HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
 
