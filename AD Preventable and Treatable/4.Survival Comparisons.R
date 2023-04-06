@@ -1151,7 +1151,121 @@ ggsave("surv_curv_Australia_literuture.pdf", width = 30, height = 40, pointsize 
 
 # plot some random countries for some cancer sites
 
+survt_random_countries<-survt_differences%>%
+  select(hdi_group,country_code)%>%
+  group_by(hdi_group)%>%
+  sample_n(5)%>%
+  mutate(Random="Random")%>%
+  ungroup()%>%
+  select(-hdi_group)
+
+surv_random_tplot<-surv_new2%>%
+  select(-country_name)%>%
+  left_join(HDI, by=c("country_code", "hdi_group"))%>%
+  dplyr::mutate(hdi_group=case_when(hdi_group==1~ "1/2) Low/ Medium",
+                                    hdi_group==2~ "1/2) Low/ Medium",
+                                    hdi_group==3~ "3/4) High/ Very High",
+                                    hdi_group==4~ "3/4) High/ Very High"))%>%
+  left_join(survt_random_countries, by=c("country_code"))
 
 
 
+# Corpus
+
+surv_curv_Corpus_random<-surv_random_tplot%>%  
+  filter(cancer_code == 24,
+         (Random == "Random" )) %>% 
+  ggplot(aes(x=time, y=rel_surv, colour = factor(age),
+             ymin = 0,
+             ymax = 1)) + 
+  geom_line() +
+  geom_point()+ 
+  labs(title="Net Survival over time for Corpus for 20 randomly selected countries",
+       y = "Net Survival", x = "Time (years)")+
+  facet_wrap(vars(country_label))
+
+surv_curv_Corpus_random
+
+# Breast
+
+surv_curv_Breast_random<-surv_random_tplot%>%  
+  filter(cancer_code == 20,
+         (Random == "Random" )) %>% 
+  ggplot(aes(x=time, y=rel_surv, colour = factor(age),
+             ymin = 0,
+             ymax = 1)) + 
+  geom_line() +
+  geom_point()+ 
+  labs(title="Net Survival over time for Breast for 20 randomly selected countries",
+       y = "Net Survival", x = "Time (years)")+
+  facet_wrap(vars(country_label))
+
+surv_curv_Breast_random
+
+
+# Stomach
+
+surv_curv_Stomach_random<-surv_random_tplot%>%  
+  filter(cancer_code == 7,
+         (Random == "Random" )) %>% 
+  ggplot(aes(x=time, y=rel_surv, colour = factor(age),
+             ymin = 0,
+             ymax = 1)) + 
+  geom_line() +
+  geom_point()+ 
+  labs(title="Net Survival over time for Stomach for 20 randomly selected countries",
+       y = "Net Survival", x = "Time (years)")+
+  facet_wrap(vars(country_label))
+
+surv_curv_Stomach_random
+
+# thyroid
+
+surv_curv_thyroid_random<-surv_random_tplot%>%  
+  filter(cancer_code == 32,
+         (Random == "Random" )) %>% 
+  ggplot(aes(x=time, y=rel_surv, colour = factor(age),
+             ymin = 0,
+             ymax = 1)) + 
+  geom_line() +
+  geom_point()+ 
+  labs(title="Net Survival over time for thyroid for 20 randomly selected countries",
+       y = "Net Survival", x = "Time (years)")+
+  facet_wrap(vars(country_label))
+
+surv_curv_thyroid_random
+
+
+# mesothalioma
+
+surv_curv_mesothalioma_random<-surv_random_tplot%>%  
+  filter(cancer_code == 18,
+         (Random == "Random" )) %>% 
+  ggplot(aes(x=time, y=rel_surv, colour = factor(age),
+             ymin = 0,
+             ymax = 1)) + 
+  geom_line() +
+  geom_point()+ 
+  labs(title="Net Survival over time for mesothalioma for 20 randomly selected countries",
+       y = "Net Survival", x = "Time (years)")+
+  facet_wrap(vars(country_label))
+
+surv_curv_mesothalioma_random
+
+
+ggsave("surv_curv_Corpus_random.pdf", width = 30, height = 10, pointsize = 12, 
+       path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Corpus_random)
+ggsave("surv_curv_Breast_random.pdf", width = 30, height = 10, pointsize = 12, 
+       path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Breast_random)
+ggsave("surv_curv_Stomach_random.pdf", width = 30, height = 10, pointsize = 12, 
+       path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Stomach_random)
+
+
+
+ggsave("surv_curv_thyroid_random.pdf", width = 30, height = 10, pointsize = 12, 
+       path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_thyroid_random)
+
+
+ggsave("surv_curv_mesothalioma_random.pdf", width = 30, height = 10, pointsize = 12, 
+       path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_mesothalioma_random)
 
