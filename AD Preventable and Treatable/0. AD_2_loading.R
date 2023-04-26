@@ -28,214 +28,327 @@ setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventab
 #Comment from here
 
 load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\GCO_pop2020.RData")
-HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
 
-
-
-
-country_codes <-
-  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
-  filter(country_code<900) %>%
-  select(country_code, country_label)
-
-PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")%>%as.data.table()
-
-PAFs<-PAFs10%>%
-  as_tibble()%>%
-  mutate(cancer_label=as.character(cancer_label))%>%
-  group_by(country_code, sex,
-           cancer_code, age)%>%
-  filter(sex!=0)%>%
-  mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
-                            cases==0 ~    af.comb))%>%
-  ungroup()%>%
-  as.data.frame()%>%
-  distinct()
-
-
-survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
-Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()
-Cancer_codes_Survcan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
-
-Survival_Modelled <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_allsites_allcountries.23.01.23.csv") %>% 
-   as.data.frame()
-
-
-HDI <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI_2019.csv") %>% as.data.frame()
-
-# Uncomment when rerunning. This takes forever to load
-# Thailand_Survcan <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\SURVCANALL_cc.csv")# %>% as.data.frame()Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_cc_Oliver.csv
-# Thailand_Survcan<-Thailand_Survcan %>% as.data.frame() %>%  filter(country=="Thailand")
-
-
-Thailand_popmort <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\popmort_Thailand.csv") %>% as.data.frame() %>%
-  left_join(country_codes, by = c("region" = "country_label"))
-Thailand_pop <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_pop.csv") %>% as.data.frame()
-
-popmort2<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort.dta")%>%as.data.frame()
-#   left_join(country_codes)
- popmort<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort2.dta")%>%as.data.frame()
+# HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
 # 
- p <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_group.dta")%>%
-   as.data.frame()
-
-MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
-  as.data.frame()%>%select(-mortality,-incidence)%>%
-  mutate(MIR=replace(MIR,MIR==Inf, NA))
-
-
-
-Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
-
-Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.23.01.23.csv")%>%
-  as.data.frame()%>%
-  select( age,
-          cancer_code,
-          rel_surv)%>%
-  dplyr::rename("surv_ref"="rel_surv")%>%
-  distinct()%>%
-  mutate(surv_ref=case_when(surv_ref>1~ 1,
-                            surv_ref<=1~ surv_ref))
-
-pop20202 <- pop2020%>%
-  as.data.frame()%>%
-  filter(sex!=0)%>%
-  mutate(age = case_when(
-    age==1~ 1,
-    age==2~ 2,
-    age==3~ 3,
-    age==4~ 4,
-    age>4 & age<9 ~ 4,
-    age==9 ~ 9,
-    age==10 ~ 10,
-    age==11 ~ 11,
-    age==12 ~ 12,
-    age==13 ~ 13,
-    age==14 ~ 14,
-    age==15 ~ 15,
-    age>=16 ~ 16,
-  ))%>%
-  group_by(country_code, age,sex)%>%
-  mutate(py=sum(py))%>%
-  distinct()%>%
-  select(-country_label)
-
-
-Reference_Survival_Survcan<-Reference_Survival%>%
-  left_join(by=c("cancer_code","age")) #or combine directly in PAF file
-
-
-
-Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
-  as.data.frame()%>%
-  select( age_cat,
-          cancer_code,
-          rel_surv)%>%
-  dplyr::rename("surv_ref"="rel_surv")%>%
-  distinct()%>%
-  mutate(surv_ref=case_when(surv_ref>1~ 1,
-                            surv_ref<=1~ surv_ref))
-
-
-###################
-
-load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\ExpectedSurvival.RData")
-
+# 
+# 
+# 
+# country_codes <-
+#   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
+#   filter(country_code<900) %>%
+#   select(country_code, country_label)
+# 
+# PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")%>%as.data.table()
+# 
+# PAFs<-PAFs10%>%
+#   as_tibble()%>%
+#   as.data.frame()%>%
+#   mutate(cancer_label=as.character(cancer_label))%>%
+#   group_by(country_code, sex,
+#            cancer_code, age)%>%
+#   filter(sex!=0)%>%
+#   mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+#                             cases==0 ~    af.comb))%>%
+#   ungroup()%>%
+#   as.data.frame()%>%
+#   distinct()
+# 
+# 
+# survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
+# Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()
+# Cancer_codes_Survcan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
+# 
+# Survival_Modelled <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_allsites_allcountries.23.01.23.csv") %>% 
+#    as.data.frame()
+# 
+# 
+# HDI <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI_2019.csv") %>% as.data.frame()
+# 
+# # Uncomment when rerunning. This takes forever to load
+# # Thailand_Survcan <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\SURVCANALL_cc.csv")# %>% as.data.frame()Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_cc_Oliver.csv
+# # Thailand_Survcan<-Thailand_Survcan %>% as.data.frame() %>%  filter(country=="Thailand")
+# 
+# 
+# Thailand_popmort <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\popmort_Thailand.csv") %>% as.data.frame() %>%
+#   left_join(country_codes, by = c("region" = "country_label"))
+# Thailand_pop <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\ASTHABAN_pop.csv") %>% as.data.frame()
+# 
+# popmort2<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort.dta")%>%as.data.frame()
+# #   left_join(country_codes)
+#  popmort<-read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_popmort2.dta")%>%as.data.frame()
+# # 
+#  p <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\who_ghe_group.dta")%>%
+#    as.data.frame()
+# 
+# MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
+#   as.data.frame()%>%select(-mortality,-incidence)%>%
+#   mutate(MIR=replace(MIR,MIR==Inf, NA))
+# 
+# 
+# 
+# Thailand_expected_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
+# 
+# Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.23.01.23.csv")%>%
+#   as.data.frame()%>%
+#   select( age,
+#           cancer_code,
+#           rel_surv)%>%
+#   dplyr::rename("surv_ref"="rel_surv")%>%
+#   distinct()%>%
+#   mutate(surv_ref=case_when(surv_ref>1~ 1,
+#                             surv_ref<=1~ surv_ref))
+# 
+# pop20202 <- pop2020%>%
+#   as.data.frame()%>%
+#   filter(sex!=0)%>%
+#   mutate(age = case_when(
+#     age==1~ 1,
+#     age==2~ 2,
+#     age==3~ 3,
+#     age==4~ 4,
+#     age>4 & age<9 ~ 4,
+#     age==9 ~ 9,
+#     age==10 ~ 10,
+#     age==11 ~ 11,
+#     age==12 ~ 12,
+#     age==13 ~ 13,
+#     age==14 ~ 14,
+#     age==15 ~ 15,
+#     age>=16 ~ 16,
+#   ))%>%
+#   group_by(country_code, age,sex)%>%
+#   mutate(py=sum(py))%>%
+#   distinct()%>%
+#   select(-country_label)
+# 
+# 
+# Reference_Survival_Survcan<-Reference_Survival%>%
+#   left_join(by=c("cancer_code","age")) #or combine directly in PAF file
+# 
+# 
+# 
+# Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
+#   as.data.frame()%>%
+#   select( age_cat,
+#           cancer_code,
+#           rel_surv)%>%
+#   dplyr::rename("surv_ref"="rel_surv")%>%
+#   distinct()%>%
+#   mutate(surv_ref=case_when(surv_ref>1~ 1,
+#                             surv_ref<=1~ surv_ref))
+# 
+# 
+# ###################
+# 
+# load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\ExpectedSurvival.RData")
+# 
 
 #Reading all the variables
 #GCO_country_info.csv has correct country_label variable to match with pop_mort2
 
-HDI_Region_Mapping<-read.csv("~/Documents/R_Projects/Data/HDI2018_GLOBOCAN2020.csv")
+HDI_Region_Mapping<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\HDI2018_GLOBOCAN2020.csv")
 
 # population data
 
-load("~/Documents/R_Projects/Data/GCO_pop2020.RData")
+load("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_pop2020.RData")
 
 country_codes <-
-  read.csv("~/Documents/R_Projects/Data/GCO_country_info.csv", stringsAsFactors = FALSE) %>%
+  read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
   filter(country_code<900) %>%
   select(country_code, country_label)
 
-PAFs <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
+PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_12.07.22.csv")%>%
+  as.data.frame()%>%
+  distinct()%>%
   group_by(country_code, sex,
            cancer_code, age)%>%
   filter(sex!=0)%>%
-  mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
-                            cases==0 ~ af.comb))%>%
-  ungroup()%>%
+  dplyr::mutate(cases=as.numeric(cases),
+                cases.prev=as.numeric(cases.prev))%>%
+  as.data.frame()
+
+
+# PAFs49<-PAFs9%>%
+#     filter(age>=4 & age<9)%>%
+#     mutate(age=4)%>%
+#     
+#     group_by(country_code, sex,
+#              cancer_code, age)
+#   as.data.frame()%>%
+#   dplyr::mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
+#                             cases==0 ~ af.comb))%>%
+#   ungroup()%>%
+#   as.data.frame()%>%
+#   distinct()
+
+
+Cancer_codes <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\dict_cancer.csv") %>% as.data.frame()
+Cancer_codes_Survcan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\cancer_codes_Survcan.csv") %>% as.data.frame()
+
+#
+
+
+  
+
+# read survival - when new file check coding used  for cancer codes
+
+Survival_Modelled3 <-  read_dta("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\survival_SURVCAN_anchor_ALL_all34_byHDI.dta")%>%
   as.data.frame()%>%
-  distinct()
+  mutate(country_name=gsub('`"','', country_name),
+         country_name=gsub("'",'', country_name),
+         country_name=gsub('"','', country_name)
+  )%>%
+  clean_names()%>%
+  dplyr::rename("country_label"="country_name")%>%
+  distinct()%>%
+  filter(time==5)
 
 
-Cancer_codes <- read.csv("~/Documents/R_Projects/Data/dict_cancer.csv") %>% as.data.frame()
-Cancer_codes_Survcan <- read.csv("~/Documents/R_Projects/Data/cancer_codes_Survcan.csv") %>% as.data.frame()
+Survival_Modelled2<-Survival_Modelled3%>%
+  filter(!cancer_code%in%c(41,42))%>%
+  dplyr::mutate(cancer_code = case_when(
+    cancer_code==2~ 2,
+    cancer_code==4~ 4,
+    cancer_code==5 ~ 5,
+    cancer_code==6 ~ 6,
+    cancer_code==7 ~ 7,
+    cancer_code==8 ~ 8,
+    cancer_code==9 ~ 9,
+    cancer_code==10 ~ 10,
+    cancer_code==11 ~ 11,
+    cancer_code==45 ~ 12,
+    cancer_code==13 ~ 13,
+    cancer_code==14 ~ 14,
+    cancer_code==15 ~ 15,
+    cancer_code==16 ~ 16,
+    cancer_code==18 ~ 18,
+    cancer_code==19 ~ 19,
+    cancer_code==20 ~ 20,
+    cancer_code==21 ~ 21,
+    cancer_code==22 ~ 22,
+    cancer_code==23 ~ 23,
+    cancer_code==24 ~ 24,
+    cancer_code==25 ~ 25,
+    cancer_code==26 ~ 26,
+    cancer_code==27 ~ 27,
+    cancer_code==28 ~ 28,
+    cancer_code==29 ~ 29,
+    cancer_code==30 ~ 30,
+    cancer_code==31 ~ 31,
+    cancer_code==32 ~ 32,
+    cancer_code==33 ~ 33,
+    cancer_code==34 ~ 34,
+    cancer_code==35 ~ 35,
+    cancer_code==36 ~ 36
+      )) %>%
+  filter(cancer_label!="Colorectal")#%>%
+  #filter(age<=16)
 
 
-Survival_Modelled <- read.csv("~/Documents/R_Projects/Data/survival_allsites_allcountries.23.01.23.csv")%>%
+Survival_Modelled2_lip<-Survival_Modelled3%>%
+  filter(cancer_code==41)%>%
+  dplyr::mutate(cancer_code=1,
+                cancer_label="Lip, oral cavity")
+
+Survival_Modelled2_salivary<-Survival_Modelled3%>%
+  filter(cancer_code==41)%>%
+  dplyr::mutate(cancer_code=2,
+                cancer_label="Salivary glands")
+
+Survival_Modelled2_oropharynx<-Survival_Modelled3%>%
+  filter(cancer_code==42)%>%
+  dplyr::mutate(cancer_code=3,
+                cancer_label="Oropharynx")
+
+Survival_Modelled2_naso<-Survival_Modelled3%>%
+  filter(cancer_code==42)%>%
+  dplyr::mutate(cancer_code=4,
+                cancer_label="Nasopharynx")
+
+Survival_Modelled<-Survival_Modelled2%>%
+  full_join(Survival_Modelled2_lip)%>%
+  full_join(Survival_Modelled2_salivary)%>%
+  full_join(Survival_Modelled2_oropharynx)%>%
+  full_join(Survival_Modelled2_naso)
+  
+# Check so cancer codes match up
+
+globocan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Globocan2020\\Globocan.csv",
+                      stringsAsFactors = FALSE)%>%
   as.data.frame()%>%
-  distinct()
+  filter(country_code<900)
 
-HDI_File<-Survival_Modelled%>%
-  select(country_code, country_label, hdi_value, hdi_group)%>%
-  distinct()
+
+#b<-Survival_Modelled%>%select(cancer_code, cancer_label)%>%distinct()%>%arrange(cancer_code)
+
+globocan_cancer_names<-globocan%>%select(cancer_code, cancer_label)%>%distinct()
+
+# missing_surv_estimates<-PAFs%>%select(cancer_code, cancer_label)%>%distinct()%>%filter(!cancer_code%in%b$cancer_code)
+# 
+# ca<-PAFs%>%select(cancer_code, cancer_label)%>%distinct()%>%arrange(cancer_code)
+
+# HDI_File<-Survival_Modelled%>%
+#   select(country_code, country_label, hdi_group)%>%
+#   distinct()
 
 #write.csv(HDI_File, "~/Documents/R_Projects/Data/HDI_file_2019.csv")
 
 #HDI <-read.csv("~/Documents/R_Projects/Data/HDI_2019.csv") %>% as.data.frame()
-Thailand_Survcan <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()
-Thailand_popmort <-read.csv("~/Documents/R_Projects/Thai Data/popmort_Thailand.csv") %>% as.data.frame() %>%
-  left_join(country_codes, by = c("region" = "country_label"))
+# Thailand_Survcan <-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\ASTHABAN_cc_Oliver.csv")# %>% as.data.frame()
+# Thailand_popmort <-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Thai Data/popmort_Thailand.csv") %>% as.data.frame() %>%
+#   left_join(country_codes, by = c("region" = "country_label"))
+# 
+# Thailand_pop <-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\ASTHABAN_pop.csv") %>% as.data.frame()
 
-Thailand_pop <-read.csv("~/Documents/R_Projects/Thai Data/ASTHABAN_pop.csv") %>% as.data.frame()
-
-popmort2<-read_dta("~/Documents/R_Projects/Data/who_ghe_popmort.dta")%>%as.data.frame()%>%
+popmort2<-read_dta("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\who_ghe_popmort.dta")%>%as.data.frame()%>%
   left_join(country_codes)
 
-p <- read_dta("~/Documents/R_Projects/Data/who_ghe_group.dta")%>%
+p <- read_dta("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\who_ghe_group.dta")%>%
   as.data.frame()
 
-MIR_Age_Cats<-read.csv("~/Documents/R_Projects/Data/MIR_age_cat.csv")%>%
-  as.data.frame()%>%
-  select(-mortality,-incidence)%>%
-  mutate(MIR=replace(MIR,MIR==Inf, NA))
+# MIR_Age_Cats<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\MIR_age_cat.csv")%>%
+#   as.data.frame()%>%
+#   select(-mortality,-incidence)%>%
+#   mutate(MIR=replace(MIR,MIR==Inf, NA))
 
 
 
 
 #same file but Globocan age groups for modeled data
-MIR_Globocan<-read.csv("~/Documents/R_Projects/Data/MIR.csv")%>%
-  as.data.frame()%>%
-  select(-mortality,
-         -incidence)%>%
-  mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
-  mutate(age = case_when(
-    age==4~ 4,
-    age>4 & age<=9~ 9,
-    age==10~ 10,
-    age==11~ 11,
-    age==12~ 12,
-    age==13~ 13,
-    age==14~ 14,
-    age==15~ 15,
-    age>=16 ~ 16,
-  ))%>%
-  mutate(age_cat = case_when(
-    age>=4 & age<14 ~ "15-64",
-    age>=14 ~ "65-99",
-    age<4 ~"0-15"))%>%
-  select(-sex, -X)%>%
-  group_by(country_code, cancer_code, age)%>%
-  mutate(MIR=sum(MIR*py)/sum(py))%>%
-  mutate(py=sum(py))%>%distinct()%>%
-  ungroup()
+# MIR_Globocan<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\MIR.csv")%>%
+#   as.data.frame()%>%
+#   select(-mortality,
+#          -incidence)%>%
+#   mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
+#   mutate(age = case_when(
+#     age==4~ 4,
+#     age>4 & age<=9~ 9,
+#     age==10~ 10,
+#     age==11~ 11,
+#     age==12~ 12,
+#     age==13~ 13,
+#     age==14~ 14,
+#     age==15~ 15,
+#     age>=16 ~ 16,
+#   ))%>%
+#   mutate(age_cat = case_when(
+#     age>=4 & age<14 ~ "15-64",
+#     age>=14 ~ "65-99",
+#     age<4 ~"0-15"))%>%
+#   select(-sex, -X)%>%
+#   group_by(country_code, cancer_code, age)%>%
+#   mutate(MIR=sum(MIR*py)/sum(py))%>%
+#   mutate(py=sum(py))%>%distinct()%>%
+#   ungroup()
 
 
-Thailand_expected_Survival<-read.csv("~/Documents/R_Projects/Data/Thailand_expected_Survival.csv")%>%as.data.frame()
+Thailand_expected_Survival<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Thailand_expected_Survival.csv")%>%as.data.frame()
 
 
-sapply(Reference_Survival, class)
 
-Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.23.01.23.csv")%>%
+
+Reference_Survival<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Reference_Survival.csv")%>%
   as.data.frame()%>%
   select( age,
           cancer_code,
@@ -243,8 +356,10 @@ Reference_Survival<-read.csv("~/Documents/R_Projects/Data/Reference_Survival.23.
   dplyr::rename("surv_ref"="rel_surv")%>%
   distinct()%>%
   mutate(surv_ref=case_when(surv_ref>1~ 1,
-                            surv_ref<=1~ surv_ref))
+                            surv_ref<=1~ surv_ref))# %>%
+ # filter(age<=16)
 
+sapply(Reference_Survival, class)
 
 Reference_Survival_Survcan<-Reference_Survival%>%
   left_join(PAFs,by=c("cancer_code","age"))%>%
@@ -265,7 +380,11 @@ Reference_Survival_Survcan<-Reference_Survival%>%
     age==13~ 13,
     age==14~ 14,
     age==15~ 15,
-    age>=16 ~ 16,
+    #age>=16 ~ 16,
+    age==16 ~ 16,
+    age==17 ~ 17,
+    age==18 ~ 18,
+    
   ))%>%
   mutate(
     age_cat = case_when(
@@ -280,11 +399,12 @@ Reference_Survival_Survcan<-Reference_Survival%>%
 mutate(surv_ref=  sum(surv_ref*cases, na.rm=T)/sum(cases, na.rm=T))%>%
   ungroup()%>%
   select(-cases)%>%
-  distinct()
+  distinct() %>%
+  filter(!is.na(cancer_code))
 
 
 
-Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")%>%
+Reference_Survival_Survcan<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Reference_Survival_Survcan.csv")%>%
   as.data.frame()%>%
   select( age_cat,
           cancer_code,
@@ -292,10 +412,10 @@ Reference_Survival_Survcan<-read.csv("~/Documents/R_Projects/Data/Reference_Surv
   dplyr::rename("surv_ref"="rel_surv")%>%
   distinct()%>%
   mutate(surv_ref=case_when(surv_ref>1~ 1,
-                            surv_ref<=1~ surv_ref))
+                            surv_ref<=1~ surv_ref))%>%
+  filter(!is.na(cancer_code))
 
-
-load("~/Documents/R_Projects/Data/ExpectedSurvival.RData")
+load("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\ExpectedSurvival.RData")
 
 
 ES2<-p%>%
@@ -322,13 +442,16 @@ ES_age_Cats<-ES2%>%
   age==13~ 13,
   age==14~ 14,
   age==15~ 15,
-  age>=16 ~ 16))%>%
+  #age>=16 ~ 16,
+  age==16 ~ 16,
+  age==17 ~ 17,
+  age==18 ~ 18,))%>%
   mutate(
     age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
       age>=14 ~ "65-99",
       age<4 ~"0-15"
-    ))%>%left_join
+    ))
 # #
 #
 

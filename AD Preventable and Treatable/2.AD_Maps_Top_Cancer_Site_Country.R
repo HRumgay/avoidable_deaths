@@ -11,9 +11,12 @@ library(ggsci)
 library(scales)
 library(ggpubr)
 
+
+setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
+
 AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
 cancerss<-Avoidable_Deaths_Simulated_All_age_cat_overall%>%select(cancer_code, cancer)%>%distinct()
-cancer_colors<-read.csv("~/Documents/R_Projects/Data/cancer_color_2018.csv", sep=",")%>%
+cancer_colors<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\cancer_color_2018.csv", sep=",")%>%
   as.data.frame()%>%
   select(cancer_code, Color.Hex)%>%
  # dplyr::rename("cancer"="cancer_label")%>%
@@ -28,7 +31,7 @@ palette1_named = setNames(object = cancer_colors$Color.Hex, nm = cancer_colors$c
 print(palette1_named)
 
 # load id for each country
-dict_id <-  as.data.table(read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_map.csv", sep=","))
+dict_id <-  as.data.table(read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_map.csv", sep=","))
 dict_id %>% dplyr::select(-country_label)-> dict_id
 
 # merge paf data with dict_id
@@ -68,19 +71,19 @@ temp_proj<- "+proj=eck3"
 
 # read shapefile official general (3 part)
 
-shp_temp <- readOGR(dsn="~/Documents/R_Projects/Data/_shape/OMS_official_general", layer="general_2013")
+shp_temp <- readOGR(dsn="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\OMS_official_general", layer="general_2013")
 shp_temp <- spTransform(shp_temp, CRS("+proj=eck3"))
 df_map <- fortify(shp_temp)
 int_map_index <- c(1:nrow(df_map))
 df_map$int_map_index <- int_map_index
 
-shp_temp <- readOGR(dsn="~/Documents/R_Projects/Data/_shape/OMS_official_general", layer="maskpoly_general_2013")
+shp_temp <- readOGR(dsn="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\OMS_official_general", layer="maskpoly_general_2013")
 shp_temp <- spTransform(shp_temp, CRS("+proj=eck3"))
 df_poly <- fortify(shp_temp)
 int_map_index <- c(1:nrow(df_poly))
 df_poly$int_map_index <- int_map_index
 
-df_poly_layout <-  read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_poly.csv", sep=",")
+df_poly_layout <-  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_poly.csv", sep=",")
 df_poly_layout$line_color <- as.factor(df_poly_layout$line_color)
 df_poly_layout$line_type <- as.factor(df_poly_layout$line_type)
 df_poly_layout$poly_fill <- as.factor(df_poly_layout$poly_fill)
@@ -89,13 +92,13 @@ df_poly<- df_poly[order(df_poly$int_map_index),]
 
 color_official <- c("grey100","#d6d6d6")
 
-shp_temp <- readOGR(dsn="~/Documents/R_Projects/Data/_shape/OMS_official_general", layer="maskline_general_2013")
+shp_temp <- readOGR(dsn="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\OMS_official_general", layer="maskline_general_2013")
 shp_temp <- spTransform(shp_temp, CRS("+proj=eck3"))
 df_line <- fortify(shp_temp)
 int_map_index <- c(1:nrow(df_line))
 df_line$int_map_index <- int_map_index
 
-df_line_layout <-  read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_line.csv", sep=",")
+df_line_layout <-  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_line.csv", sep=",")
 df_line_layout$line_color <- as.factor(df_line_layout$line_color)
 df_line_layout$line_type <- as.factor(df_line_layout$line_type)
 df_line <-  merge(df_line, df_line_layout, by = c("id"), all.x=TRUE, sort=F)
@@ -189,7 +192,8 @@ ggplot() +
   #scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))->max_prev
 
-ggsave("map_AD_all_cancers_prev_max_country.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_prev_max_country.pdf",width = 40, height = 30, pointsize = 12,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #--- maps for Treatable AD----
 
@@ -267,7 +271,8 @@ df_AD_map%>%
 #  scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))-> max_treat
 
-ggsave("map_AD_all_cancers_treatable_max_country.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_treatable_max_country.pdf",width = 40, height = 30, pointsize = 12,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #--- maps for total AD----
 
@@ -348,7 +353,8 @@ df_AD_map%>%
  # scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))->max_total
 
-ggsave("map_AD_all_cancers_treat_prev_max_country.pdf", width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_treat_prev_max_country.pdf", width = 40, height = 30, pointsize = 12,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
 
@@ -356,5 +362,6 @@ ggarrange(max_prev, max_treat,max_total,
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
-ggsave("map_AD_max.pdf",width = 40, height =70,limitsize = FALSE) 
+ggsave("map_AD_max.pdf",width = 40, height =70,limitsize = FALSE,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

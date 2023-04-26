@@ -1,5 +1,9 @@
 #old equations and net survival file 
 
+
+setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
+
+
 AD_Region_old
 AD_by_HDI_all2
 AD_country_all_cancers2_old

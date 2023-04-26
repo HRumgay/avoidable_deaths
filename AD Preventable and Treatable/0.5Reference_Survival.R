@@ -5,15 +5,7 @@
 ##########################################################
 #Combining datasets at the time point of interest 5 years and combining to HDI
 
-# hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
-#   left_join(HDI, by="country_code")%>%
-#   select(-c(country_label, hdi_rank, year, X))%>%
-#   filter(hdi_group%in% c(3,4))
-# 
-# lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
-#   left_join(HDI, by="country_code")%>%
-#   select(-c(country_label, hdi_rank, year,X.1, X))%>%
-#   filter(!hdi_group%in%c(3,4))
+setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
 
 #updated file 
 
@@ -161,7 +153,9 @@ Reference_Survival<-R1%>%select(country_label, country_code,
                                 cancer_label, cancer_code, 
                                 age, age_cat, rel_surv,cases)%>%
   arrange(cancer_label, age)
-#%>%full_join(R2)
+
+
+#calculating agregated sums 
 
 Ref_overall<-Reference_Survival%>%
   mutate(age_cat="Overall")%>%
@@ -178,11 +172,11 @@ Reference_Survival_Survcan<-Reference_Survival%>%
 
 names(R1)
 
-write.csv(Reference_Survival,"~/Documents/R_Projects/Data/Reference_Survival.csv")
-write.csv(Reference_Survival_Survcan,"~/Documents/R_Projects/Data/Reference_Survival_Survcan.csv")
 
-write.csv(Reference_Survival,"\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.csv")
-write.csv(Reference_Survival_Survcan,"\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")
+Reference_Survival<-Reference_Survival%>%select(-cases)%>%distinct()
+
+write.csv(Reference_Survival,"I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Reference_Survival.csv")
+write.csv(Reference_Survival_Survcan,"I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Reference_Survival_Survcan.csv")
 
 
 

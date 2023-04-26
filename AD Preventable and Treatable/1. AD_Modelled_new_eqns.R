@@ -12,6 +12,9 @@
 #
 ###############################################
 
+
+setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
+
 # Expected survival
 
 ES3<-p%>%
@@ -146,7 +149,10 @@ Countries_Simulated <-countries_5y%>%
     age==13~ 13,
     age==14~ 14,
     age==15~ 15,
-    age>=16 ~ 16,
+ #   age>=16 ~ 16,
+    age==16 ~ 16,
+    age==17 ~ 17,
+    age==18 ~ 18,
   ))%>%
   dplyr::mutate(
     age_cat = case_when(
@@ -179,6 +185,7 @@ simulated_overall<-Countries_Simulated%>%
 
 PAFs_age_Cat <- PAFs%>%
   distinct()%>%
+  as.data.frame()%>%
   dplyr::mutate(age = case_when(
     age==0~ 0,
     age==1~ 1,
@@ -193,8 +200,12 @@ PAFs_age_Cat <- PAFs%>%
     age==13~ 13,
     age==14~ 14,
     age==15~ 15,
-    age>=16 ~ 16,
+    #age>=16 ~ 16,
+    age==16 ~ 16,
+    age==17 ~ 17,
+    age==18 ~ 18,
   ))%>%
+  as.data.frame()%>%
   dplyr::mutate(
     age_cat = case_when(
       age>=4 & age<14 ~ "15-64",
@@ -203,21 +214,41 @@ PAFs_age_Cat <- PAFs%>%
     ))%>%
   dplyr::filter(age_cat!="0-15")%>%
   droplevels()%>%
+  as.data.frame()%>%
   left_join(ES2, by=c("country_code","age","sex"))%>%
-  dplyr::group_by(country_label,cancer_label, age,sex) %>%
-  # dplyr::mutate(ES= case_when(cases!=0 ~ sum(ES*cases, na.rm=T)/sum(cases, na.rm=T),
-  #                      cases==0 ~ ES)) %>%
-  dplyr::summarize(country_code,country_label, cancer_code, cancer_label,
+  ungroup()%>%
+  as.data.frame()%>%
+  select(country_code,country_label, cancer_code, cancer_label,
+         age, sex,age_cat, 
+         cases, cases.prev, 
+         cases.notprev, af.comb,
+         ES)%>%
+  distinct()%>%
+  group_by(country_label,cancer_label, age,sex) %>%
+  distinct()%>%
+  as.data.frame()%>%
+  group_by(country_label,cancer_label, age, sex) %>%
+  # dplyr::mutate(af.comb = case_when(cases!=0 ~  sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
+  #                                  cases.prev==0 ~ 0))
+  dplyr::mutate(country_code,country_label, cancer_code, cancer_label,
             age, sex,age_cat, 
             cases=sum(cases, na.rm=T),
             cases.prev=sum(cases.prev, na.rm=T), 
             cases.notprev=sum(cases.notprev, na.rm=T),
-            af.comb= case_when(cases!=0 ~  sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
-                               cases.prev==0 ~ 0),
-            total_overall=sum(cases, na.rm=T),
-            ES)%>% #Summarizing by sex
-  # dplyr::mutate(ES= case_when(cases!=0 ~ sum(ES*cases, na.rm=T)/sum(cases, na.rm=T),
-  #                      cases==0 ~ ES))%>%
+            total_overall=cases,
+            ES)%>%
+  ungroup()%>%
+    distinct()%>%
+  group_by(country_label,cancer_label, age,sex) %>%
+  as.data.frame()%>%
+  dplyr::mutate(af.comb = case_when(cases!=0 ~  cases.prev/cases,
+                                    cases==0 ~ 0))%>%
+  distinct()%>%
+  select(country_code,country_label, cancer_code, cancer_label,
+  age, sex,age_cat, 
+  cases, cases.prev, 
+  cases.notprev, af.comb,
+  total_overall, ES)%>%
   distinct()%>%
   dplyr::group_by(country_label,cancer_label, age)
 
@@ -226,11 +257,11 @@ PAFs2 <- PAFs_age_Cat%>%
   as.data.frame()%>%
   droplevels()%>%
   dplyr::group_by(country_code,cancer_code,cancer_label, age_cat,age,sex)%>%
-  dplyr::mutate(total_age_prev=sum(cases.prev, na.rm=T))%>%
+ # dplyr::mutate(total_age_prev=sum(cases.prev, na.rm=T))%>%
   as.data.frame()%>%
   
   dplyr::group_by(country_code,cancer_code,age,sex)%>%
-  dplyr::summarize(country_label, cancer_label,
+  dplyr::select(country_label, cancer_label,
             age_cat, age,  total_overall,cases,
             cases.prev, ES, af.comb)%>%
   distinct()%>%
@@ -248,11 +279,14 @@ Simulated_Data_PAF_1 <- simulated_overall%>%
                        "age"="age"))%>%
   ungroup()%>%
   dplyr::group_by(country_code,cancer_code, age, sex)%>%
-  dplyr::mutate(af.comb=case_when(cases!=0 ~ sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
-                           cases==0  ~    0))%>%
-  dplyr::mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases, na.rm=T)/sum(cases, na.rm=T),
-                            cases==0  ~    rel_surv))%>%
-  dplyr::summarize(country_code, 
+  as.data.frame()%>%
+  # dplyr::mutate(af.comb=case_when(cases!=0 ~ sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
+  #                          cases==0  ~    0))%>%
+  # dplyr::mutate(rel_surv=case_when(cases!=0 ~ sum(rel_surv*cases, na.rm=T)/sum(cases, na.rm=T),
+  #                          cases==0  ~    rel_surv))%>%
+  as.data.frame()%>%
+  dplyr::group_by(country_code,cancer_code, age, sex)%>%
+  dplyr::select(country_code, 
             country_label, 
             cancer_code, cancer_label,
             age_cat, age, total_overall,
@@ -263,6 +297,7 @@ Simulated_Data_PAF_1 <- simulated_overall%>%
             total_overall,
             hdi_group)%>%
   droplevels()%>%
+  ungroup()%>%
   distinct()%>%
   as.data.frame()
 
@@ -272,7 +307,9 @@ Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
   dplyr::mutate(af.comb=as.double(af.comb))%>% 
   dplyr::mutate(total_overall=as.double(total_overall))%>% 
   arrange(country_label,cancer_code,age,sex)%>%
-  left_join(Reference_Survival, by=c("age","cancer_code")) 
+  left_join(Reference_Survival, by=c("age","cancer_code"))%>%
+  select(-cancer_label)%>%
+  left_join(globocan_cancer_names,by=c("cancer_code"))
 
 
 # Avoidable deaths
@@ -291,15 +328,15 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
   dplyr::mutate(AD_treat=(1-af.comb) *total_overall * (surv_ref-rel_surv) * ES)%>%
   #dplyr::mutate(AD_treat_not_prev = (1-af.comb) * total_overall * (surv_ref-rel_surv) * ES)%>% #scenario 1
   dplyr::mutate(AD_unavoid =total_overall*(1-ES*surv_ref-af.comb*ES*(1-surv_ref)))%>%
-  dplyr::mutate(Expect_deaths=total_overall*(1-ES*rel_surv))%>%
-#  dplyr::mutate(AD_sum=AD_prev+AD_treat_not_prev+AD_unavoid)%>%
- # dplyr::mutate(Expect_deaths=(1-(rel_surv*ES))*total_overall)#%>%
-  select("country_code","country_label","age_cat","age","cancer_code","cancer_label",   
+  dplyr::mutate(total_deaths2=total_overall*(1-ES*rel_surv))%>%
+ #dplyr::mutate(AD_sum=AD_prev+AD_treat+AD_unavoid)%>%
+ # dplyr::mutate(total_deaths2=(1-(rel_surv*ES))*total_overall)#%>%
+  select("country_code","country_label","age_cat","age","sex","cancer_code","cancer_label",   
          "AD_treat",
         # "AD_treat_not_prev",
          "AD_prev",
          "AD_unavoid",
-         "Expect_deaths",
+         "total_deaths2",
          "total_overall",
          "hdi_group")%>%
   dplyr::rename("cancer"="cancer_label")
@@ -314,9 +351,10 @@ colorectal<-Avoidable_Deaths_Simulated_All3%>%
          AD_treat=sum(AD_treat),
        #  AD_treat_not_prev=sum(AD_treat_not_prev),
          AD_unavoid=sum(AD_unavoid),
-         Expect_deaths=sum(Expect_deaths),
+         total_deaths2=sum(total_deaths2),
          total_overall=sum(total_overall))%>%
-  distinct()
+  distinct()%>%
+  as.data.frame()
 
 colorectal
 
@@ -325,7 +363,8 @@ Avoidable_Deaths_Simulated_All2<-Avoidable_Deaths_Simulated_All3%>%
   dplyr::filter(!cancer_code%in%c("8","9"))%>%
   full_join(colorectal)%>%
   dplyr::mutate(cancer = replace(cancer, cancer == "Liver and intrahepatic bile ducts", "Liver"))%>%
-  dplyr::mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))
+  dplyr::mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))%>%
+  distinct()
 
 
 Avoidable_Deaths_Simulated_All2
@@ -348,7 +387,10 @@ pop20202 <- pop2020%>%
     age==13 ~ 13,
     age==14 ~ 14,
     age==15 ~ 15,
-    age>=16 ~ 16,
+    # age>=16 ~ 16,
+    age==16 ~ 16,
+    age==17 ~ 17,
+    age==18 ~ 18,
   ))%>%
   dplyr::group_by(country_code, age,sex)%>%
   dplyr::mutate(py=sum(py))%>%
@@ -377,7 +419,10 @@ weights2 <- weights2%>%dplyr::mutate(age = case_when(
   age==13 ~ 13,
   age==14 ~ 14,
   age==15 ~ 15,
-  age>=16 ~ 16,
+  #age>=16 ~ 16,
+  age==16 ~ 16,
+  age==17 ~ 17,
+  age==18 ~ 18,
 ))%>%
   dplyr::filter(age>3)%>%
   dplyr::mutate(total=sum(w2))%>%
@@ -416,14 +461,14 @@ Avoidable_Deaths_Simulated_All_overall <- Avoidable_Deaths_Simulated_All%>%
          AD_sum.asr=sum(AD_sum/py*100000*w),
         # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
   select( -total_overall)%>%
   dplyr::mutate(AD_prev = sum(AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat = sum(AD_treat,na.rm=T))%>%
   dplyr::mutate(AD_sum = sum(AD_sum,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev = sum(AD_treat_not_prev,na.rm=T))%>%
   dplyr::mutate(AD_unavoid = sum(AD_unavoid,na.rm=T))%>%
-  dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
+  dplyr::mutate(total_deaths2=sum(total_deaths2,na.rm=T))%>%
   dplyr::mutate(py=sum(py))%>%
   select( -age,-sex)%>%
   ungroup()%>%
@@ -441,13 +486,13 @@ Avoidable_Deaths_Simulated_All_age_cat <- Avoidable_Deaths_Simulated_All%>%
          AD_sum.asr=sum(AD_sum/py*100000*w),
        #  AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
   select(-total_overall)%>%
   dplyr::mutate(AD_prev = sum(AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat = sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev = sum(AD_treat_not_prev,na.rm=T))%>%
   dplyr::mutate(AD_unavoid = sum(AD_unavoid,na.rm=T))%>%
-  dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
+  dplyr::mutate(total_deaths2=sum(total_deaths2,na.rm=T))%>%
   dplyr::mutate(AD_sum = sum(AD_sum,na.rm=T))%>%
   dplyr::mutate(py=sum(py))%>%
   select( -age,-sex)%>%
@@ -491,14 +536,15 @@ AD_by_HDI <- Avoidable_Deaths_Simulated_All%>%
          AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
        #  AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>%
+  dplyr::group_by(hdi_group,cancer)%>%
   dplyr::mutate(AD_treat_prev=sum(AD_prev+AD_treat))%>%
-  dplyr::mutate(Expect_deaths=sum(Expect_deaths))%>%
+  dplyr::mutate(total_deaths2=sum(total_deaths2))%>%
   dplyr::mutate(AD_treat=sum(AD_treat))%>%
  # dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev))%>%
   dplyr::mutate(AD_prev=sum(AD_prev))%>%
   dplyr::mutate(AD_unavoid=sum(AD_unavoid))%>%
-  dplyr::mutate(total_deaths=Expect_deaths)%>%
+  dplyr::mutate(total_deaths=total_deaths2)%>%
   dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
   #dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
   dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
@@ -523,7 +569,7 @@ AD_by_HDI_all <-Avoidable_Deaths_Simulated_All%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
   select(-country_label,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
-         AD_unavoid, Expect_deaths, AD_sum,-sex, -age, age_cat,-total_overall)%>%
+         AD_unavoid, total_deaths2, AD_sum,-sex, -age, age_cat,-total_overall)%>%
   
   as.data.frame()%>%
   droplevels()%>%
@@ -537,14 +583,14 @@ AD_by_HDI_all <-Avoidable_Deaths_Simulated_All%>%
          AD_sum.asr=sum(AD_sum/py*100000*w),
          #AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
   dplyr::mutate(AD_treat_prev=sum(AD_prev+AD_treat))%>%
-  dplyr::mutate(Expect_deaths=sum(Expect_deaths))%>%
+  dplyr::mutate(total_deaths2=sum(total_deaths2))%>%
   dplyr::mutate(AD_treat=sum(AD_treat))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev))%>%
   dplyr::mutate(AD_prev=sum(AD_prev))%>%
   dplyr::mutate(AD_unavoid=sum(AD_unavoid))%>%
-  dplyr::mutate(total_deaths=Expect_deaths)%>%
+  dplyr::mutate(total_deaths=total_deaths2)%>%
   dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
   #dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
   dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
@@ -582,9 +628,9 @@ AD_country_all_cancers <-Avoidable_Deaths_Simulated_All%>%
          AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
         # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
   dplyr::mutate(total_deaths=sum(AD_prev, AD_unavoid, AD_treat,na.rm=T))%>%
-  dplyr::mutate(Expect_deaths=sum(Expect_deaths,na.rm=T))%>%
+  dplyr::mutate(total_deaths2=sum(total_deaths2,na.rm=T))%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -622,9 +668,9 @@ AD_cancer <- Avoidable_Deaths_Simulated_All%>%
          AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
         # AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
-  dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  select(-Expect_deaths)%>%
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
+  dplyr::mutate(total_deaths=sum(total_deaths2,na.rm=T))%>%
+  select(-total_deaths2)%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -667,7 +713,7 @@ AD_Region2 <- Avoidable_Deaths_Simulated_All%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
   select(-country_label,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
-         AD_unavoid, Expect_deaths, -sex, -age, age_cat,-total_overall)%>%
+         AD_unavoid, total_deaths2, -sex, -age, age_cat,-total_overall)%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
@@ -681,9 +727,9 @@ AD_Region2 <- Avoidable_Deaths_Simulated_All%>%
          AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
       #   AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
-  dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  select(-Expect_deaths)%>%
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
+  dplyr::mutate(total_deaths=sum(total_deaths2,na.rm=T))%>%
+  select(-total_deaths2)%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
  # dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -715,7 +761,7 @@ AD_Region_cancer_sites <- Avoidable_Deaths_Simulated_All%>%
   dplyr::mutate(py=sum(py))%>%
   ungroup()%>%
   select(-country_label,-country_code,-cancer_code, hdi_group,  AD_treat, AD_prev, 
-         AD_unavoid, Expect_deaths, -sex, -age, age_cat,-total_overall)%>%
+         AD_unavoid, total_deaths2, -sex, -age, age_cat,-total_overall)%>%
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
@@ -729,9 +775,9 @@ AD_Region_cancer_sites <- Avoidable_Deaths_Simulated_All%>%
          AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
          #AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
-  dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  select(-Expect_deaths)%>%
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
+  dplyr::mutate(total_deaths=sum(total_deaths2,na.rm=T))%>%
+  select(-total_deaths2)%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -778,9 +824,9 @@ table_1_1 <- Avoidable_Deaths_Simulated_All %>%
          AD_treat_prev.asr=sum((AD_treat + AD_prev)/py*100000*w),
          #AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
   ungroup()%>%
-  dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
+  dplyr::mutate(total_deaths=sum(total_deaths2,na.rm=T))%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -799,7 +845,7 @@ table_1_1 <- Avoidable_Deaths_Simulated_All %>%
         pAD_prev,pAD_treat_prev, pAD_unavoid,
          AD_prev.asr,AD_treat.asr ,
        #AD_treat_not_prev.asr,
-         AD_treat_prev.asr, AD_unavoid.asr,Expect_deaths.asr)%>%
+         AD_treat_prev.asr, AD_unavoid.asr,total.deaths.asr)%>%
   distinct()
 
 
@@ -818,7 +864,7 @@ AD_country_all_cancers2<-AD_country_all_cancers%>%
          "AD_treat",       "pAD_treat" ,"AD_treat.asr",
          "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
          "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
-         "total_deaths","Expect_deaths.asr")
+         "total_deaths","total.deaths.asr")
 
 
 # Gives us number, percentage of total deaths 
@@ -839,9 +885,9 @@ table_1_1 <- Avoidable_Deaths_Simulated_All %>%
          AD_treat_prev.asr=sum((AD_treat+AD_prev)/py*100000*w),
        #  AD_treat_not_prev.asr=sum(AD_treat_not_prev/py*100000*w),
          AD_unavoid.asr=sum(AD_unavoid/py*100000*w),
-         Expect_deaths.asr=sum(Expect_deaths/py*100000*w)) %>% 
+         total.deaths.asr=sum(total_deaths2/py*100000*w)) %>% 
   ungroup()%>%
-  dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
+  dplyr::mutate(total_deaths=sum(total_deaths2,na.rm=T))%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat,AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -860,7 +906,7 @@ table_1_1 <- Avoidable_Deaths_Simulated_All %>%
          pAD_prev,pAD_treat_prev, pAD_unavoid,
          AD_prev.asr,AD_treat.asr ,
          #AD_treat_not_prev.asr,
-         AD_treat_prev.asr, AD_unavoid.asr,Expect_deaths.asr)%>%
+         AD_treat_prev.asr, AD_unavoid.asr,total.deaths.asr)%>%
   distinct()
 
 
@@ -874,8 +920,8 @@ Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_a
   dplyr::filter(age_cat=="Overall")%>% 
   ungroup()%>%
   dplyr::group_by(country_code,cancer_code)%>%
-  dplyr::mutate(total_deaths=sum(Expect_deaths,na.rm=T))%>%
-  #select(-Expect_deaths,-AD_sum)%>%
+  dplyr::mutate(total_deaths=sum(total_deaths2,na.rm=T))%>%
+  #select(-total_deaths2,-AD_sum)%>%
   dplyr::mutate(AD_treat_prev=sum(AD_treat, AD_prev,na.rm=T))%>%
   dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
   #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
@@ -935,7 +981,7 @@ AD_Region<-AD_Region2%>%
          "AD_treat",       "pAD_treat" ,"AD_treat.asr",
          "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
          "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
-         "total_deaths","Expect_deaths.asr")
+         "total_deaths","total.deaths.asr")
 
 
 
@@ -951,7 +997,7 @@ table_1_11<-table_1_1%>%
     "AD_treat",       "pAD_treat" ,"AD_treat.asr",
     "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
     "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
-    "total_deaths","Expect_deaths.asr")
+    "total_deaths","total.deaths.asr")
 
 
 
@@ -970,7 +1016,7 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
           "AD_treat",       "pAD_treat" ,"AD_treat.asr",
           "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
           "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
-          "total_deaths","Expect_deaths.asr")
+          "total_deaths","total.deaths.asr")
 
 # By risk factor 
 #
@@ -979,15 +1025,15 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
 
 
 #writing the files
-write.csv(Simulated_Data_PAF_All, "~/Documents/R_Projects/Data/NS_Simulated_All_Countries.csv")
-write.csv(Avoidable_Deaths_Simulated_All, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries.csv")
-write.csv(Avoidable_Deaths_Simulated_All_age_cat, "~/Documents/R_Projects/Data/AD_Simulated_All_Countries_age_cat.csv")
-write.csv(AD_Region, "~/Documents/R_Projects/Data/AD_Region.csv")
-write.csv(table_1_11, "~/Documents/R_Projects/Data/AD_Total.csv")
-write.csv(AD_by_HDI_all2, "~/Documents/R_Projects/Data/AD_HDI_All_Cancers.csv")
-write.csv(AD_country_all_cancers2, "~/Documents/R_Projects/Data/AD_Country_All_Cancers.csv")
-write.csv(AD_cancer2, "~/Documents/R_Projects/Data/AD_Cancer_by_Site.csv")
-write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall, "~/Documents/R_Projects/Data/AD_country_and_Cancer_by_Site.csv")
+write.csv(Simulated_Data_PAF_All, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\NS_Simulated_All_Countries.csv")
+write.csv(Avoidable_Deaths_Simulated_All, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries.csv")
+write.csv(Avoidable_Deaths_Simulated_All_age_cat, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries_age_cat.csv")
+write.csv(AD_Region, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Region.csv")
+write.csv(table_1_11, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Total.csv")
+write.csv(AD_by_HDI_all2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_HDI_All_Cancers.csv")
+write.csv(AD_country_all_cancers2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Country_All_Cancers.csv")
+write.csv(AD_cancer2,"I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Cancer_by_Site.csv")
+write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site.csv")
 
 
 AD_Region

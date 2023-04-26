@@ -10,6 +10,9 @@ library(pastecs)
 library(ggpubr)
 
 
+setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
+
+
 AD_country_all_cancers%>%select(country_label)%>%distinct()
 
 
@@ -18,11 +21,13 @@ AD_country_all_cancers%>%select(country_label)%>%distinct()
 AD_country_all_cancers2
 
 
+#I:\Studies\Survival\SurvCan\Data\Oliver_Langselius\AD_PREV_TREAT\Data
 
 AD_Map <- as.data.table(AD_country_all_cancers2)
 
 # load id for each country
-dict_id <-  as.data.table(read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_map.csv", sep=","))
+
+dict_id <-  as.data.table(read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_map.csv", sep=","))
 dict_id %>% dplyr::select(-country_label)-> dict_id
 
 # merge paf data with dict_id
@@ -56,19 +61,19 @@ temp_proj<- "+proj=eck3"
 
 # read shapefile official general (3 part)
 
-shp_temp <- readOGR(dsn="~/Documents/R_Projects/Data/_shape/OMS_official_general", layer="general_2013")
+shp_temp <- readOGR(dsn="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\OMS_official_general", layer="general_2013")
 shp_temp <- spTransform(shp_temp, CRS("+proj=eck3"))
 df_map <- fortify(shp_temp)
 int_map_index <- c(1:nrow(df_map))
 df_map$int_map_index <- int_map_index
 
-shp_temp <- readOGR(dsn="~/Documents/R_Projects/Data/_shape/OMS_official_general", layer="maskpoly_general_2013")
+shp_temp <- readOGR(dsn="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\OMS_official_general", layer="maskpoly_general_2013")
 shp_temp <- spTransform(shp_temp, CRS("+proj=eck3"))
 df_poly <- fortify(shp_temp)
 int_map_index <- c(1:nrow(df_poly))
 df_poly$int_map_index <- int_map_index
 
-df_poly_layout <-  read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_poly.csv", sep=",")
+df_poly_layout <-  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_poly.csv", sep=",")
 df_poly_layout$line_color <- as.factor(df_poly_layout$line_color)
 df_poly_layout$line_type <- as.factor(df_poly_layout$line_type)
 df_poly_layout$poly_fill <- as.factor(df_poly_layout$poly_fill)
@@ -77,13 +82,13 @@ df_poly<- df_poly[order(df_poly$int_map_index),]
 
 color_official <- c("grey100","#d6d6d6")
 
-shp_temp <- readOGR(dsn="~/Documents/R_Projects/Data/_shape/OMS_official_general", layer="maskline_general_2013")
+shp_temp <- readOGR(dsn="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\/OMS_official_general", layer="maskline_general_2013")
 shp_temp <- spTransform(shp_temp, CRS("+proj=eck3"))
 df_line <- fortify(shp_temp)
 int_map_index <- c(1:nrow(df_line))
 df_line$int_map_index <- int_map_index
 
-df_line_layout <-  read.csv("~/Documents/R_Projects/Data/_shape/id_OMS_official_general_line.csv", sep=",")
+df_line_layout <-  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_line.csv", sep=",")
 df_line_layout$line_color <- as.factor(df_line_layout$line_color)
 df_line_layout$line_type <- as.factor(df_line_layout$line_type)
 df_line <-  merge(df_line, df_line_layout, by = c("id"), all.x=TRUE, sort=F)
@@ -184,7 +189,8 @@ ggplot() +
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_linetype_manual(values=c("solid", "11"))->AD_map_prev
 
-ggsave("map_AD_all_cancers_prev_prop.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_prev_prop.pdf",width = 40, height = 30, pointsize = 12,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
 #--- maps for Treatable AD----
@@ -272,7 +278,8 @@ ggplot() +
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_linetype_manual(values=c("solid", "11"))->AD_map_treatable
 
-ggsave("map_AD_all_cancers_treatable_prop.pdf",width = 40, height = 30, pointsize = 12) 
+ggsave("map_AD_all_cancers_treatable_prop.pdf",width = 40, height = 30, pointsize = 12,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
 
@@ -363,7 +370,8 @@ ggplot() +
   scale_linetype_manual(values=c("solid", "11"))->AD_map_total
 
 
-ggsave("map_AD_all_cancers_preventable_treatable_prop.pdf",width = 40, height = 20, pointsize = 12) 
+ggsave("map_AD_all_cancers_preventable_treatable_prop.pdf",width = 40, height = 20, pointsize = 12,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
 ggarrange( AD_map_prev, AD_map_treatable, AD_map_total,
@@ -372,5 +380,6 @@ ggarrange( AD_map_prev, AD_map_treatable, AD_map_total,
           font.label = list(size = 60, color = "black"))
 
 
-ggsave("map_AD_prop.pdf", width = 40, height =67, limitsize = FALSE) 
+ggsave("map_AD_prop.pdf", width = 40, height =67, limitsize = FALSE,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
