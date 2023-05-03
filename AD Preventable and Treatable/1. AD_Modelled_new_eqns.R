@@ -328,9 +328,8 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
   dplyr::mutate(AD_treat=(1-af.comb) *total_overall * (surv_ref-rel_surv) * ES)%>%
   #dplyr::mutate(AD_treat_not_prev = (1-af.comb) * total_overall * (surv_ref-rel_surv) * ES)%>% #scenario 1
   dplyr::mutate(AD_unavoid =total_overall*(1-ES*surv_ref-af.comb*ES*(1-surv_ref)))%>%
-  dplyr::mutate(total_deaths2=total_overall*(1-ES*rel_surv))%>%
- #dplyr::mutate(AD_sum=AD_prev+AD_treat+AD_unavoid)%>%
- # dplyr::mutate(total_deaths2=(1-(rel_surv*ES))*total_overall)#%>%
+  #dplyr::mutate(total_deaths2=total_overall*(1-ES*rel_surv))%>%
+  dplyr::mutate(total_deaths2=AD_prev+AD_treat+AD_unavoid)%>%
   select("country_code","country_label","age_cat","age","sex","cancer_code","cancer_label",   
          "AD_treat",
         # "AD_treat_not_prev",
@@ -939,7 +938,8 @@ Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_a
          # AD_treat_not_prev, pAD_treat_not_prev,
           "AD_treat_prev", "pAD_treat_prev",
           "AD_unavoid",   "pAD_unavoid" ,        
-          "total_deaths"  )%>%
+          "total_deaths"
+         )%>%
   dplyr::mutate(across(5:5,round,0 ))%>%
   dplyr::mutate(across(6:6, round,4)*100)%>% 
   dplyr::mutate(across(7:7,round,0 ))%>%
@@ -949,19 +949,39 @@ Avoidable_Deaths_Simulated_All_age_cat_overall<-Avoidable_Deaths_Simulated_All_a
   dplyr::mutate(across(11:11,round,0 ))%>%
   dplyr::mutate(across(12:12, round,4)*100)%>% 
   dplyr::mutate(across(13:13,round,0 ))
+
+
+
 #By cancer site
 
 AD_cancer2 <- AD_cancer%>%
-  dplyr::mutate(across(6: 9, round, -2))%>%
-  dplyr::mutate(across(10:14, round,4)*100)%>% #dplyr::mutate to show proportion as percentage in export
   select( "country_code", "country_label",
           "cancer_code", "cancer", 
-          "AD_prev",        "pAD_prev",    
-          "AD_treat",       "pAD_treat" ,
-          #AD_treat_not_prev, pAD_treat_not_prev,
-          "AD_treat_prev",  "pAD_treat_prev",
-          "AD_unavoid",     "pAD_unavoid" ,        
-          "total_deaths")
+          "AD_prev",          
+          "AD_treat",   
+          "AD_treat_prev",  
+          "AD_unavoid",     
+          "total_deaths",
+          "pAD_prev",     "pAD_treat" ,"pAD_treat_prev","pAD_unavoid" ,     
+          "AD_prev.asr",
+          "AD_treat.asr",
+          "AD_treat_prev.asr",
+          "AD_unavoid.asr",  
+          "total.deaths.asr",
+          )%>%
+  as.data.frame()%>%
+  dplyr::mutate(across(5:9,round, -2))%>%
+
+  dplyr::mutate(across(10:13, round,3)*100)%>%#%>% #dplyr::mutate to show proportion as percentage in export
+  dplyr::mutate(across(14:18,round, 1))%>%
+  select("country_code","country_label",
+         "cancer_code", "cancer", 
+         "AD_prev",        "pAD_prev",    "AD_prev.asr",
+         "AD_treat",       "pAD_treat" ,"AD_treat.asr",
+         "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
+         "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
+         "total_deaths","total.deaths.asr")
+
 
 
 
@@ -1024,6 +1044,14 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
 #
 
 
+# Combined table for paper (99%) ready to copy paste
+
+
+AD_Region
+AD_by_HDI
+table_1_11
+
+
 #writing the files
 write.csv(Simulated_Data_PAF_All, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\NS_Simulated_All_Countries.csv")
 write.csv(Avoidable_Deaths_Simulated_All, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries.csv")
@@ -1042,4 +1070,12 @@ AD_country_all_cancers2
 AD_cancer2
 table_1_11
 Avoidable_Deaths_Simulated_All_age_cat_overall
+
+#checking countries by region for text in manuscript
+
+region_country_check<-AD_country_all_cancers2%>%
+  left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
+left_join(areas, by=c("area"))
+
+areas 
 

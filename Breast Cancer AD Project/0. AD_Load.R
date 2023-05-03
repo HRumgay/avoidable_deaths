@@ -130,7 +130,7 @@ Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\
   select( age_cat, 
           cancer_code, 
           rel_surv)%>%
-  rename("surv_ref"="rel_surv")%>%
+  dplyr::rename("surv_ref"="rel_surv")%>%
   distinct()
 
 

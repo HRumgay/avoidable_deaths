@@ -24,18 +24,18 @@ AD_11<-Avoidable_Deaths_age_cat2%>%
            "cancer_code", "cancer_label",
            "pAD_max", "pAD_Lower_max", "pAD_Upper_max")%>%
   dplyr::rename("pAD"="pAD_max")%>%
-#    dplyr::rename("pAD"="pAD_Lower_max")%>%
- #   dplyr::rename("pAD"="pAD_Upper_max")%>%
+   dplyr::rename("pAD_Lower"="pAD_Lower_max")%>%
+    dplyr::rename("pAD_Upper"="pAD_Upper_max")%>%
   mutate(Reference="Max by HDI")
 
-AD_12<-Avoidable_Deaths_age_cat2%>%
-  select(  "country_code", "country_label","age_cat",
-           "cancer_code", "cancer_label",
-           "pAD_med", "pAD_Lower_med","pAD_Upper_med")%>%
-  dplyr::rename("pAD"="pAD_med")%>%
-  #  dplyr::rename("pAD"="pAD_Lower_med")%>%
-  #  dplyr::rename("pAD"="pAD_Upper_med")%>%
-  dplyr::mutate(Reference="Median by HDI")
+# AD_12<-Avoidable_Deaths_age_cat2%>%
+#   select(  "country_code", "country_label","age_cat",
+#            "cancer_code", "cancer_label",
+#            "pAD_med", "pAD_Lower_med","pAD_Upper_med")%>%
+#   dplyr::rename("pAD"="pAD_med")%>%
+#   #  dplyr::rename("pAD"="pAD_Lower_med")%>%
+#   #  dplyr::rename("pAD"="pAD_Upper_med")%>%
+#   dplyr::mutate(Reference="Median by HDI")
 
 AD_props <- Avoidable_Deaths_age_cat2 %>%
   select(  "country_code", "country_label","age_cat",
@@ -43,7 +43,7 @@ AD_props <- Avoidable_Deaths_age_cat2 %>%
            "pAD", "pAD_Lower", "pAD_Upper" ) %>%
   mutate(Reference = "93%") %>%
   full_join(AD_11) %>%
-  full_join(AD_12)%>%
+#  full_join(AD_12)%>%
   filter(pAD!=0)
 
 AD_props_overall<-AD_props%>%
@@ -148,7 +148,6 @@ AD_props_overall %>%
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
         strip.background = element_blank()) -> plot1_legend
-
 
 plot1_legend
 

@@ -15,18 +15,6 @@
 
 #Combining datasets at the time point of interest 5 years and combining to HDI
 
-# hvh_HDI<-Israel%>%filter(time==5)%>% #Upper survival values
-#   left_join(HDI, by="country_code")%>%
-#   select(-c(country_label, hdi_rank, year, X))%>%
-#   filter(hdi_group%in% c(3,4))
-# 
-# lm_HDI<-Thailand%>%filter(time==5)%>% #lower HDI survival values
-#   left_join(HDI, by="country_code")%>%
-#   select(-c(country_label, hdi_rank, year,X.1, X))%>%
-#  # filter(hdi_group%in% c(1,2))%>%
-#   filter(!hdi_group%in%c(3,4))
-
-#New combined file
 Survival_Modelled
 
 
@@ -309,33 +297,30 @@ Avoidable_Deaths_modelled <- matrix(ncol = 8, nrow = nrow(Simulated_Data_PAF)) #
 
 for (i in 1:nrow(Avoidable_Deaths_modelled)) {
 
-  
-  Expected_5_year_surv  <- Simulated_Data_PAF[i,]$Expected_5_year_surv 
-  
+  ES <- Simulated_Data_PAF[i,]$Expected_5_year_surv 
+  surv_ref<-Simulated_Data_PAF[i,]$surv_ref
+  af.comb<-Simulated_Data_PAF[i,]$af.comb
+  rel_surv<-Simulated_Data_PAF[i,]$rel_surv
+  total_overall<-Simulated_Data_PAF[i,]$total_overall
+
   #Preventable deaths
-  AD_prev <- (Simulated_Data_PAF[i,]$af.comb) * 
-    Simulated_Data_PAF[i,]$total_overall * 
-    (1 - Simulated_Data_PAF[i,]$rel_surv) *
-    (Expected_5_year_surv )
+  AD_prev <- total_overall * af.comb *ES* (1 - rel_surv)
   #AD_prev_Lower<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv 
   #AD_prev_Upper<-(Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv 
 
   # #Avoidable deaths (treatable: #check what the lower CI is called in the previous data frame
   
-  AD_treat<-(Simulated_Data_PAF[i,]$surv_ref-Simulated_Data_PAF[i,]$rel_surv)*
-    (1-Simulated_Data_PAF[i,]$af.comb)*
-    (Simulated_Data_PAF[i,]$total_overall)*
-    (Expected_5_year_surv )
+  AD_treat<-(1-af.comb) *total_overall * (surv_ref-rel_surv) * ES
+
+    
   #AD_treat_Lower<-(0.9-Simulated_Data_PAF[i,]$NS_Lower_CI)*Expected_5_year_surv *(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
   #AD_treat_Upper<-(0.9-Simulated_Data_PAF[i,]$NS_Upper_CI)*Expected_5_year_surv *(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall
   
   
   #Deaths not avoidable 
   
-  AD_unavoid<-(1-Simulated_Data_PAF[i,]$af.comb)*
-    Simulated_Data_PAF[i,]$total_overall*
-    (Simulated_Data_PAF[i,]$surv_ref-Simulated_Data_PAF[i,]$rel_surv*
-       (Expected_5_year_surv ))
+  AD_unavoid<- total_overall*(1-ES*surv_ref-af.comb*ES*(1-surv_ref))
+    
   #AD_unavoid_Lower<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Lower_CI*Expected_5_year_surv )
   #AD_unavoid_Upper<-(1-Simulated_Data_PAF[i,]$af.comb.agecat)*Simulated_Data_PAF[i,]$total_overall*(1-Simulated_Data_PAF[i,]$NS_Upper_CI*Expected_5_year_surv )
   
@@ -371,20 +356,20 @@ colnames(Avoidable_Deaths_modelled)<-c("age_cat","age", "cancer_code","cancer", 
                             "total_overall")
 
 #Mortality incidence ratios modified here. 
-MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
-  filter(country_label=="Thailand")%>%
-  select(-country_label, - country_code, -cancer_label, -X)
-
-MIR_Globocan_Thailand<-MIR_Globocan%>%
-  ungroup()%>%
-  filter(age>=4)%>%
-  group_by(country_code, cancer_code, age)%>%
-  mutate(MIR=sum(MIR*py)/sum(py))%>%
-  mutate(py=sum(py))%>%distinct()%>%
-  filter(country_label=="Thailand")%>%
-  ungroup()%>%
-  select(-country_label, -country_code, -cancer_label)
-
+# MIR_Age_Cats_Thailand<-MIR_Age_Cats%>%
+#   filter(country_label=="Thailand")%>%
+#   select(-country_label, - country_code, -cancer_label, -X)
+# 
+# MIR_Globocan_Thailand<-MIR_Globocan%>%
+#   ungroup()%>%
+#   filter(age>=4)%>%
+#   group_by(country_code, cancer_code, age)%>%
+#   mutate(MIR=sum(MIR*py)/sum(py))%>%
+#   mutate(py=sum(py))%>%distinct()%>%
+#   filter(country_label=="Thailand")%>%
+#   ungroup()%>%
+#   select(-country_label, -country_code, -cancer_label)
+# 
 
 
 
@@ -444,9 +429,9 @@ Avoidable_Deaths_modelled2
 Avoidable_Deaths_modelled_age_cat
 
 #Writing the export files
-write.csv(Avoidable_Deaths_modelled2, "~/Documents/R_Projects/Data/Thai_AD_Modelled.csv")
-write.csv(Avoidable_Deaths_modelled_age_cat, "~/Documents/R_Projects/Data/Thai_AD_Modelled_More_age_Cats.csv")
-write.csv(Simulated_Data_PAF, "~/Documents/R_Projects/Data/Thai_NS_Modelled.csv")
+write.csv(Avoidable_Deaths_modelled2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Thailand Example Results\\Thai_AD_Modelled.csv")
+write.csv(Avoidable_Deaths_modelled_age_cat,"I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Thailand Example Results\\Thai_AD_Modelled_More_age_Cats.csv")
+write.csv(Simulated_Data_PAF, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Thailand Example Results\\Thai_NS_Modelled.csv")
 
 
 
