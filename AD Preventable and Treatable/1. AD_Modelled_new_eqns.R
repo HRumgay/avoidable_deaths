@@ -320,10 +320,16 @@ Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
 
 # Applying the equation from Rutherford 2015 for AD.
 
+#old equations###################
+# dplyr::mutate(AD_prev=af.comb * total_overall * (1 - rel_surv *  ES ))%>%
+#   dplyr::mutate(AD_treat=total_overall * (surv_ref-rel_surv) * ES)%>%
+#   dplyr::mutate(AD_treat_not_prev = (1-af.comb)* total_overall * (surv_ref-rel_surv) * ES)%>%
+#   dplyr::mutate(AD_unavoid = (1-af.comb)*total_overall*(1-surv_ref*ES))%>%
+#   dplyr::mutate(Expect_deaths=(1-(rel_surv*ES))*total_overall)%>%
+#########################################################
 
 Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
   dplyr::group_by(country_code, cancer_code, age, sex)%>%
-  
   dplyr::mutate(AD_prev= total_overall * af.comb *ES* (1 - rel_surv))%>%
   dplyr::mutate(AD_treat=(1-af.comb) *total_overall * (surv_ref-rel_surv) * ES)%>%
   #dplyr::mutate(AD_treat_not_prev = (1-af.comb) * total_overall * (surv_ref-rel_surv) * ES)%>% #scenario 1
@@ -569,7 +575,6 @@ AD_by_HDI_all <-Avoidable_Deaths_Simulated_All%>%
   ungroup()%>%
   select(-country_label,-country_code,-cancer_code, -cancer,  hdi_group,  AD_treat, AD_prev, 
          AD_unavoid, total_deaths2, AD_sum,-sex, -age, age_cat,-total_overall)%>%
-  
   as.data.frame()%>%
   droplevels()%>%
   ungroup()%>%
@@ -807,6 +812,7 @@ countries_regions<-Avoidable_Deaths_Simulated_All%>%
 
 # Gives us number, percentage of total deaths 
 table_1_1 <- Avoidable_Deaths_Simulated_All %>%
+  filter(!country_label%in%c("China","India"))%>%
   select(-country_label, -country_code, -cancer_code, hdi_group)%>%
   dplyr::mutate(age_cat="Overall")%>%
   dplyr::group_by(cancer, age,sex)%>%
@@ -1071,11 +1077,14 @@ AD_cancer2
 table_1_11
 Avoidable_Deaths_Simulated_All_age_cat_overall
 
-#checking countries by region for text in manuscript
 
-region_country_check<-AD_country_all_cancers2%>%
-  left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
-left_join(areas, by=c("area"))
+#Summing up the number of cases for the ppt 
 
-areas 
-
+number_cases<-PAFs_age_Cat %>%
+  distinct()%>%
+  as.data.frame()%>%
+  select(country_label, cancer_label, cases)%>%
+  group_by(country_label, cancer_label)%>%
+  mutate(cases= sum(cases))%>%
+  distinct()
+  

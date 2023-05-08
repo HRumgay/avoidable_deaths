@@ -123,7 +123,10 @@ time <- seq(0, 5, le = 5001)
 
 #Names for countries, regions and age groups for next step
 #Removes empty age variables for model to be run properly
-bSURV <- bSURV %>% ungroup()%>%  droplevels()%>%arrange(country)
+bSURV <- bSURV %>% 
+  ungroup()%>%  
+  droplevels()%>%
+  arrange(country)
 
 #bSURV%>%select(country,bSURV$country_code)
 
@@ -606,7 +609,7 @@ HDI_PR<-HDI%>%
 HDI_Martinque<-HDI%>%
   filter(country_label=="France")%>%
   mutate(country_code=474,
-         country_labe="Martinique")%>%distinct()
+         country_label="Martinique")%>%distinct()
 
 HDI<-HDI%>%
   full_join(HDI_Martinque)%>%
@@ -821,7 +824,7 @@ continents <- HDI_Region_Mapping %>%
   select(continent)%>%distinct()%>%
   mutate(country_label= case_when(continent==1 ~ "Africa",
                                   continent==4 ~ "Asia",
-                                  continent==2 ~ "South America"))
+                                  continent==2 ~ "Latin America"))
 
 
 
@@ -1078,4 +1081,18 @@ AD_continent_n
 write.csv2(AD_table_main, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_main_Survcan.csv", row.names = F)
 write.csv2(AD_table_countries, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_countries_Survcan.csv", row.names = F)
 
+
+
+
+# Numbers for the text
+
+# total patients in SURVCAN-3 for breast cancer
+n_patients<-nrow(bcan_SURV)
+n_patients
+# Total # after inclusion criteria
+includ<-nrow(bSURV_Overall)
+includ
+#percentage included
+
+includ/n_patients*100
 

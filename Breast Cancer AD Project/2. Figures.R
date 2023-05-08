@@ -3,7 +3,7 @@ library(ggpubr)
 
 #Script for main figures in manuscript 
 AD_all2
-AD_region2
+AD_continent2
 AD_HDI2
 Avoidable_Deaths_age_cat2
 
@@ -43,7 +43,7 @@ AD_props <- Avoidable_Deaths_age_cat2 %>%
            "pAD", "pAD_Lower", "pAD_Upper" ) %>%
   mutate(Reference = "93%") %>%
   full_join(AD_11) %>%
-#  full_join(AD_12)%>%
+ #full_join(AD_12)%>%
   filter(pAD!=0)
 
 AD_props_overall<-AD_props%>%
@@ -56,13 +56,76 @@ AD_props_upp<-AD_props%>%
   filter(age_cat=="65-99")  
 
 
-#Figure 1 lollipop chart 
+#Figure 2 - plot with CIs and color by continent or HDI. Facet by age group three columns
 
-AD_props_low %>% 
-  
+library(RColorBrewer)
+#display.brewer.all()
+
+continents2<-continents %>% dplyr::rename("continent_label"="country_label")
+
+AD_props%>% 
+  as.data.frame()%>%
+  left_join(HDI%>%select(-country_label),
+            by=c("country_code"))%>%
+  left_join(HDI_Region_Mapping2) %>%
+  mutate(hdi_group=as.character(hdi_group)) %>%
+  # left_join(areas) %>%
+  select(-country_code, -area)%>%
+  left_join(continents2,by=c("continent"))%>%
+  arrange(continent, desc(pAD))%>%
+  group_by(continent_label, age_cat) %>%
+  filter(Reference=="93%")->AD_props_2
+
+AD_prop_order<-AD_props_2%>%ungroup%>%
+  filter(age_cat=="Overall")%>%
+  select(continent, country_label,  pAD)%>%
+  group_by(continent)%>%
+  arrange(desc(pAD))%>%
+   ungroup()%>%
+    mutate(order=row_number())%>%
+  ungroup%>%
+   select(-pAD) 
+
+AD_props_2<-AD_props_2%>%
+  left_join(AD_prop_order, 
+            by=c("continent","country_label"))%>%
+  arrange(continent_label, order)%>%
+  mutate(hdi_group = case_when(hdi_group==1 ~ "Low",
+                               hdi_group==2 ~ "Medium",
+                               hdi_group==3 ~ "High",
+                               hdi_group==4 ~ "Very High"))
+
+
+AD_props_2%>%
+    ggplot(aes(x =reorder(country_label, -order), 
+               y =pAD ,
+               color = hdi_group)) + 
+
+  geom_errorbar(aes(ymin=pAD_Lower,
+                    ymax=pAD_Upper,
+                    width=0.2),
+                #colour="black"
+                )+
+  geom_point()+                                              # Change color brewer palette
+  scale_colour_brewer(palette = "Set1")+
+  coord_flip()+
+  labs(y =  "Proportion Avoidable Deaths (pAD, %)", x ="Country")+
+  ggtitle("Proportion Avoidable Deaths for Breast Cancer in SURVCAN-3, by Age Group")+
+  theme_minimal()+
+  facet_grid(continent_label~age_cat, scales="free", switch="both")+
+  scale_color_discrete(name="HDI Group")->figure_2
+
+figure_2
+
+ggsave(plot=figure_2, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\figure_2_props.pdf", 
+       width=15 , height=10)
+
+#Figure 3 - lollipop chart comparing the secondary analysis 
+
+AD_props_low %>%
   ggdotchart(x = "country_label", y = "pAD",
              color = "Reference",                             # Color by groups
-             palette = c( "blue", "#FC4E07", "#E7B800"), # Custom color palette    "#00AFBB", "#E7B800",
+             palette = c("blue", "#FC4E07", "#E7B800"), # Custom color palette    "#00AFBB", "#E7B800",
              sorting = "descending",                       # Sort value in descending order
              add = "segments", 
              group = "Reference", # Add segments from y = 0 to dots
@@ -77,11 +140,10 @@ AD_props_low %>%
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
              title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
 Reference when reference survival is 93%, the median survival by HDI, and max survival by HDI",
-             ggtheme = theme_pubr())   ->pAD_Breast_plot_low
+             ggtheme = theme_pubr()) ->pAD_Breast_plot_low
 
 
 AD_props_upp %>% 
-  
   ggdotchart(x = "country_label", y = "pAD",
              color = "Reference",                             # Color by groups
              palette = c( "blue", "#FC4E07", "#E7B800"), # Custom color palette    "#00AFBB", "#E7B800",
@@ -102,8 +164,9 @@ Reference when reference survival is 93%, the median survival by HDI, and max su
              ggtheme = theme_pubr())   ->pAD_Breast_plot_upp
 
 
-AD_props_overall %>% 
-  
+AD_props_overall %>% #modify to add CIs
+  ggplot( aes(x = country_label, y =pAD , color = age_cat)) + 
+  geom_point()+ 
   ggdotchart(x = "country_label", y = "pAD",
              color = "Reference",                             # Color by groups
              palette = c( "blue", "#FC4E07", "#E7B800"), # Custom color palette    "#00AFBB", "#E7B800",
@@ -119,57 +182,19 @@ AD_props_overall %>%
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
-Reference when reference survival is 93%, the median survival by HDI, and max survival by HDI",
-             ggtheme = theme_pubr())   -> pAD_Breast_plot_overall
+             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, Reference when reference survival is 93%, and max survival by HDI",
+             ggtheme = theme_pubr()) -> pAD_Breast_plot_overall
 
 
 pAD_Breast_plot_low
 pAD_Breast_plot_upp
 pAD_Breast_plot_overall
 
+#Saving the outputs
 
-#plot1_legend<-
-AD_props_overall %>%
-  ggplot(aes(x = 2, y = pAD, fill = "Reference")) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar(theta = "y") +
-  scale_fill_identity("Reference", labels = "Reference",
-                      guide = "legend") +
-  guides(fill = guide_legend(reverse = TRUE))+
-  theme(plot.background= element_blank(),
-        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
-        panel.background = element_blank(),
-        axis.text.x=element_blank(),
-        axis.text.y=element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        panel.border = element_blank(),
-        panel.grid = element_blank(),
-        axis.ticks = element_blank(),
-        strip.background = element_blank()) -> plot1_legend
 
-plot1_legend
+ggsave(plot=pAD_Breast_plot_overall, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\primary_secondary_lollipop_overall.pdf", 
+       width=20 , height=15)
 
-# function to extract legend from plot
-get_only_legend <- function(plot) {
-  plot_table <- ggplot_gtable(ggplot_build(plot))
-  legend_plot <- which(sapply(plot_table$grobs, function(x) x$name) == "guide-box")
-  legend <- plot_table$grobs[[legend_plot]]
-  return(legend)
-}
-
-# extract legend from plot1 using above function
-legend <- get_only_legend(plot1_legend)   
-
-# final combined plot with shared legend
-combined_plot <-   grid.arrange(pAD_Breast_plot_low,
-                                pAD_Breast_plot_upp,
-                                pAD_Breast_plot_overall, ncol = 3)
-Top_4_cancer<- grid.arrange(combined_plot, legend, ncol = 2, widths= c(0.85, 0.15))
-
-Top_4_cancer
-#Saving the output
-ggsave("pie.all.pdf",Top_4_cancer,width=15 ,height=10)
 
 

@@ -92,7 +92,7 @@ AD_barplot_treat <- AD_plotable %>%
       fill = Scenario,drop=FALSE,na.rm = TRUE
     )
   ) +
-  xlab("cancer_label Site") +
+  xlab("Cancer Site") +
   ylab("AD") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("Potentially Avoidable Deaths for Thailand due to treatment") +
@@ -127,7 +127,7 @@ AD_barplot_prev <- AD_plotable %>%
       fill = Scenario,drop=FALSE
     )
   ) +
-  xlab("cancer_label Site") +
+  xlab("Cancer Site") +
   ylab("AD") +
   ggtitle("Number Avoidable Deaths from Risk Factor Prevention in Thailand") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
@@ -155,7 +155,7 @@ AD_barplot_prev
 #       fill = age_cat,drop=FALSE
 #     )
 #   ) +
-#   xlab("cancer_label Site") +
+#   xlab("Cancer Site") +
 #   ylab("AD") +
 #   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
 #   ggtitle("AD Unavoidable") +
@@ -182,7 +182,7 @@ AD_barplot_treat_prop <- AD_plotable %>%
       fill = age_cat,drop=FALSE,na.rm = TRUE
     )
   ) +
-  xlab("cancer_label Site") +
+  xlab("Cancer Site") +
   ylab("AD") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("AD due to treatment  (%)") +
@@ -208,7 +208,7 @@ AD_barplot_prev_prop <- AD_plotable %>%
       fill = age_cat,drop=FALSE
     )
   ) +
-  xlab("cancer_label Site") +
+  xlab("Cancer Site") +
   ylab("AD") +
   ggtitle("Proportion avoidable deaths Preventable due to Risk Factors  (%)") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
@@ -234,7 +234,7 @@ AD_barplot_prev_prop <- AD_plotable %>%
 #       fill = age_cat,drop=FALSE
 #     )
 #   ) +
-#   xlab("cancer_label Site") +
+#   xlab("Cancer Site") +
 #   ylab("AD") +
 #   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
 #   ggtitle("AD Unavoidable (%)") +
@@ -343,7 +343,7 @@ NS_barplot <- NS_plotable  %>%
       fill = Scenario,drop=FALSE,na.rm = TRUE
     )
   ) +
-  xlab("cancer_label Site") +
+  xlab("Cancer Site") +
   ylab("Five-year net survival (%)") +
  # scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("Net survival estimates, SURVCAN versus Modelled") +
