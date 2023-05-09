@@ -124,6 +124,8 @@ library(janitor)
 # #   left_join(by=c("cancer_code","age")) #or combine directly in PAF file
 # # 
 
+Thailand_Survcan <-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\SURVCANALL_cc.csv") %>% as.data.frame()%>%
+  filter(regcode=="ASTHABAN")
 
 Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
   as.data.frame()%>%
@@ -297,7 +299,18 @@ mutate(surv_ref=  sum(surv_ref*cases, na.rm=T)/sum(cases, na.rm=T))%>%
 
 ES2<-p%>%
   as.data.frame()%>%
-  
+  filter(country_code==764)%>%
+  filter(year==2019)%>%
+  filter(age==4 | age==16)%>%
+  mutate(age_cat = case_when(
+        age==4  ~ "15-64",
+        age==16 ~ "65-99"
+      ))%>%
+  select(-sex, -age)%>%
+  group_by(age_cat)%>%
+  mutate(es=mean(es))%>%
+  ungroup()%>%
+  distinct()%>%
   dplyr::rename(ES="es")%>%
   select(-country_label, -year)
 
@@ -367,7 +380,7 @@ Thailand_popmort2 <-
 Thai_Survcan2 <- Thailand_Survcan %>%
   as.data.frame()%>%
   filter(surv_dd>0)%>%
-  filter(include == 1) %>%
+  filter(include == "Included") %>%
   filter(age >= 15) %>%
   filter(age <= 99) %>%
   filter(!is.na(age)) %>%
@@ -393,8 +406,7 @@ Thai_Survcan2 <- Thailand_Survcan %>%
   filter(last_FU_year > 2009 & last_FU_year <= 2014) %>%
   filter(!is.na(mx)) %>% 
   droplevels() %>%
-  dplyr::rename("cancer_code"="cancer")%>%
-  left_join(Cancer_codes_Survcan, by = c("cancer_code" = "cancer_code"))%>%
+  left_join(Cancer_codes_Survcan, by = c("cancer" = "cancer"))%>%
   mutate(cancer = replace(cancer, cancer == "Colon (C18)", "Colorectal")) %>%
   mutate(cancer = replace(cancer, cancer == "Rectum (C19-20)", "Colorectal")) %>%
   filter(cancer_code %in% ten_cancer_sites$cancer_code)
@@ -774,6 +786,7 @@ NS_OS$age_cat <- as.factor(NS_OS$age_cat)
 
 #Prepping PAFs data processing and combining by age group
 
+
 PAFs_age_Cat <- PAFs %>%
   distinct()%>%
   filter(country_label == "Thailand") %>%
@@ -781,7 +794,7 @@ PAFs_age_Cat <- PAFs %>%
                              age >= 14 ~ "65-99",
                              age<4 ~ "0-15")) %>%
   filter(age_cat != "0-15") %>%
-  left_join(ES2, by=c("country_code","age","sex"))%>% 
+  left_join(ES2, by=c("country_code","age_cat"))%>% 
   group_by(country_label, cancer_label, age_cat) %>%
   dplyr::summarize(
     country_code,
@@ -833,7 +846,7 @@ PAFs2 <- PAFs_age_Cat %>%
   group_by(country_label, cancer_label, age_cat) %>%
   mutate(total_age_prev = sum(cases.prev)) %>%
   mutate(af.comb = sum(cases.prev) / sum(cases)) %>%
-  mutate(ES = sum(ES*cases) / sum(cases)) %>%
+#  mutate(ES = sum(ES*cases) / sum(cases)) %>%
   dplyr::summarize(country_code,
                    country_label,
                    cancer_code,
@@ -892,7 +905,7 @@ Avoidable_Deaths<-NS_OS_PAF%>%
         "Expect_deaths_Lower",
         "Expect_deaths_Upper",
          "total_overall")%>%
-  rename("cancer"="cancer_label")
+  dplyr::rename("cancer"="cancer_label")
 
 #Calculating the overall AD
 
@@ -915,6 +928,7 @@ Avoidable_Deaths_overall<-Avoidable_Deaths%>%
   droplevels()%>%
   distinct()
 
+cancer_codes_thai_ex<-Avoidable_Deaths_Simulated_All_age_cat_overall$cancer_code
 
 ###############
 #

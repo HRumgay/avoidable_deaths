@@ -25,23 +25,26 @@ library(Rcan)
 
 #Creating a plotable object comparing Thailand simulated and RWD
 
-Avoidable_Deaths2 <- Avoidable_Deaths_modelled_age_cat %>% 
+Avoidable_Deaths2 <- Avoidable_Deaths_overall %>% 
   dplyr::mutate(Scenario = "SURVCAN Data")%>%
  #mutate_all(funs(ifelse(. < 0, 0, .)))%>%
   filter(age_cat=="Overall")%>%
   mutate(cancer = replace(cancer, cancer == "Cervix Uteri", "Cervix"))%>%
-  mutate(country_label="Thailand")%>%
-  mutate(country_code=764)%>%
-  select(Scenario, country_code,country_label, cancer_code, age_cat, AD_treat,AD_prev,  AD_sum)
+  select(Scenario, country_code,country_label, cancer_code, -age_cat, AD_treat,AD_prev,  AD_sum)
 
 
-Avoidable_Deaths_Simulated2 <- Avoidable_Deaths_Simulated_All_age_cat %>% 
+
+Avoidable_Deaths_Simulated2 <- Avoidable_Deaths_Simulated_All_age_cat_overall %>% 
+  ungroup()%>%
   dplyr::mutate(Scenario = "Modelled Survival")%>%
   filter(country_label=="Thailand")%>%
+  filter(cancer_code%in%Avoidable_Deaths_overall_thailand$cancer_code)%>%
   filter(!is.na(AD_treat))%>%
-  filter(age_cat=="Overall")%>%
-  select(Scenario, country_code,country_label, cancer_code, age_cat, AD_treat,AD_prev,  AD_sum)
+#  filter(age_cat=="Overall")%>%
+  select(Scenario, country_code,country_label, cancer_code, AD_treat, AD_prev,  total_deaths)%>%
+  dplyr::rename("AD_sum"="total_deaths")
 
+  
 
 AD_plotable <-  Avoidable_Deaths2 %>%
   as.data.frame()%>%
@@ -54,26 +57,27 @@ AD_plotable <-  Avoidable_Deaths2 %>%
  left_join(ten_cancer_sites, by=c("cancer_code"))%>%
   dplyr::mutate(AD_treat_prop=AD_treat/AD_sum*100)%>%
   dplyr::mutate(AD_prev_prop=AD_prev/AD_sum*100)%>%
-  dplyr::mutate(AD_unavoid_prop=AD_unavoid/AD_sum*100)%>%
+ # dplyr::mutate(AD_unavoid_prop=AD_unavoid/AD_sum*100)%>%
   filter(!is.na(cancer_label))#%>%
   # mutate(cancer = replace(cancer, cancer == "Liver and intrahepatic bile ducts", "Liver"))%>%
   # mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))
 
 #Data by cancer site prep
-AD_by_cancer_site <-Avoidable_Deaths_Simulated_All_age_cat%>%
+
+AD_by_cancer_site <- Avoidable_Deaths_Simulated_All_age_cat%>%
  filter(age_cat=="Overall")
 
-AD_by_cancer_site_3<-AD_by_cancer_site%>%
+AD_by_cancer_site_3 <- AD_by_cancer_site%>%
   select(cancer, cancer_code, AD_treat)%>%
   dplyr::rename("AD"="AD_treat")%>%
   dplyr::mutate(AD_cat="Treatable")
 
-AD_by_cancer_site_2<-AD_by_cancer_site%>%
+AD_by_cancer_site_2 <- AD_by_cancer_site%>%
   select(cancer, cancer_code, AD_prev)%>%
   dplyr::rename("AD"="AD_prev")%>%
   dplyr::mutate(AD_cat="Preventable")
 
-AD_by_cancer_site_1<-AD_by_cancer_site%>%
+AD_by_cancer_site_1 <- AD_by_cancer_site%>%
   select(cancer, cancer_code, AD_unavoid)%>%
   dplyr::rename("AD"="AD_unavoid")%>%
   dplyr::mutate(AD_cat="Unavoidable")%>%
@@ -93,7 +97,7 @@ AD_barplot_treat <- AD_plotable %>%
     )
   ) +
   xlab("Cancer Site") +
-  ylab("AD") +
+  ylab("Avoidable Deaths") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("Potentially Avoidable Deaths for Thailand due to treatment") +
   geom_col(position = "dodge")+
@@ -128,7 +132,7 @@ AD_barplot_prev <- AD_plotable %>%
     )
   ) +
   xlab("Cancer Site") +
-  ylab("AD") +
+  ylab("Avoidable Deaths") +
   ggtitle("Number Avoidable Deaths from Risk Factor Prevention in Thailand") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   geom_bar(stat = "identity", 
@@ -179,11 +183,12 @@ AD_barplot_treat_prop <- AD_plotable %>%
         ymax = max(AD_treat_prop)),
     mapping = aes(
       reorder(cancer_label, AD_treat_prop),AD_treat_prop,
-      fill = age_cat,drop=FALSE,na.rm = TRUE
+      fill = Scenario,
+      drop=FALSE,na.rm = TRUE
     )
   ) +
   xlab("Cancer Site") +
-  ylab("AD") +
+  ylab("Avoidable Deaths") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("AD due to treatment  (%)") +
   geom_bar(stat = "identity", 
@@ -205,23 +210,24 @@ AD_barplot_prev_prop <- AD_plotable %>%
         ymax = max(AD_prev_prop)),
     mapping = aes(
       reorder(cancer_label, AD_prev_prop),AD_prev_prop,
-      fill = age_cat,drop=FALSE
+      fill = Scenario,
+      drop=FALSE
     )
   ) +
   xlab("Cancer Site") +
-  ylab("AD") +
+  ylab("Proportion Avoidable Deaths (pAD, %)") +
   ggtitle("Proportion avoidable deaths Preventable due to Risk Factors  (%)") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   geom_bar(stat = "identity", 
            position = "dodge") +
-  coord_flip() +
+  coord_flip() #+
   # geom_errorbar(
   #   aes(x = cancer_label, ymin = AD_treat_prop_Lower, ymax = AD_treat_prop_Upper),
   #   width = 0.4,
   #   alpha = 0.9,
   #   size = 1.3
   # ) +
-  facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
+ # facet_grid(. ~ Scenario,drop=FALSE,scales = "free_y")
 
 # AD_barplot_unavoid_prop <- AD_plotable %>%
 #   group_by(cancer_label)%>%
@@ -276,10 +282,11 @@ ggsave("AD_barplot_prev_prop.png",AD_barplot_prev, height=10, width=10,
 
 #Creating a plotable object comparing Thailand simulated and RWD
 
-NS_SURVCAN <- Simulated_Data_PAF %>% 
+NS_SURVCAN <- NS_OS_PAF  %>% 
   dplyr::mutate(Scenario = "SURVCAN Data")%>%
 #  dplyr::rename("rel_surv"="Five_Year_Net_Surv")%>%
   group_by(cancer_code)%>%
+  dplyr::rename("rel_surv"="Five_Year_Net_Surv")%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Liver and intrahepatic bile ducts", "Liver"))%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Trachea, bronchus and lung", "Lung"))%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal"))%>%
@@ -294,6 +301,7 @@ NS_SURVCAN <- Simulated_Data_PAF %>%
 NS_Modelled <- Simulated_Data_PAF_All %>% 
   dplyr::mutate(Scenario = "Modelled Survival")%>%
   full_join(colorectal)%>%
+  distinct()%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Liver and intrahepatic bile ducts", "Liver"))%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Trachea, bronchus and lung", "Lung"))%>%
   mutate(cancer_label = replace(cancer_label, cancer_label == "Colon", "Colorectal"))%>%
@@ -329,6 +337,8 @@ NS_plotable <-  NS_Modelled%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
   filter(cancer_code%in%ten_cancer_sites$cancer_code)%>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Liver and intrahepatic bile ducts", "Liver"))%>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Trachea, bronchus and lung", "Lung"))%>%
 filter(cancer_label!="Unspecified sites")
 #Data by cancer_label site prep
 
@@ -348,7 +358,7 @@ NS_barplot <- NS_plotable  %>%
  # scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   ggtitle("Net survival estimates, SURVCAN versus Modelled") +
   geom_col(position = "dodge")+
-  coord_flip() 
+  coord_flip()
 
 #ggplot(cabbage_exp, aes(x = Date, y = Weight, fill = Cultivar)) +
 

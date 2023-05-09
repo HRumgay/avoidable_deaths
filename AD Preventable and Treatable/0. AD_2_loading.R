@@ -295,7 +295,7 @@ globocan_cancer_names<-globocan%>%select(cancer_code, cancer_label)%>%distinct()
 #write.csv(HDI_File, "~/Documents/R_Projects/Data/HDI_file_2019.csv")
 
 #HDI <-read.csv("~/Documents/R_Projects/Data/HDI_2019.csv") %>% as.data.frame()
-Thailand_Survcan <-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\ASTHABAN_cc.csv") %>% as.data.frame()
+#Thailand_Survcan <-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\ASTHABAN_cc.csv") %>% as.data.frame()
 
 Thailand_popmort <-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\popmort_Thailand.csv") %>% as.data.frame() %>%
   left_join(country_codes, by = c("region" = "country_label"))
