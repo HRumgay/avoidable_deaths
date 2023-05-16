@@ -5,12 +5,10 @@
 ###############################################
 #
 # Net survival and Avoidable deaths - Simulated data and new equations
-# Date: 20/01/2023
-# Version 4.0 - 
+# Date: 09/05/2023
+# Version 1.0 - Risk factors 
 #
 #Load files and packages in AD_2.R file
-#
-# Works for multiple cancer sites currently.
 #
 #
 ###############################################
@@ -1329,6 +1327,8 @@ AD_by_HDI_all2_RF<-AD_by_HDI_all_RF%>%
 # write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall_RF, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site.csv")
 # 
 
+
+# the rounding is not fixed for more variables everywhere yet so look at non rounded objects preferably
 AD_Region_RF
 AD_by_HDI_all2_RF
 AD_country_all_cancers2_RF

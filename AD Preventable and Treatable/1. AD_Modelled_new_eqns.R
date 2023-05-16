@@ -1066,7 +1066,7 @@ write.csv(AD_Region, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\A
 write.csv(table_1_11, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Total.csv")
 write.csv(AD_by_HDI_all2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_HDI_All_Cancers.csv")
 write.csv(AD_country_all_cancers2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Country_All_Cancers.csv")
-write.csv(AD_cancer2,"I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Cancer_by_Site.csv")
+write.csv(AD_cancer2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Cancer_by_Site.csv")
 write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site.csv")
 
 
@@ -1087,4 +1087,6 @@ number_cases<-PAFs_age_Cat %>%
   group_by(country_label, cancer_label)%>%
   mutate(cases= sum(cases))%>%
   distinct()
-  
+
+
+

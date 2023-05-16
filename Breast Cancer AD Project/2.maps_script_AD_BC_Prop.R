@@ -187,7 +187,7 @@ ggplot() +
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_linetype_manual(values=c("solid", "11"))->AD_map_93
 
-ggsave("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_prop_93.pdf", width = 40, height = 30, pointsize = 12) 
+ggsave(plot=AD_map_93, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_prop_93.pdf", width = 40, height = 30, pointsize = 12) 
 
 
 #--- maps for Overall AD with Max reference----
@@ -279,7 +279,7 @@ ggplot() +
   scale_linetype_manual(values=c("solid", "11"))->AD_map_max
 
 
-ggsave("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_max_prop.pdf",width = 40, height = 20, pointsize = 12) 
+ggsave("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_max_prop.pdf", width = 40, height = 30, pointsize = 12) 
 
 
 ggarrange( AD_map_93, AD_map_max,

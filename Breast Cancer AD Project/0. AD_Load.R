@@ -138,6 +138,25 @@ Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\
 
 load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\ExpectedSurvival.RData")
 
+#Seychelles population
+
+
+
+load("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_pop2020.RData")
+
+
+Seychelles_pop<-read.delim("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Data\\AFSEY10_pop_end.txt",  sep = "|", )%>%
+  filter(year==2019,sex==2)%>%
+  select(sex, agegrp, pop, -year)%>%
+  mutate(country_code=690, 
+         country_label="Seychelles")%>%
+  dplyr::rename("py"="pop",
+                "age"="agegrp")
+
+pop2020<-pop2020%>%
+  filter(sex==2)%>%
+  full_join(Seychelles_pop)
+
 ES2<-p%>%as.data.frame()
 
 ten_cancer_sites <-

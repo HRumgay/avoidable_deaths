@@ -35,6 +35,7 @@ Avoidable_Deaths2 <- Avoidable_Deaths_overall %>%
 
 
 Avoidable_Deaths_Simulated2 <- Avoidable_Deaths_Simulated_All_age_cat_overall %>% 
+  mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
   ungroup()%>%
   dplyr::mutate(Scenario = "Modelled Survival")%>%
   filter(country_label=="Thailand")%>%
@@ -58,9 +59,9 @@ AD_plotable <-  Avoidable_Deaths2 %>%
   dplyr::mutate(AD_treat_prop=AD_treat/AD_sum*100)%>%
   dplyr::mutate(AD_prev_prop=AD_prev/AD_sum*100)%>%
  # dplyr::mutate(AD_unavoid_prop=AD_unavoid/AD_sum*100)%>%
-  filter(!is.na(cancer_label))#%>%
-  # mutate(cancer = replace(cancer, cancer == "Liver and intrahepatic bile ducts", "Liver"))%>%
-  # mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))
+  filter(!is.na(cancer_label))%>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Liver and intrahepatic bile ducts", "Liver"))%>%
+  mutate(cancer_label = replace(cancer_label, cancer_label == "Trachea, bronchus and lung", "Lung"))
 
 #Data by cancer site prep
 
@@ -216,7 +217,7 @@ AD_barplot_prev_prop <- AD_plotable %>%
   ) +
   xlab("Cancer Site") +
   ylab("Proportion Avoidable Deaths (pAD, %)") +
-  ggtitle("Proportion avoidable deaths Preventable due to Risk Factors  (%)") +
+  ggtitle("Proportion Preventable Deaths in Thailand for Ten Cancer Sites") +
   scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
   geom_bar(stat = "identity", 
            position = "dodge") +
@@ -272,9 +273,9 @@ ggsave("AD_barplot_treat.png",AD_barplot_treat, height=10, width=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Thailand Example Results")
 ggsave("AD_barplot_prev.png",AD_barplot_prev, height=10, width=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Thailand Example Results")
-ggsave("AD_barplot_treat_prop.png",AD_barplot_treat, height=10, width=10,
+ggsave("AD_barplot_treat_prop.png",AD_barplot_treat_prop, height=10, width=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Thailand Example Results")
-ggsave("AD_barplot_prev_prop.png",AD_barplot_prev, height=10, width=10,
+ggsave("AD_barplot_prev_prop.png",AD_barplot_prev_prop, height=10, width=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Thailand Example Results")
 
 
@@ -351,12 +352,11 @@ NS_barplot <- NS_plotable  %>%
     mapping = aes(
       reorder(cancer_label, rel_surv),rel_surv,
       fill = Scenario,drop=FALSE,na.rm = TRUE
-    )
-  ) +
+    )) +
   xlab("Cancer Site") +
   ylab("Five-year net survival (%)") +
  # scale_fill_manual(values = c('#de2d26','#fc9272',  '#fee0d2')) + #choose some nice colours for your bars
-  ggtitle("Net survival estimates, SURVCAN versus Modelled") +
+  ggtitle("Net Survival Estimates for Ten Cancer Sites in Thailand, SURVCAN versus Modelled") +
   geom_col(position = "dodge")+
   coord_flip()
 
