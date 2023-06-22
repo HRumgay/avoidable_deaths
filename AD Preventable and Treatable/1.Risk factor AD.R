@@ -5,7 +5,7 @@
 ###############################################
 #
 # Net survival and Avoidable deaths - Simulated data and new equations
-# Date: 09/05/2023
+# Date: 30/05/2023
 # Version 1.0 - Risk factors 
 #
 #Load files and packages in AD_2.R file
@@ -240,21 +240,24 @@ PAFs_age_Cat_RF <- PAFs%>%
                 total_overall=cases,
                 ES)%>%
   ungroup()%>%
-  distinct()%>%
+  distinct()#%>%
+
+
+PAFs_age_Cat_RF<-PAFs_age_Cat_RF%>%
+ as.data.frame()%>%
   group_by(country_label,cancer_label, age,sex) %>%
-  as.data.frame()%>%
   dplyr::mutate(af.comb= case_when(cases!=0 ~  sum(cases.prev, na.rm=T)/sum(cases, na.rm=T),
                                    cases.prev==0 ~ 0),
                 af.tob= case_when(cases!=0 ~  sum(cases*af.tob, na.rm=T)/sum(cases, na.rm=T),
-                                  cases.prev==0 ~ 0),
+                                  cases*af.tob==0 ~ 0),
                 af.alc= case_when(cases!=0 ~  sum(cases*af.alc, na.rm=T)/sum(cases, na.rm=T),
-                                  cases.prev==0 ~ 0),
+                                  cases*af.alc==0 ~ 0),
                 af.inf= case_when(cases!=0 ~  sum(cases*af.inf, na.rm=T)/sum(cases, na.rm=T),
-                                  cases.prev==0 ~ 0),
+                                  cases*af.inf==0 ~ 0),
                 af.obe= case_when(cases!=0 ~  sum(cases*af.obe, na.rm=T)/sum(cases, na.rm=T),
-                                  cases.prev==0 ~ 0),
+                                  cases*af.obe==0 ~ 0),
                 af.uv= case_when(cases!=0 ~  sum(cases*af.uv, na.rm=T)/sum(cases, na.rm=T),
-                                 cases.prev==0 ~ 0))%>%
+                                 cases*af.uv==0 ~ 0))%>%
   distinct()%>%
   select(country_code,country_label, cancer_code, cancer_label,
          age, sex,age_cat, 
@@ -262,7 +265,7 @@ PAFs_age_Cat_RF <- PAFs%>%
          cases.notprev, af.comb, af.tob, af.alc, af.inf, af.obe, af.uv,
          total_overall, ES)%>%
   distinct()%>%
-  dplyr::group_by(country_label,cancer_label, age)
+  dplyr::group_by(country_label,cancer_label, age, sex)
 
 
 PAFs2_RF <- PAFs_age_Cat_RF%>%

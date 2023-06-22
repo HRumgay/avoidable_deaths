@@ -158,7 +158,7 @@ country_codes <-
   filter(country_code<900) %>%
   select(country_code, country_label)
 
-PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_12.07.22.csv")%>%
+PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")%>%
   as.data.frame()%>%
   distinct()%>%
   group_by(country_code, sex,
