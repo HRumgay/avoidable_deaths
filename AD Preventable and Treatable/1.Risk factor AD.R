@@ -831,15 +831,42 @@ AD_cancer_RF <- Avoidable_Deaths_Simulated_All_RF%>%
 
 
 # Calculating by region. Need a file that links countries to region 
+
+
 HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
+  
+  dplyr::filter(area<=21)%>%
+  dplyr::mutate(
+    area = case_when(
+      area %in% c(19,20,21)  ~ 19,
+      !area %in% c(19,20,21)  ~ area
+    ))%>% 
+  dplyr::mutate(
+    country_label= case_when(
+      area %in% c(19)  ~ "Melanesia/ Micronesia/ Polynesia ",
+      !area %in% c(19)  ~ country_label
+    ))%>% 
   select(-country_label)%>%
-  dplyr::filter(area<=21)
+  distinct()
+
 
 areas <- HDI_Region_Mapping%>%
   dplyr::filter(country_code>=910& country_code<=931 | 
                   country_code==905 | country_code==906| 
                   country_code==954| country_code==957 )%>%
-  select(area, country_label)
+  select(area, country_label)%>%
+  dplyr::mutate(
+    area = case_when(
+      area %in% c(19,20,21)  ~ 19,
+      !area %in% c(19,20,21)  ~ area
+    ))%>%
+  dplyr::mutate(
+    country_label= case_when(
+      area %in% c(19)  ~ "Melanesia/ Micronesia/ Polynesia ",
+      !area %in% c(19)  ~ country_label
+    ))%>%
+  distinct()
+
 
 
 

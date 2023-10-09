@@ -15,8 +15,8 @@ bcan_SURV2 <- bcan_SURV %>%
   filter(age >= 15, age <= 99) %>%
   filter(!is.na(age), !is.na(surv_ddtot)) %>%
   mutate(age_cat = cut( age,
-                        breaks = c(-Inf, 15, 64 , 99),
-                        labels = c("<15", "15-64", "65-99")
+                        breaks = c(-Inf, 15, 50 , 99),
+                        labels = c("<15", "15-50", "65-99")
   )) %>% #create age categories (to be adjusted)
   ungroup()%>%
   mutate(country=replace(country,country=="Cote d'Ivoire", "C?te d'Ivoire"),
@@ -99,7 +99,7 @@ bSURV<-bcan_SURV3%>%
 
 #age categories
 #bSURV_overall <- bSURV %>% mutate(age_cat = "Overall")
-bSURV_Lower <- bSURV %>% filter(age_cat == "15-64")%>% ungroup()%>%  droplevels()
+bSURV_Lower <- bSURV %>% filter(age_cat == "15-50")%>% ungroup()%>%  droplevels()
 bSURV_Upper <- bSURV %>% filter(age_cat == "65-99")%>% ungroup()%>%  droplevels()
 bSURV_Overall <- bSURV %>% filter(age_cat == "Overall")%>% ungroup()%>%  droplevels()
 
@@ -370,7 +370,7 @@ for (i in 1:nrow(country_codes2_tibble)) {
 
 #
 
-Age_names_all <- as.data.frame(c("15-64", "65-99", "Overall")) #
+Age_names_all <- as.data.frame(c("15-50", "65-99", "Overall")) #
 
 Net_Survival_Five_Year_age_1 <- as.data.frame(Net_Survival_Five_Year_age_1)
 Net_Survival_Five_Year_age_2 <- as.data.frame(Net_Survival_Five_Year_age_2)
@@ -503,7 +503,7 @@ NS_OS$age_cat <- as.factor(NS_OS$age_cat)
 
 PAFs_age_Cat3 <- PAFs %>%
   #  filter(country_label == "Thailand") %>%%
-  mutate(age_cat = case_when(age >= 4 & age < 14 ~ "15-64",
+  mutate(age_cat = case_when(age >= 4 & age < 14 ~ "15-50",
                              age >= 14 ~ "65-99",
                              age<4 ~ "0-15")) %>%
   filter(age_cat != "0-15") %>%
@@ -719,7 +719,7 @@ Avoidable_Deaths <- NS_OS_PAF %>%
 
 
 #Keeping subgroups for which both aren't available seperate from the overall group (to filter countries from the overall)
-AD_countries_low <- Avoidable_Deaths %>% filter(age_cat == "15-64") %>% select(country_label)
+AD_countries_low <- Avoidable_Deaths %>% filter(age_cat == "15-50") %>% select(country_label)
 AD_countries_upp <- Avoidable_Deaths %>% filter(age_cat == "65-99") %>% select(country_label)
 AD_countries_overall <-  Avoidable_Deaths %>% filter(age_cat == "Overall") %>% select(country_label)
 no_overall_upp <-  AD_countries_low %>% filter(!country_label %in% AD_countries_upp$country_label)
@@ -738,7 +738,7 @@ pop202021 <- pop2020%>%
   select(-sex)%>%
   dplyr::filter(age>3)%>%
   dplyr::mutate(age_cat = case_when(
-    age>=4 & age<=13~ "15-64",
+    age>=4 & age<=13~ "15-50",
     age>=14 & age<=18~ "65-99",
   ))%>%
   select(-age)%>%
@@ -770,7 +770,7 @@ weights22 <- data.frame(w2, age)
 weights21 <- weights22%>%
   dplyr::filter(age>3)%>%
   dplyr::mutate(age_cat = case_when(
-    age>=4 & age<=13~ "15-64",
+    age>=4 & age<=13~ "15-50",
     age>=14 & age<=18~ "65-99",
   ))%>%
   select(-age)%>%

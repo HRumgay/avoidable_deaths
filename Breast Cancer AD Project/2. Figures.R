@@ -1,6 +1,8 @@
 library(grid)
 library(ggpubr)
 
+
+
 #Script for main figures in manuscript 
 AD_all2
 AD_continent2
@@ -50,7 +52,7 @@ AD_props_overall<-AD_props%>%
   filter(age_cat=="Overall")  
 
 AD_props_low<-AD_props%>%
-  filter(age_cat=="15-64")  
+  filter(age_cat=="15-50")  
 
 AD_props_upp<-AD_props%>%
   filter(age_cat=="65-99")  
@@ -165,8 +167,6 @@ ggtheme = theme_pubr())   ->pAD_Breast_plot_upp
 
 
 AD_props_overall %>% #modify to add CIs
-  ggplot( aes(x = country_label, y =pAD , color = age_cat)) + 
-  geom_point()+ 
   ggdotchart(x = "country_label", y = "pAD",
              color = "Reference",                             # Color by groups
              palette = c( "blue", "#FC4E07", "#E7B800"), # Custom color palette    "#00AFBB", "#E7B800",
@@ -182,8 +182,9 @@ AD_props_overall %>% #modify to add CIs
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, Reference when reference survival is 93%, and max survival by HDI",
-             ggtheme = theme_pubr()) -> pAD_Breast_plot_overall
+             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
+Reference when reference survival is 93%, the median survival by HDI, and max survival by HDI",
+ggtheme = theme_pubr())   ->pAD_Breast_plot_overall
 
 
 pAD_Breast_plot_low

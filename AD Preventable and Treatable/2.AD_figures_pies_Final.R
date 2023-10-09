@@ -131,11 +131,11 @@ Avoidable_Deaths_Simulated_All %>%
   dplyr::arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat) %>% 
-  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
+  dplyr::mutate(AD=case_when(rankc<29~sum(AD[rankc<29]),
                       TRUE~AD),
-         percent=case_when(rankc<30~sum(percent[rankc<30]),
+         percent=case_when(rankc<29~sum(percent[rankc<29]),
                            TRUE~percent), 
-         rankc=case_when(rankc<30~1,
+         rankc=case_when(rankc<29~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -164,11 +164,11 @@ Avoidable_Deaths_Simulated_All %>%
   arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat, hdi_group) %>% 
-  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
+  dplyr::mutate(AD=case_when(rankc<29~sum(AD[rankc<29]),
                       TRUE~AD),
-         percent=case_when(rankc<30~sum(percent[rankc<30]),
+         percent=case_when(rankc<29~sum(percent[rankc<29]),
                            TRUE~percent), 
-         rankc=case_when(rankc<30~1,
+         rankc=case_when(rankc<29~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -283,13 +283,13 @@ ggsave("pie.avoid.pdf",pie.avoid,width=5.43 ,height=2.43,
 #arranging in grid
 library(ggpubr)
 library(gridExtra)
-#http://www.sthda.com/english/wiki/wiki.php?id_contents=7930 code modified from here
+#http://www.sthda.com/english/wiki/wiki.php?id_contents=7929 code modified from here
 
 
 
 
-cancer_colors_pied<- cancer_colors%>%filter(cancer%in%pied2$cancer)
-palette1_named_pied =  setNames(object = cancer_colors_pied$Color.Hex, nm = cancer_colors_pied$cancer)
+# cancer_colors_pied<- cancer_colors%>%filter(cancer%in%pied2$cancer)
+# palette1_named_pied =  setNames(object = cancer_colors_pied$Color.Hex, nm = cancer_colors_pied$cancer)
 
 
 #
@@ -573,6 +573,6 @@ Top_4_cancerhdi <-    grid.arrange(combined_plothdi,
 Top_4_cancerhdi
 
 #Saving the output
-ggsave("piesHDI.pdf",Top_4_cancerhdi,width=15 ,height=10,
+ggsave("piesHDI.pdf", Top_4_cancerhdi, width=15, height=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

@@ -695,15 +695,38 @@ AD_cancer <- Avoidable_Deaths_Simulated_All%>%
 
 # Calculating by region. Need a file that links countries to region 
 HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
+
+  dplyr::filter(area<=21)%>%
+  dplyr::mutate(
+    area = case_when(
+      area %in% c(19,20,21)  ~ 19,
+      !area %in% c(19,20,21)  ~ area
+    ))%>% 
+  dplyr::mutate(
+    country_label= case_when(
+      area %in% c(19)  ~ "Melanesia/ Micronesia/ Polynesia ",
+      !area %in% c(19)  ~ country_label
+    ))%>% 
   select(-country_label)%>%
-  dplyr::filter(area<=21)
+  distinct()
+
 
 areas <- HDI_Region_Mapping%>%
   dplyr::filter(country_code>=910& country_code<=931 | 
            country_code==905 | country_code==906| 
            country_code==954| country_code==957 )%>%
-  select(area, country_label)
-
+  select(area, country_label)%>%
+  dplyr::mutate(
+    area = case_when(
+      area %in% c(19,20,21)  ~ 19,
+      !area %in% c(19,20,21)  ~ area
+    ))%>%
+  dplyr::mutate(
+      country_label= case_when(
+        area %in% c(19)  ~ "Melanesia/ Micronesia/ Polynesia ",
+        !area %in% c(19)  ~ country_label
+      ))%>%
+  distinct()
 
 
 # By region
@@ -755,6 +778,7 @@ AD_Region2 <- Avoidable_Deaths_Simulated_All%>%
   as.data.frame()
 
 #region and cancer site
+
 AD_Region_cancer_sites <- Avoidable_Deaths_Simulated_All%>%
   left_join(HDI_Region_Mapping2, by=c("country_code"))%>%
   dplyr::mutate(age_cat="Overall")%>%
@@ -804,7 +828,8 @@ AD_Region_cancer_sites <- Avoidable_Deaths_Simulated_All%>%
 # age standardizing by region - aggregate by region and then age standardize
 
 countries_regions<-Avoidable_Deaths_Simulated_All%>%
-  select(country_code)%>%distinct()%>%
+  select(country_code)%>%
+  distinct()%>%
   left_join(HDI_Region_Mapping2, by=c("country_code"))
 
 
@@ -1026,7 +1051,6 @@ table_1_11<-table_1_1%>%
     "total_deaths","total.deaths.asr")
 
 
-
 #HDI
 
 AD_by_HDI
@@ -1088,5 +1112,6 @@ number_cases<-PAFs_age_Cat %>%
   mutate(cases= sum(cases))%>%
   distinct()
 
+number_cases
 
 

@@ -20,7 +20,7 @@ Y2D <- 365.241
 Ylen <- 5
 CancerSite <- 1
 anlPer <- 4
-breaks <- c(agemin-1,65,99,agemax+1)
+breaks <- c(agemin-1,50,99,agemax+1)
 juriscodes <- c("EUNOR10",  "EUIRL10",  "EUUKMALL", "ANCANALL", "OCAUSALL",
                 "OCNEZ80",  "EUUKM12",  "EUUKMNIR", "EUUKMSCO", "EUUKMWAL",
                 "ANCANNBR", "ANCANBCO", "ANCANALB", "ANCANPEI", "ANCANNFD",
@@ -51,8 +51,8 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
   distinct()#%>%
   # filter(age%%5==0)%>% #to match the age groups we choose the 
   # filter(!age %in% c(90,95,100))%>%
-  # mutate(agegr = case_when(age >= 15 & age < 65 ~ "15-64",
-  #                            age >= 65 & age <= 99 ~ "65-99",
+  # mutate(agegr = case_when(age >= 15 & age < 65 ~ "15-49",
+  #                            age >= 65 & age <= 99 ~ "50-99",
   #                            age<15 ~ "0-15"))
 
 
@@ -187,8 +187,8 @@ unpop_df<-unpop0%>%
   full_join(unpop18)%>%
   full_join(unpop19)%>%
   full_join(unpop20)%>%
-  mutate(agegr= case_when(age >= 4 & age < 14 ~ "15-64",
-                             age >= 14 ~ "65-99",
+  mutate(agegr= case_when(age >= 4 & age < 14 ~ "15-49",
+                             age >= 14 ~ "50-99",
                              age<4 ~ "0-15"))
   
   
