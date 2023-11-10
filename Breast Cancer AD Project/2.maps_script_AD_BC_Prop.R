@@ -103,7 +103,7 @@ colors_red_GCO <- c("#99000d","#cb181d","#ef3b2c","#fb6a4a", "#fc9272", "#fcbba1
 #--- maps for 93% AD----
 
 allc <- AD_Map%>%filter(age_cat=="Overall",
-                        Reference=="93%")
+                        Reference=="Sweden")
 
 
 break_quantile <- quantile(allc$pAD, probs = seq(0, 1, by = 0.125), na.rm = T)

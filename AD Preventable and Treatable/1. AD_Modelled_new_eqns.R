@@ -1067,7 +1067,12 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
           "AD_treat_prev",  "pAD_treat_prev","AD_treat_prev.asr",
           "AD_unavoid",     "pAD_unavoid" ,   "AD_unavoid.asr",    
           "total_deaths","total.deaths.asr")
+  
 
+mutate(
+  "Preventable Cases" = paste0(cases.prev, " (", cases.prev.low, ", ", cases.prev.upp, ")"),
+  "Population Attributable Fraction (%)" = paste0(af.uv, " (", af.uv.low, ", ", af.uv.upp, ")")) %>%
+  
 # By risk factor 
 #
 # In a seperate file

@@ -43,7 +43,7 @@ AD_props <- Avoidable_Deaths_age_cat2 %>%
   select(  "country_code", "country_label","age_cat",
            "cancer_code", "cancer_label",
            "pAD", "pAD_Lower", "pAD_Upper" ) %>%
-  mutate(Reference = "93%") %>%
+  mutate(Reference = "Sweden") %>%
   full_join(AD_11) %>%
   #full_join(AD_12)%>%
   filter(pAD!=0)
@@ -52,7 +52,10 @@ AD_props_overall<-AD_props%>%
   filter(age_cat=="Overall")  
 
 AD_props_low<-AD_props%>%
-  filter(age_cat=="15-50")  
+  filter(age_cat=="15-49")  
+
+AD_props_mid<-AD_props%>%
+  filter(age_cat=="50-64")  
 
 AD_props_upp<-AD_props%>%
   filter(age_cat=="65-99")  
@@ -76,15 +79,16 @@ AD_props%>%
   left_join(continents2,by=c("continent"))%>%
   arrange(continent, desc(pAD))%>%
   group_by(continent_label, age_cat) %>%
-  filter(Reference=="93%")->AD_props_2
+  filter(Reference=="Sweden")->AD_props_2
 
-AD_prop_order<-AD_props_2%>%ungroup%>%
+AD_prop_order<-AD_props_2%>%
+  ungroup%>%
   filter(age_cat=="Overall")%>%
   select(continent, country_label,  pAD)%>%
   group_by(continent)%>%
-  arrange(desc(pAD))%>%
+  dplyr::arrange(desc(pAD))%>%
   ungroup()%>%
-  mutate(order=row_number())%>%
+  dplyr::mutate(order=row_number())%>%
   ungroup%>%
   select(-pAD) 
 
@@ -101,13 +105,15 @@ AD_props_2<-AD_props_2%>%
 AD_props_2%>%
   ggplot(aes(x =reorder(country_label, -order), 
              y =pAD ,
-             color = hdi_group)) + 
+             color = hdi_group
+             )) + 
   
   geom_errorbar(aes(ymin=pAD_Lower,
                     ymax=pAD_Upper,
                     width=0.2),
                 #colour="black"
   )+
+  ylim(0,100)+
   geom_point()+                                              # Change color brewer palette
   scale_colour_brewer(palette = "Set1")+
   coord_flip()+
@@ -141,8 +147,31 @@ AD_props_low %>%
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
              title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
-Reference when reference survival is 93%, the median survival by HDI, and max survival by HDI",
-ggtheme = theme_pubr()) ->pAD_Breast_plot_low
+             Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
+ggtheme = theme_pubr()) -> pAD_Breast_plot_low
+
+
+
+AD_props_mid %>% 
+  ggdotchart(x = "country_label", y = "pAD",
+             color = "Reference",                             # Color by groups
+             palette = c( "blue", "#FC4E07", "#E7B800"), # Custom color palette    "#00AFBB", "#E7B800",
+             sorting = "descending",                       # Sort value in descending order
+             add = "segments", 
+             group = "Reference", # Add segments from y = 0 to dots
+             rotate = TRUE,                                # Rotate vertically                           
+             # Order by groups
+             dot.size = 8,                                 # Large dot size
+             label = round(AD_props_mid$pAD,1),                        # Add mpg values as dot labels
+             font.label = list(color = "white", size = 9, 
+                               vjust = 0.5),               # Adjust label parameters
+             # position = position_dodge2(1),
+             xlab="Country", 
+             ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
+             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
+             Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
+ggtheme = theme_pubr())   ->pAD_Breast_plot_mid
+
 
 
 AD_props_upp %>% 
@@ -162,7 +191,7 @@ AD_props_upp %>%
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
              title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
-Reference when reference survival is 93%, the median survival by HDI, and max survival by HDI",
+             Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
 ggtheme = theme_pubr())   ->pAD_Breast_plot_upp
 
 
@@ -183,11 +212,13 @@ AD_props_overall %>% #modify to add CIs
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
              title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
-Reference when reference survival is 93%, the median survival by HDI, and max survival by HDI",
+             Reference when reference survival is that of Sweden, and the theoretical maximum survival",
 ggtheme = theme_pubr())   ->pAD_Breast_plot_overall
 
 
 pAD_Breast_plot_low
+pAD_Breast_plot_mid
+
 pAD_Breast_plot_upp
 pAD_Breast_plot_overall
 

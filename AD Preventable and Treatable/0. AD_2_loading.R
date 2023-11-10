@@ -163,7 +163,7 @@ country_codes <-
 globocan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
   as.data.frame()%>%
   filter(type==0, 
-         sex!=0)#%>%
+         sex!=0)%>%
   # group_by(country_code, cancer_code, sex, age)%>%
   # mutate(cases=sum(cases),
   #        py=sum(py))%>%

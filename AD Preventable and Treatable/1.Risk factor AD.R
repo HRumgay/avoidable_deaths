@@ -274,7 +274,6 @@ PAFs2_RF <- PAFs_age_Cat_RF%>%
   dplyr::group_by(country_code,cancer_code,cancer_label, age_cat,age,sex)%>%
   # dplyr::mutate(total_age_prev=sum(cases.prev, na.rm=T))%>%
   as.data.frame()%>%
-  
   dplyr::group_by(country_code,cancer_code,age,sex)%>%
   dplyr::select(country_label, cancer_label,
                 age_cat, age,  total_overall,cases,
@@ -322,9 +321,9 @@ Simulated_Data_PAF_All_RF <- Simulated_Data_PAF_1_RF%>%
   dplyr::mutate(af.comb=as.double(af.comb))%>% 
   dplyr::mutate(total_overall=as.double(total_overall))%>% 
   arrange(country_label,cancer_code,age,sex)%>%
-  left_join(Reference_Survival, by=c("age","cancer_code"))%>%
-  select(-cancer_label)%>%
-  left_join(globocan_cancer_names,by=c("cancer_code"))
+  left_join(Reference_Survival, by=c("age","cancer_code"))#%>%
+  #select(-cancer_label)#%>%
+#  left_join(globocan_cancer_names,by=c("cancer_code"))
 
 
 # Avoidable deaths
@@ -1359,10 +1358,14 @@ AD_by_HDI_all2_RF<-AD_by_HDI_all_RF%>%
 
 
 # the rounding is not fixed for more variables everywhere yet so look at non rounded objects preferably
+
 AD_Region_RF
 AD_by_HDI_all2_RF
 AD_country_all_cancers2_RF
 AD_cancer2_RF
 table_1_11_RF
 Avoidable_Deaths_Simulated_All_age_cat_overall_RF
+
+
+
 
