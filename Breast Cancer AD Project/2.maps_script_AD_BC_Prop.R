@@ -269,7 +269,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion of treatable deaths (%), maximum by HDI group reference",
+  scale_fill_manual(name = "Proportion of treatable deaths (%), 100% reference survival",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
