@@ -146,7 +146,7 @@ AD_props_low %>%
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
+             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
              Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
 ggtheme = theme_pubr()) -> pAD_Breast_plot_low
 
@@ -168,7 +168,7 @@ AD_props_mid %>%
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
+             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
              Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
 ggtheme = theme_pubr())   ->pAD_Breast_plot_mid
 
@@ -190,7 +190,7 @@ AD_props_upp %>%
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
+             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
              Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
 ggtheme = theme_pubr())   ->pAD_Breast_plot_upp
 
@@ -211,7 +211,7 @@ AD_props_overall %>% #modify to add CIs
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3, 
+             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
              Reference when reference survival is that of Sweden, and the theoretical maximum survival",
 ggtheme = theme_pubr())   ->pAD_Breast_plot_overall
 

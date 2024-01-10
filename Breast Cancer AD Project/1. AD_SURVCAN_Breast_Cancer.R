@@ -556,6 +556,8 @@ table_diagnosis<-  bcan_SURV3%>%
     distinct()
   
   
+  
+  
   table(bSURV$age_cat)
   
   PAFs_age_Cat<- PAFs %>%
@@ -691,9 +693,7 @@ table_diagnosis<-  bcan_SURV3%>%
       max_ref = max(Five_Year_Net_Surv)) %>%
     dplyr::rename("country_label" = "country") %>%
     ungroup() %>%
-    select(-hdi_group)%>%
-    filter((country_label=="Kenya"&age_cat=="50-99")==FALSE) #Failed to converge
-  
+    select(-hdi_group)
   
   ####################################################################################
   #
@@ -894,7 +894,7 @@ table_diagnosis<-  bcan_SURV3%>%
       AD_Upper_max = sum(AD_Upper_max),
  #     AD_unavoid = sum(AD_unavoid),
       total_deaths = sum(total_deaths)) %>%
-    select( country_code,
+      select(country_code,
             country_label,
             cancer_code,
             cancer_label,
@@ -1450,7 +1450,7 @@ table_diagnosis<-  bcan_SURV3%>%
   includ/n_patients*100
   
   
-  #Seeing statistically significant differences between age groups in the country
+# Seeing statistically significant differences between age groups in the country
   
 age_ss_low<-Avoidable_Deaths_age_cat2%>%
   group_by(country_code)%>%
@@ -1463,7 +1463,7 @@ age_ss_low<-Avoidable_Deaths_age_cat2%>%
   
   
   
-age_ss<-Avoidable_Deaths_age_cat2%>%
+age_ss_lowtohigh<-Avoidable_Deaths_age_cat2%>%
   group_by(country_code)%>%
   filter(age_cat=="50-99")%>%
   select(country_code, country_label, age_cat, pAD, pAD_Lower, pAD_Upper)%>%
@@ -1472,11 +1472,26 @@ age_ss<-Avoidable_Deaths_age_cat2%>%
          "pAD_age2_low"="pAD_Lower",
          "pAD_age2_upp"="pAD_Upper")%>%
   left_join(age_ss_low)%>%
-  filter(pAD_age1_upp<=pAD_age2_low)
+  filter(pAD_age1_upp<pAD_age2_low)
   
-age_ss$country_label
-
-age_ss_low
+  
+  age_ss_hightolow<-Avoidable_Deaths_age_cat2%>%
+    group_by(country_code)%>%
+    filter(age_cat=="50-99")%>%
+    select(country_code, country_label, age_cat, pAD, pAD_Lower, pAD_Upper)%>%
+    rename("age2"="age_cat",
+           "pAD_age2"="pAD",
+           "pAD_age2_low"="pAD_Lower",
+           "pAD_age2_upp"="pAD_Upper")%>%
+    left_join(age_ss_low)%>%
+  filter(pAD_age2_upp<pAD_age1_low)
+  
+  age_ss_lowtohigh$country_label
+  
+  age_ss_hightolow$country_label
+  
+  
+age_ss
 
 #Comparing lower and higher age group
   
@@ -1489,7 +1504,7 @@ age_ss_nonsf<-Avoidable_Deaths_age_cat2%>%
          "pAD_age2_low"="pAD_Lower",
          "pAD_age2_upp"="pAD_Upper")%>%
   left_join(age_ss_low)%>%
-  filter(pAD_age1<=pAD_age2)
+  filter(pAD_age1_upp>=pAD_age2_low)
 
 age_ss_nonsf$country_label
 
@@ -1503,7 +1518,7 @@ age_ss_secondary<-Avoidable_Deaths_age_cat2%>%
   select(country_code, country_label, age_cat, 
          pAD, pAD_Lower, pAD_Upper, 
          pAD_max, pAD_Lower_max, pAD_Upper_max)%>%
-  filter(pAD_Upper<=pAD_Lower_max)
+  filter(pAD_Upper<pAD_Lower_max | pAD_Upper_max<pAD_Lower)
 
 
 age_ss_secondary

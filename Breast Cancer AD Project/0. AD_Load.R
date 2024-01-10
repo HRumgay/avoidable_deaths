@@ -78,22 +78,30 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
   select(-country)%>%
   distinct()
 
+globocan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
+  as.data.frame()%>%
+  filter(type==0, 
+         sex!=0)%>%
+  select(-cancer_label, -country_label)
 
-PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")
+PAFs10 <-  read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")
 
 PAFs<-PAFs10%>%
   as.data.frame()%>%
-  mutate(cancer_label=as.character(cancer_label))%>%
-  filter(cancer_label=="Breast")%>%
+  filter(cancer_code==20)%>%
   distinct()%>%
-  group_by(country_code, sex, 
+  group_by(country_code, sex,
            cancer_code, age)%>%
-  filter(sex!=0)%>%
-  # mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
-  #                           cases==0 ~    af.comb))%>%
-  ungroup()%>%
+  filter(sex==2)%>%
+  dplyr::mutate(cases=as.numeric(cases),
+                cases.prev=as.numeric(cases.prev))%>%
   as.data.frame()%>%
-  distinct()
+  select(-cases,-py, -cases.prev,-cases.notprev)%>%
+  left_join(globocan, by=c("cancer_code", "country_code", "age", "sex"))%>%
+  mutate(cases.prev=cases*af.comb,
+         cases.notprev=cases*(1-af.comb))
+
+
 
 survival_merged_all_ages_missing_sites <- read_excel("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\survival_merged_all_ages - missing sites.xlsx") %>% as.data.frame()
 Cancer_codes <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\dict_cancer.csv") %>% as.data.frame()

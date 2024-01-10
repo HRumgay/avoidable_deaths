@@ -170,7 +170,6 @@ globocan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\P
   # ungroup()%>%
   # distinct()
   select(-cancer_label, -country_label)
-  
 
 PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")%>%
   as.data.frame()%>%
@@ -180,11 +179,11 @@ PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PR
   filter(sex!=0)%>%
   dplyr::mutate(cases=as.numeric(cases),
                 cases.prev=as.numeric(cases.prev))%>%
-  as.data.frame()%>%
-  select(-cases,-py, -cases.prev,-cases.notprev)%>%
-  left_join(globocan, by=c("cancer_code", "country_code", "age", "sex"))%>%
-  mutate(cases.prev=cases*af.comb,
-         cases.notprev=cases*(1-af.comb))
+  as.data.frame()#%>%
+#  select(-cases,-py, -cases.prev,-cases.notprev)%>%
+  #left_join(globocan, by=c("cancer_code", "country_code", "age", "sex"))%>%
+#  mutate(cases.prev=cases*af.comb,
+ #        cases.notprev=cases*(1-af.comb))
   
 
 
@@ -302,7 +301,11 @@ Survival_Modelled<-Survival_Modelled2%>%
 
 #b<-Survival_Modelled%>%select(cancer_code, cancer_label)%>%distinct()%>%arrange(cancer_code)
 
-# globocan_cancer_names<-globocan%>%select(cancer_code, cancer_label)%>%distinct()
+ globocan_cancer_names<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
+   as.data.frame()%>%
+   filter(type==0, 
+          sex!=0)%>%
+   select(cancer_code, cancer_label)%>%distinct()
 
 # missing_surv_estimates<-PAFs%>%select(cancer_code, cancer_label)%>%distinct()%>%filter(!cancer_code%in%b$cancer_code)
 # 

@@ -207,7 +207,7 @@ piedp %>%
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   
-  labs(title="Preventable", caption= paste(formatC(round(table_1_1$AD_prev,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_prev,2), "%"))-> pie.prev
+  labs(title="Preventable", caption= paste(formatC(round(table_1_1$AD_prev,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_prev,2)*100, "%"))-> pie.prev
 pie.prev
 ggsave("pie.prev.pdf",pie.prev,width=5.43 ,height=2.43,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -240,7 +240,7 @@ piedt %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
   theme(legend.position = "none")+ 
-  labs(title="Treatable", caption= paste(formatC(round(table_1_1$AD_treat,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_treat,2), "%"))-> pie.treat
+  labs(title="Treatable", caption= paste(formatC(round(table_1_1$AD_treat,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_treat,2)*100, "%"))-> pie.treat
 pie.treat
 
 ggsave("pie.treat.pdf",pie.treat,width=5.43 ,height=2.43,
@@ -274,7 +274,7 @@ pieda %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="Avoidable", caption= paste(formatC(round(table_1_1$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(table_1_1$pAD_treat_prev,2), "%"))-> pie.avoid
+  labs(title="Avoidable", caption= paste(formatC(round(table_1_1$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(table_1_1$pAD_treat_prev,2)*100, "%"))-> pie.avoid
 pie.avoid
 ggsave("pie.avoid.pdf",pie.avoid,width=5.43 ,height=2.43,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 

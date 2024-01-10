@@ -370,7 +370,7 @@ ggplot() +
   scale_linetype_manual(values=c("solid", "11"))->AD_map_total
 
 
-ggsave("map_AD_all_cancers_preventable_treatable_prop.pdf",width = 40, height = 20, pointsize = 12,
+ggsave("map_AD_all_cancers_preventable_treatable_prop.pdf",width = 40, height = 30, pointsize = 12,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 

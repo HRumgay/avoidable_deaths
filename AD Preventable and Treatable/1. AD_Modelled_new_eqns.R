@@ -302,6 +302,26 @@ Simulated_Data_PAF_1 <- simulated_overall%>%
   as.data.frame()
 
 
+#for europe specific analysis - comment out to ignore
+
+HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
+  
+  dplyr::filter(area<=21)%>%
+  dplyr::mutate(
+    area = case_when(
+      area %in% c(19,20,21)  ~ 19,
+      !area %in% c(19,20,21)  ~ area
+    ))%>% 
+  dplyr::mutate(
+    country_label= case_when(
+      area %in% c(19)  ~ "Melanesia/ Micronesia/ Polynesia ",
+      !area %in% c(19)  ~ country_label
+    ))%>% 
+  select(-country_label)%>%
+  distinct()
+
+
+
 Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
   dplyr::mutate(rel_surv=as.double(rel_surv))%>%
   dplyr::mutate(af.comb=as.double(af.comb))%>% 
@@ -309,7 +329,9 @@ Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
   arrange(country_label,cancer_code,age,sex)%>%
   left_join(Reference_Survival, by=c("age","cancer_code"))%>%
   select(-cancer_label)%>%
-  left_join(globocan_cancer_names,by=c("cancer_code"))
+  left_join(globocan_cancer_names,by=c("cancer_code"))%>%
+  left_join(HDI_Region_Mapping2)#%>%
+  #filter(continent==5) # change for region speciic analysiss
 
 
 # Avoidable deaths
@@ -1069,10 +1091,7 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
           "total_deaths","total.deaths.asr")
   
 
-mutate(
-  "Preventable Cases" = paste0(cases.prev, " (", cases.prev.low, ", ", cases.prev.upp, ")"),
-  "Population Attributable Fraction (%)" = paste0(af.uv, " (", af.uv.low, ", ", af.uv.upp, ")")) %>%
-  
+
 # By risk factor 
 #
 # In a seperate file
@@ -1085,6 +1104,13 @@ mutate(
 AD_Region
 AD_by_HDI
 table_1_11
+AD_Region
+AD_by_HDI_all2
+AD_country_all_cancers2
+AD_cancer2
+table_1_11
+Avoidable_Deaths_Simulated_All_age_cat_overall
+
 
 
 #writing the files
@@ -1099,12 +1125,20 @@ write.csv(AD_cancer2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\
 write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site.csv")
 
 
-AD_Region
-AD_by_HDI_all2
-AD_country_all_cancers2
-AD_cancer2
-table_1_11
-Avoidable_Deaths_Simulated_All_age_cat_overall
+
+
+#Europe specific analysis
+# 
+# AD_Region<-AD_Region%>%
+#   filter(continent==5)
+# AD_by_HDI
+# table_1_11
+# AD_Region
+# AD_by_HDI_all2
+# AD_country_all_cancers2
+# AD_cancer2
+# table_1_11
+# Avoidable_Deaths_Simulated_All_age_cat_overall
 
 
 #Summing up the number of cases for the ppt 

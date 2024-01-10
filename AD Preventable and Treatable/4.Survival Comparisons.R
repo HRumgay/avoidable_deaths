@@ -156,9 +156,9 @@ sum(AD_incidence$total_overall)
 
 sum(Incidence_check$cases)
 
-write.csv(check_summary, "~/Documents/R_Projects/Data/Survival_check.csv")
-write.csv(Incidence_check_country, "~/Documents/R_Projects/Data/Incidence_check_country.csv")
-write.csv(AD_incidence, "~/Documents/R_Projects/Data/AD_incidence.csv")
+#write.csv(check_summary, "~/Documents/R_Projects/Data/Survival_check.csv")
+#write.csv(Incidence_check_country, "~/Documents/R_Projects/Data/Incidence_check_country.csv")
+#write.csv(AD_incidence, "~/Documents/R_Projects/Data/AD_incidence.csv")
 
 
 
@@ -169,29 +169,29 @@ write.csv(AD_incidence, "~/Documents/R_Projects/Data/AD_incidence.csv")
 # PAF file check
 
 # checking for duplicate rows
-PAFs_duplicates2 <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
-  group_by(country_code, sex,
-           cancer_code, age)%>%
-  filter(sex!=0)%>%
-  # mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
-  #                           cases==0 ~ af.comb))%>%
-  ungroup()%>%
-  as.data.frame()
-
-PAFs_duplicates<-PAFs_duplicates2%>%
-  group_by(country_code,cancer_code, sex, age)%>%
-  mutate(n=n())%>%
-  filter(n==2)
-
-# calculating the excess cases...
-sum(PAFs_duplicates$cases)/2
-
-# What cancer sites are problematic with doubles
-
-PAFs_duplicates %>%
-  ungroup() %>%
-  select(cancer_label) %>%
-  distinct()
+# PAFs_duplicates2 <- read.csv("~/Documents/R_Projects/Data/combinedPAFs_cases_12.07.22.csv")%>%
+#   group_by(country_code, sex,
+#            cancer_code, age)%>%
+#   filter(sex!=0)%>%
+#   # mutate(af.comb= case_when(cases!=0 ~ sum(cases.prev)/sum(cases),
+#   #                           cases==0 ~ af.comb))%>%
+#   ungroup()%>%
+#   as.data.frame()
+# 
+# PAFs_duplicates<-PAFs_duplicates2%>%
+#   group_by(country_code,cancer_code, sex, age)%>%
+#   mutate(n=n())%>%
+#   filter(n==2)
+# 
+# # calculating the excess cases...
+# sum(PAFs_duplicates$cases)/2
+# 
+# # What cancer sites are problematic with doubles
+# 
+# PAFs_duplicates %>%
+#   ungroup() %>%
+#   select(cancer_label) %>%
+#   distinct()
 
 
 
@@ -317,7 +317,7 @@ HDI <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langsel
 # 
 # 
 
-surv_new2 <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\survival_SURVCAN_anchor_ALL_all34_byHDI.dta")%>%
+surv_new2 <- read_dta("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\survival_SURVCAN_anchor_ALL_all34_byHDI.dta")%>%
   as.data.frame()
 
 surv_new<-surv_new2%>%
@@ -710,9 +710,9 @@ ggsave("time_surv_dif_all.pdf", width = 20, height = 10, pointsize = 12,
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_all) 
 
 #relative plots
-
-ggsave("time_surv_dif_ages_all_rel.pdf", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
-       path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_ages_all_rel) 
+# 
+# ggsave("time_surv_dif_ages_all_rel.pdf", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
+#        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_ages_all_rel) 
 ggsave("time_surv_dif_HDI_rel.pdf", width = 20, height = 20, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_dif_HDI_rel) 
 ggsave("time_surv_dif_all_rel.pdf", width = 20, height = 10, pointsize = 12, 
