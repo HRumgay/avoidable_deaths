@@ -1,4 +1,4 @@
-###############################################
+###############################################sites
 #
 # Net survival and Avoidable deaths - File Lead
 # Date: 20/01/2023
@@ -37,7 +37,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\GCO_po
 # country_codes <-
 #   read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
 #   filter(country_code<900) %>%
-#   select(country_code, country_label)
+#   dplyr::select(country_code, country_label)
 # 
 # PAFs10 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\combinedPAFs_cases_12.07.22.csv")%>%as.data.table()
 # 
@@ -82,7 +82,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\GCO_po
 #    as.data.frame()
 # 
 # MIR_Age_Cats<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\MIR_age_cat.csv")%>%
-#   as.data.frame()%>%select(-mortality,-incidence)%>%
+#   as.data.frame()%>%dplyr::select(-mortality,-incidence)%>%
 #   mutate(MIR=replace(MIR,MIR==Inf, NA))
 # 
 # 
@@ -91,7 +91,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\GCO_po
 # 
 # Reference_Survival<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival.23.01.23.csv")%>%
 #   as.data.frame()%>%
-#   select( age,
+#   dplyr::select( age,
 #           cancer_code,
 #           rel_surv)%>%
 #   dplyr::rename("surv_ref"="rel_surv")%>%
@@ -120,7 +120,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\GCO_po
 #   group_by(country_code, age,sex)%>%
 #   mutate(py=sum(py))%>%
 #   distinct()%>%
-#   select(-country_label)
+#   dplyr::select(-country_label)
 # 
 # 
 # Reference_Survival_Survcan<-Reference_Survival%>%
@@ -130,7 +130,7 @@ load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\GCO_po
 # 
 # Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\Reference_Survival_Survcan.csv")%>%
 #   as.data.frame()%>%
-#   select( age_cat,
+#   dplyr::select( age_cat,
 #           cancer_code,
 #           rel_surv)%>%
 #   dplyr::rename("surv_ref"="rel_surv")%>%
@@ -156,7 +156,7 @@ load("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Da
 country_codes <-
   read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
   filter(country_code<900) %>%
-  select(country_code, country_label)
+  dplyr::select(country_code, country_label)
 
 
 
@@ -169,7 +169,7 @@ globocan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\P
   #        py=sum(py))%>%
   # ungroup()%>%
   # distinct()
-  select(-cancer_label, -country_label)
+  dplyr::select(-cancer_label, -country_label)
 
 PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")%>%
   as.data.frame()%>%
@@ -180,7 +180,7 @@ PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PR
   dplyr::mutate(cases=as.numeric(cases),
                 cases.prev=as.numeric(cases.prev))%>%
   as.data.frame()#%>%
-#  select(-cases,-py, -cases.prev,-cases.notprev)%>%
+#  dplyr::select(-cases,-py, -cases.prev,-cases.notprev)%>%
   #left_join(globocan, by=c("cancer_code", "country_code", "age", "sex"))%>%
 #  mutate(cases.prev=cases*af.comb,
  #        cases.notprev=cases*(1-af.comb))
@@ -299,20 +299,20 @@ Survival_Modelled<-Survival_Modelled2%>%
 #   filter(country_code<900)
 
 
-#b<-Survival_Modelled%>%select(cancer_code, cancer_label)%>%distinct()%>%arrange(cancer_code)
+#b<-Survival_Modelled%>%dplyr::select(cancer_code, cancer_label)%>%distinct()%>%arrange(cancer_code)
 
  globocan_cancer_names<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
    as.data.frame()%>%
    filter(type==0, 
           sex!=0)%>%
-   select(cancer_code, cancer_label)%>%distinct()
+   dplyr::select(cancer_code, cancer_label)%>%distinct()
 
-# missing_surv_estimates<-PAFs%>%select(cancer_code, cancer_label)%>%distinct()%>%filter(!cancer_code%in%b$cancer_code)
+# missing_surv_estimates<-PAFs%>%dplyr::select(cancer_code, cancer_label)%>%distinct()%>%filter(!cancer_code%in%b$cancer_code)
 # 
-# ca<-PAFs%>%select(cancer_code, cancer_label)%>%distinct()%>%arrange(cancer_code)
+# ca<-PAFs%>%dplyr::select(cancer_code, cancer_label)%>%distinct()%>%arrange(cancer_code)
 
 # HDI_File<-Survival_Modelled%>%
-#   select(country_code, country_label, hdi_group)%>%
+#   dplyr::select(country_code, country_label, hdi_group)%>%
 #   distinct()
 
 #write.csv(HDI_File, "~/Documents/R_Projects/Data/HDI_file_2019.csv")
@@ -333,7 +333,7 @@ p <- read_dta("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_
 
 # MIR_Age_Cats<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\MIR_age_cat.csv")%>%
 #   as.data.frame()%>%
-#   select(-mortality,-incidence)%>%
+#   dplyr::select(-mortality,-incidence)%>%
 #   mutate(MIR=replace(MIR,MIR==Inf, NA))
 
 
@@ -342,7 +342,7 @@ p <- read_dta("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_
 #same file but Globocan age groups for modeled data
 # MIR_Globocan<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\MIR.csv")%>%
 #   as.data.frame()%>%
-#   select(-mortality,
+#   dplyr::select(-mortality,
 #          -incidence)%>%
 #   mutate(MIR=replace(MIR,MIR==Inf, NA))%>%
 #   mutate(age = case_when(
@@ -360,7 +360,7 @@ p <- read_dta("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_
 #     age>=4 & age<14 ~ "15-64",
 #     age>=14 ~ "65-99",
 #     age<4 ~"0-15"))%>%
-#   select(-sex, -X)%>%
+#   dplyr::select(-sex, -X)%>%
 #   group_by(country_code, cancer_code, age)%>%
 #   mutate(MIR=sum(MIR*py)/sum(py))%>%
 #   mutate(py=sum(py))%>%distinct()%>%
@@ -374,7 +374,7 @@ Thailand_expected_Survival<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliv
 
 Reference_Survival<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Reference_Survival.csv")%>%
   as.data.frame()%>%
-  select( age,
+  dplyr::select( age,
           cancer_code,
           rel_surv)%>%
   dplyr::rename("surv_ref"="rel_surv")%>%
@@ -387,7 +387,7 @@ sapply(Reference_Survival, class)
 
 Reference_Survival_Survcan<-Reference_Survival%>%
   left_join(PAFs,by=c("cancer_code","age"))%>%
-  select(age, cancer_code, surv_ref, cases)%>%
+  dplyr::select(age, cancer_code, surv_ref, cases)%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 9, 38))%>%
   mutate(cancer_code = replace(cancer_code, cancer_code == 8, 38))%>%
   mutate(age = case_when(
@@ -417,12 +417,12 @@ Reference_Survival_Survcan<-Reference_Survival%>%
       age<4 ~"0-15"
     ))%>%
   filter(age_cat!="0-15")%>%
-  select(-age)%>%
+  dplyr::select(-age)%>%
   ungroup()%>%
   group_by(cancer_code,age_cat)%>%
 mutate(surv_ref=  sum(surv_ref*cases, na.rm=T)/sum(cases, na.rm=T))%>%
   ungroup()%>%
-  select(-cases)%>%
+  dplyr::select(-cases)%>%
   distinct() %>%
   filter(!is.na(cancer_code))
 
@@ -430,7 +430,7 @@ mutate(surv_ref=  sum(surv_ref*cases, na.rm=T)/sum(cases, na.rm=T))%>%
 
 Reference_Survival_Survcan<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\Reference_Survival_Survcan.csv")%>%
   as.data.frame()%>%
-  select( age_cat,
+  dplyr::select( age_cat,
           cancer_code,
           rel_surv)%>%
   dplyr::rename("surv_ref"="rel_surv")%>%
@@ -446,7 +446,7 @@ ES2<-p%>%
   as.data.frame()%>%
 
   dplyr::rename(ES="es")%>%
-  select(-country_label, -year)
+  dplyr::select(-country_label, -year)
 
 #
 #
@@ -559,7 +559,7 @@ ten_cancer_sites <-
 # 
 # 
 # Thai_Surv11<- Thai_Surv3%>%
-#   select(region_lab, country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
+#   dplyr::select(region_lab, country, doi, last_FU_age,age,surv_yytot,year,cancer_code)%>%
 #   group_by(region_lab,country,cancer_code)%>%
 #   dplyr::summarize( end_FU=max(year))%>%
 #   as.data.frame()
@@ -894,7 +894,7 @@ ten_cancer_sites <-
 #       "age_cat" = "age_cat"
 #     )
 #   ) %>%
-#   select(cancer,cancer_code,
+#   dplyr::select(cancer,cancer_code,
 #          Five_Year_all_cause_Surv,OS_Lower_CI,OS_Upper_CI,
 #          Five_Year_Net_Surv,NS_Lower_CI,NS_Upper_CI,
 #          age_cat
@@ -1026,7 +1026,7 @@ ten_cancer_sites <-
 #   mutate(Expect_deaths=(1-(Five_Year_Net_Surv*ES))*total_overall)%>%
 #   mutate(Expect_deaths_Lower=(1-(NS_Upper_CI*ES))*total_overall)%>%
 #   mutate(Expect_deaths_Upper=(1-(NS_Lower_CI*ES))*total_overall)%>%
-#   select("country_code","country_label",
+#   dplyr::select("country_code","country_label",
 #          "age_cat",
 #          "cancer_code","cancer_label",
 #          "AD_treat",
@@ -1181,3 +1181,5 @@ ten_cancer_sites <-
 # #       axis.title.y = element_text(face="bold", colour="#FF7A33", size = 12),
 # #       legend.title = element_text(face="bold", size = 10))
 # 
+
+
