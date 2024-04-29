@@ -116,78 +116,85 @@ allc$cutpoint <- factor(allc$cutpoint, levels = rev(levels(allc$cutpoint)))
 df_AD_map <- merge(df_map, allc, by = c("id"), all.x=TRUE, sort=F )
 df_AD_map<- df_AD_map[order(df_AD_map$int_map_index),]
 
+df_AD_map<-df_AD_map%>%
+            mutate(country_code="No Data",
+            pAD="No data")
+
 #For the automatic legend
 break_quantile_t <- paste(round(break_quantile,2),"", sep="")
 
 labels_leg <-  c( paste("< ", break_quantile_t[2]),
-                  paste(break_quantile_t[2], " - ", break_quantile_t[3]),
-                  paste(break_quantile_t[3], " - ", break_quantile_t[4]),
-                  paste(break_quantile_t[4], " - ", break_quantile_t[5]),
-                  paste(break_quantile_t[5], " - ", break_quantile_t[6]),
-                  paste(break_quantile_t[6], " - ", break_quantile_t[7]),
-                  paste(break_quantile_t[7], " - ", break_quantile_t[8]),
-                  paste(">= ", break_quantile_t[8]))
+          paste(break_quantile_t[2], " - ", break_quantile_t[3]),
+          paste(break_quantile_t[3], " - ", break_quantile_t[4]),
+          paste(break_quantile_t[4], " - ", break_quantile_t[5]),
+          paste(break_quantile_t[5], " - ", break_quantile_t[6]),
+          paste(break_quantile_t[6], " - ", break_quantile_t[7]),
+          paste(break_quantile_t[7], " - ", break_quantile_t[8]),
+          paste(">= ", break_quantile_t[8]))
 
+labels_leg[is.na(labels_leg)] <- "No Data"
 
 labels_leg <- rev(labels_leg)
 
 ggplot() + 
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group))+
+       aes(x=long, y=lat,fill=cutpoint, group= group))+
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cutpoint, group= group),   
-               colour="grey10", 
-               size = 0.4,
-               show.legend=FALSE)+
+       aes(x=long, y=lat,fill=cutpoint, group= group),   
+       colour="grey10", 
+       size = 0.4,
+       show.legend=FALSE)+
   geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
-               aes(x=long, y=lat,fill=cutpoint,group= group),
-               colour="grey10",
-               size = 0.4,
-               show.legend=FALSE)+
+       aes(x=long, y=lat,fill=cutpoint,group= group),
+       colour="grey10",
+       size = 0.4,
+       show.legend=FALSE)+
   geom_polygon(data=df_map[df_map$id == 59,],
-               aes(x=long, y=lat,group= group),
-               fill = "#d6d6d6",
-               colour="grey10",
-               size = 0.4,
-               show.legend=FALSE)+
+       aes(x=long, y=lat,group= group),
+       fill = "#d6d6d6",
+       colour="grey10",
+       size = 0.4,
+       show.legend=FALSE)+
   geom_polygon(data=df_poly[df_poly$poly_fill == 888,], 
-               aes(x=long, y=lat,group= group),
-               fill = "grey100" ,
-               show.legend=FALSE)+
+       aes(x=long, y=lat,group= group),
+       fill = "grey100" ,
+       show.legend=FALSE)+
   geom_polygon(data=df_poly[df_poly$poly_fill == 999,], 
-               aes(x=long, y=lat,group= group),
-               fill = "#d6d6d6" ,
-               show.legend=FALSE)+
+       aes(x=long, y=lat,group= group),
+       fill = "#d6d6d6" ,
+       show.legend=FALSE)+
   geom_path(data=df_poly ,
-            aes(x=long, y=lat, color=line_color,linetype=line_type,group= group),
-            size = 0.4,
-            show.legend=FALSE)+
+    aes(x=long, y=lat, color=line_color,linetype=line_type,group= group),
+    size = 0.4,
+    show.legend=FALSE)+
   geom_path(data = df_line[df_line$line_color != 0, ],
-            aes(x=long, y=lat,color=line_color,linetype=line_type,group=group),
-            size = 0.4,
-            show.legend=FALSE)+
+    aes(x=long, y=lat,color=line_color,linetype=line_type,group=group),
+    size = 0.4,
+    show.legend=FALSE)+
   #      labs(title = paste0(cancer,", ",gender))+
   coord_equal() + 
   theme_opts +
   theme(legend.key.width= unit(2.6, "cm"), 
-        legend.key.height= unit(1.4, "cm"),
-        legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
-        legend.title.align=0.5,
-        legend.position =c(0.18, -0.02),
-        legend.background = element_rect(fill="transparent"),
-        plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion of treatable deaths (%), reference=93%",
-                    values= colors_green_GCO,
-                    labels= labels_leg, 
-                    na.value = "#cccccc",
-                    drop=FALSE)+
+    legend.key.height= unit(1.4, "cm"),
+    legend.direction= "vertical",
+    legend.text = element_text(size=30),
+    legend.title = element_text(size=30, hjust = 1),
+    legend.title.align=0.5,
+    legend.position =c(0.18, -0.02),
+    legend.background = element_rect(fill="transparent"),
+    plot.margin = unit(c(0,0,0,0),"lines"))+
+  scale_fill_manual(name = "Avoidable breast cancer deaths (%)",
+        values= colors_green_GCO,
+        labels= c(labels_leg, "No data"), 
+        na.value = "#cccccc",
+        drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
   scale_linetype_manual(values=c("solid", "11"))->AD_map_93
+AD_map_93
 
-ggsave(plot=AD_map_93, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_prop_93.pdf", width = 40, height = 30, pointsize = 12) 
+
+ggsave(plot=AD_map_93, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_prop_93.png", width = 40, height = 30, pointsize = 12) 
 
 
 #--- maps for Overall AD with Max reference----

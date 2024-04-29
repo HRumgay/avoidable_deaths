@@ -434,9 +434,8 @@ Simulated_Data_PAF_All2 <- Simulated_Data_PAF_1 %>%
  
 
 
-sd_assumed <- 0.05 # 2% variation
-bootstrap_iterations<- 1000
-uncertainty_assumptions <- sd_assumed/sqrt(bootstrap_iterations) # 2% variation
+sd_assumed <- 0.05 # 5% standard deviation
+bootstrap_iterations<- 5000
 
 #initiziaing the data frame
 AD_country_all_cancers<-data.frame()
@@ -451,12 +450,12 @@ for (i in 1:bootstrap_iterations) {
 # Use the number of rows in the data frame as the length for rnorm() 
   Avoidable_Deaths_Simulated_All3<- Simulated_Data_PAF_All2 %>%
     group_by(country_code, cancer_code, sex, age) %>%
-    mutate(rel_surv = rnorm(n(), mean = rel_surv, sd = rel_surv*uncertainty_assumptions),
-           af.comb = rnorm(n(), mean = af.comb, sd = af.comb*uncertainty_assumptions),
-           total_overall = rnorm(n(), mean = total_overall, sd = total_overall*uncertainty_assumptions),
-           surv_ref = rnorm(n(), mean = surv_ref, sd = surv_ref*uncertainty_assumptions),
-           ES = rnorm(n(), mean = ES, sd = ES*uncertainty_assumptions),
-           total_overall = rnorm(n(), mean = total_overall, sd = total_overall*uncertainty_assumptions),)%>%
+    mutate(rel_surv = rnorm(n(), mean = rel_surv, sd = rel_surv*sd_assumed),
+           af.comb = rnorm(n(), mean = af.comb, sd = af.comb*sd_assumed),
+           total_overall = rnorm(n(), mean = total_overall, sd = total_overall*sd_assumed),
+           surv_ref = rnorm(n(), mean = surv_ref, sd = surv_ref*sd_assumed),
+           ES = rnorm(n(), mean = ES, sd = ES*sd_assumed),
+           total_overall = rnorm(n(), mean = total_overall, sd = total_overall*sd_assumed),)%>%
   dplyr::group_by(country_code, cancer_code, age, sex)%>%
   dplyr::mutate(AD_prev= total_overall * af.comb *ES* (1 - rel_surv))%>%
   dplyr::mutate(AD_treat=(1-af.comb) *total_overall * (surv_ref-rel_surv) * ES)%>%
@@ -1054,6 +1053,33 @@ table_1_1
 AD_by_HDI_all
 AD_cancer
 
+
+write.csv(Avoidable_Deaths_Simulated_All2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries_intermediate_inter.csv")
+write.csv(Avoidable_Deaths_Simulated_All_age_cat, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries_age_cat_intermediate_inter.csv")
+write.csv(AD_Region,"I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Region_intermediate_inter.csv")
+write.csv(table_1_11,"I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Total_intermediate_inter.csv")
+write.csv(AD_by_HDI_all2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_HDI_All_Cancers_intermediate_inter.csv")
+write.csv(AD_country_all_cancers2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Country_All_Cancers_intermediate_inter.csv")
+write.csv(AD_cancer2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Cancer_by_Site_intermediate_inter.csv")
+write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site_intermediate_inter.csv")
+
+
+
+
+#Simulated_Data_PAF_All<- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\NS_Simulated_All_Countries_intermediate.csv")
+Avoidable_Deaths_Simulated_All2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries_intermediate_inter.csv")
+Avoidable_Deaths_Simulated_All_age_cat <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries_age_cat_intermediate_inter.csv")
+AD_Region<- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Region_intermediate_inter.csv")
+table_1_11 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Total_intermediate_inter.csv")
+AD_by_HDI_all2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_HDI_All_Cancers_intermediate_inter.csv")
+AD_country_all_cancers2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Country_All_Cancers_intermediate_inter.csv")
+AD_cancer2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Cancer_by_Site_intermediate_inter.csv")
+Avoidable_Deaths_Simulated_All_age_cat_overall2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site_intermediate_inter.csv")
+
+
+
+
+
 #function to compute confidence intervals
 compute_CIs <- function(data) {
   data <- data %>%
@@ -1142,18 +1168,6 @@ Avoidable_Deaths_Simulated_All_age_cat_overall3
 # write.csv(AD_cancer2, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Cancer_by_Site_intermediate.csv")
 # write.csv(Avoidable_Deaths_Simulated_All_age_cat_overall3, "I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site_intermediate.csv")
 # 
-
-
-#Simulated_Data_PAF_All<- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\NS_Simulated_All_Countries_intermediate.csv")
-Avoidable_Deaths_Simulated_All2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries_intermediate.csv")
-Avoidable_Deaths_Simulated_All_age_cat <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Simulated_All_Countries_age_cat_intermediate.csv")
-AD_Region<- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Region_intermediate.csv")
-table_1_11 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Total_intermediate.csv")
-AD_by_HDI_all2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_HDI_All_Cancers_intermediate.csv")
-AD_country_all_cancers2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Country_All_Cancers_intermediate.csv")
-AD_cancer2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_Cancer_by_Site_intermediate.csv")
-Avoidable_Deaths_Simulated_All_age_cat_overall2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Results\\AD_country_and_Cancer_by_Site_intermediate.csv")
-
 
 
 

@@ -1392,6 +1392,15 @@ table_diagnosis<-  bcan_SURV3%>%
     select(age_cat, n_countries) %>%
     distinct()
   check_ncountries
+
+# check by hdi group
+    check_ncountries <- Avoidable_Deaths_age_cat %>%
+    left_join(HDI %>% select(country_code, hdi_group), by = c("country_code")) %>%
+    group_by(hdi_group, age_cat) %>%
+    dplyr::mutate(n_countries = n()) %>%
+    select(age_cat, n_countries) %>%
+    distinct()
+  check_ncountries
   
   #Checking number of countries in each HDI group
   
