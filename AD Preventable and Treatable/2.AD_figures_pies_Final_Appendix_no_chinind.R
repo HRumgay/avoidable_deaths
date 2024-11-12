@@ -263,11 +263,11 @@ Avoidable_Deaths_Simulated_All %>%
   dplyr::arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat) %>% 
-  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
+  dplyr::mutate(AD=case_when(rankc<29~sum(AD[rankc<29]),
                       TRUE~AD),
-         percent=case_when(rankc<30~sum(percent[rankc<30]),
+         percent=case_when(rankc<29~sum(percent[rankc<29]),
                            TRUE~percent), 
-         rankc=case_when(rankc<30~1,
+         rankc=case_when(rankc<29~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -297,11 +297,11 @@ Avoidable_Deaths_Simulated_All %>%
   arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat, hdi_group) %>% 
-  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
+  dplyr::mutate(AD=case_when(rankc<29~sum(AD[rankc<29]),
                       TRUE~AD),
-         percent=case_when(rankc<30~sum(percent[rankc<30]),
+         percent=case_when(rankc<29~sum(percent[rankc<29]),
                            TRUE~percent), 
-         rankc=case_when(rankc<30~1,
+         rankc=case_when(rankc<29~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -342,7 +342,7 @@ piedp %>%
   
   labs(title="Preventable", caption= paste(formatC(round(table_1_1_alt$AD_prev,-3), format="d", big.mark=",")," total deaths, ",round(100*table_1_1_alt$pAD_prev,2) ,"%"))-> pie.prev
 pie.prev
-# ggsave("pie.prev.pdf",pie.prev,width=5.43 ,height=2.43,
+# ggsave("pie.prev.png",pie.prev,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #treatable pie
@@ -376,7 +376,7 @@ piedt %>%
   labs(title="Treatable", caption= paste(formatC(round(table_1_1_alt$AD_treat,-3), format="d", big.mark=",")," total deaths, ",round(100*table_1_1_alt$pAD_treat,2) ,"%"))-> pie.treat
 pie.treat
 
-# ggsave("pie.treat.pdf",pie.treat,width=5.43 ,height=2.43,
+# ggsave("pie.treat.png",pie.treat,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #avoidable pie
@@ -409,7 +409,7 @@ pieda %>%
   theme(legend.position = "none")+ 
   labs(title="Avoidable", caption= paste(formatC(round(table_1_1_alt$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ",round(100*table_1_1_alt$pAD_treat_prev,2) ,"%"))-> pie.avoid
 pie.avoid
-# ggsave("pie.avoid.pdf",pie.avoid,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.png",pie.avoid,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
@@ -427,21 +427,23 @@ library(gridExtra)
 
 #
 
+
 #Creating combined legend 
 
 
-pies91 <-   as.data.table(AD_HDI_by_cancer_site_11_alt)%>%
+pies91 <-   as.data.table(AD_by_cancer_site_labels)%>%
   select(-AD,-AD_cat,-rankc)%>%
   distinct()%>%
   group_by(cancer)%>%
   mutate(percent=sum(percent))%>%
-    ungroup()%>%
-    distinct()%>%
+  ungroup()%>%
+  distinct()%>%
   dplyr::mutate(rankc=row_number())%>%
-  arrange(desc(cancer))%>%
+  #arrange(desc(cancer))%>%
+  # arrange(desc(cancer))%>%
   filter(cancer!="Other sites")
 
-pies9 <-   as.data.table(AD_HDI_by_cancer_site_11_alt)%>%
+pies9 <-   as.data.table(AD_by_cancer_site_labels)%>%
   select(-AD,-AD_cat,-rankc)%>%
   distinct()%>%
   group_by(cancer)%>%
@@ -454,25 +456,25 @@ pies9 <-   as.data.table(AD_HDI_by_cancer_site_11_alt)%>%
   full_join(pies91)
 
 #plot1_legend<-
-  pies9 %>%
-    ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(rankc),
-                                                 labels = unique(Color.Hex)))) +
-    geom_bar(width = 1, stat = "identity") +
-    coord_polar(theta = "y") +
-    scale_fill_identity("Cancer site", labels = pies9$cancer,
-                        guide = "legend") +
-    guides(fill = guide_legend(reverse = TRUE))+
-    theme(plot.background= element_blank(),
-          plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
-          panel.background = element_blank(),
-          axis.text.x=element_blank(),
-          axis.text.y=element_blank(),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.border = element_blank(),
-          panel.grid = element_blank(),
-          axis.ticks = element_blank(),
-          strip.background = element_blank()) -> plot1_legend
+pies9 %>%
+  ggplot(aes(x = 2, y = percent, fill = factor(rankc,levels = unique(rankc),
+                                               labels = unique(Color.Hex)))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") +
+  scale_fill_identity("Cancer site", labels = pies9$cancer,
+                      guide = "legend") +
+  guides(fill = guide_legend(reverse = TRUE))+
+  theme(plot.background= element_blank(),
+        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        panel.background = element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        strip.background = element_blank()) -> plot1_legend
 
 
   plot1_legend
@@ -494,7 +496,7 @@ Top_4_cancer<- grid.arrange(combined_plot, legend, ncol = 2, widths= c(0.85, 0.1
 
 Top_4_cancer
 #Saving the output
-ggsave("pie.all_alternate.pdf",Top_4_cancer,width=15 ,height=10,
+ggsave("pie.all_alternate.png",Top_4_cancer,width=15 ,height=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #avoidable pie for HDI group 1
@@ -528,7 +530,7 @@ pied1 %>%
   theme(legend.position = "none")+ 
   labs(title="Low HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[1,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[1,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi1_alt
 pie.avoid.hdi1_alt
-# ggsave("pie.avoid.hdi1_alt.pdf",pie.avoid.hdi1_alt,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi1_alt.png",pie.avoid.hdi1_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
@@ -560,7 +562,7 @@ pied2 %>%
   theme(legend.position = "none")+ 
   labs(title="Medium HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[2,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[2,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi2_alt
 pie.avoid.hdi2_alt
-# ggsave("pie.avoid.hdi2_alt.pdf",pie.avoid.hdi2_alt,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi2_alt.png",pie.avoid.hdi2_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 pied3 <- as.data.table(AD_by_cancer_site_1_HDI %>%filter(AD_cat=="AD_treat_prev",hdi_group==3) )
@@ -591,7 +593,7 @@ pied3 %>%
   theme(legend.position = "none")+ 
   labs(title="High HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[3,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[3,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi3_alt
 pie.avoid.hdi3_alt
-# ggsave("pie.avoid.hdi3_alt.pdf",pie.avoid.hdi3_alt,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi3_alt.png",pie.avoid.hdi3_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
@@ -623,25 +625,12 @@ pied4 %>%
   theme(legend.position = "none")+ 
   labs(title="Very High HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[4,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[4,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi4_alt
 pie.avoid.hdi4_alt
-# ggsave("pie.avoid.hdi4_alt.pdf",pie.avoid.hdi4_alt,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi4_alt.png",pie.avoid.hdi4_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #combined plot - edit below to match the HDI plots
 
 #Creating combined legend 
-
-
-pies101 <- as.data.table(AD_by_cancer_site_1_HDI)%>%
-  select(-AD,-AD_cat,-rankc, -hdi_group)%>%
-  distinct()%>%
-  group_by(cancer)%>%
-  mutate(percent=sum(percent))%>%
-  ungroup()%>%
-  distinct()%>%
-  dplyr::mutate(rankc=row_number())%>%
-  arrange(desc(cancer))%>%
-  mutate(cancer=as.factor(cancer))%>%
-  filter(cancer!="Other sites")
 
 
 pies10 <- as.data.table(AD_by_cancer_site_1_HDI)%>%
@@ -653,9 +642,24 @@ pies10 <- as.data.table(AD_by_cancer_site_1_HDI)%>%
   distinct()%>%
   dplyr::mutate(rankc=row_number())%>%
   arrange(desc(cancer))%>%
-  mutate(cancer=as.factor(cancer))%>%
+  #  mutate(cancer=as.factor(cancer))%>%
   filter(cancer=="Other sites")%>%
-  full_join(pies101)
+  full_join(pies101)%>%
+ #fixing order so its by how they are displayed, left from right
+  mutate(rank=case_when( cancer=="Cervix uteri"  ~ 12,
+                         cancer=="Breast"  ~ 11,
+                         cancer=="Liver"  ~ 10,
+                         cancer=="Stomach"  ~ 9,
+                         cancer=="Colorectal"  ~ 8,
+                         cancer=="Lung"  ~ 7,
+                         cancer=="Lip, oral cavity"  ~ 6,
+                       #  cancer=="Oesophagus"  ~ 5,
+                         cancer=="Pancreas"  ~ 4,
+                         cancer=="Other sites"  ~ 1,
+  ))%>%
+  filter(!cancer%in%c("Prostate", "Leukaemia", "Non-Hodgkin lymphoma", "Oesophagus"))%>%
+  arrange(rank)%>%
+  mutate(cancer=as.factor(cancer))
 
 pies10 %>%
   ggplot(aes(x = 2, y = percent, fill =
@@ -708,6 +712,6 @@ Top_4_cancerhdi <-    grid.arrange(combined_plothdi,
 Top_4_cancerhdi
 
 #Saving the output
-ggsave("piesHDI_alternate.pdf",Top_4_cancerhdi,width=15 ,height=10,
+ggsave("piesHDI_alternate.png",Top_4_cancerhdi,width=15 ,height=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

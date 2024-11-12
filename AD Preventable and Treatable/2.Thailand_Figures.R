@@ -39,7 +39,7 @@ Avoidable_Deaths_Simulated2 <- Avoidable_Deaths_Simulated_All_age_cat_overall %>
   ungroup()%>%
   dplyr::mutate(Scenario = "Modelled Survival")%>%
   filter(country_label=="Thailand")%>%
-  filter(cancer_code%in%Avoidable_Deaths_overall_thailand$cancer_code)%>%
+  filter(cancer_code%in%Avoidable_Deaths_Simulated_All_age_cat_overall$cancer_code)%>%
   filter(!is.na(AD_treat))%>%
 #  filter(age_cat=="Overall")%>%
   select(Scenario, country_code,country_label, cancer_code, AD_treat, AD_prev,  total_deaths)%>%

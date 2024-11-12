@@ -133,22 +133,56 @@ allc_prev<-allc%>%select(cancer)%>%distinct()
 cancer_colors_prev<- cancer_colors%>%filter(cancer%in%allc_prev$cancer)
 palette1_named_prev =  setNames(object = cancer_colors_prev$Color.Hex, nm = cancer_colors_prev$cancer)
 
+# Calculate the frequency of each cancer type to order legend by top cancer site by number of countries who have that top cancer site
+cancer_freq <-allc %>%
+  select(country_code, cancer)%>%
+  distinct()%>%
+  group_by(cancer)%>%
+  dplyr::mutate(counts=n())%>%
+  dplyr::select(-country_code)%>%
+  ungroup()%>%
+  distinct()%>%
+  arrange(desc(counts))%>%
+  dplyr::mutate(rankc=row_number())%>%
+#  dplyr::select(-counts)
+  #labels for the counting:
+  dplyr::mutate(country_count = paste0(cancer, " (",as.character(counts), ")")) 
 
+# Reorder the factor levels of cancer based on frequency
+
+df_AD_map<-df_AD_map%>%
+  left_join(cancer_freq%>%
+              dplyr::select(-counts, -rankc), 
+            by=c("cancer"))
+
+df_AD_map$country_count <- factor(df_AD_map$country_count, levels = cancer_freq$country_count)
+
+
+
+cancer_colors_prev<- cancer_colors%>%
+  left_join(cancer_freq%>%
+              dplyr::select(-counts, -rankc), 
+            by=c("cancer"))%>%
+  filter(cancer%in%allc_prev$cancer)%>%
+  dplyr::select(-cancer)
+
+
+palette1_named_prev =  setNames(object = cancer_colors_prev$Color.Hex, nm = cancer_colors_prev$country_count)
 
 #Printing the map
 
 df_AD_map%>%
 ggplot() + 
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer ,group= group))+
+               aes(x=long, y=lat,fill=country_count ,group= group))+
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer, group= group),   
+               aes(x=long, y=lat,fill=country_count, group= group),   
                colour="grey10", 
                size = 0.4,
                show.legend=FALSE
                )+
   geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
-               aes(x=long, y=lat,fill=cancer, group= group),
+               aes(x=long, y=lat,fill= country_count, group= group),
                colour="grey10",
                size = 0.4,
                show.legend=FALSE)+
@@ -177,7 +211,6 @@ ggplot() +
   #      labs(title = paste0(cancer,", ",gender))+
   coord_equal() + 
   theme_opts +
-
   theme(legend.key.width= unit(2.6, "cm"),
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
@@ -186,13 +219,17 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  guides(fill=guide_legend(title="Cancer site with the highest number preventable deaths"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number preventable deaths
+                           (Number of countries)"))+
   #scale_color_manual(name = cancer,values=df_AD_map$Color.Hex)+
   scale_fill_manual(values = palette1_named_prev)+
   #scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))->max_prev
 
-ggsave("map_AD_all_cancers_prev_max_country.pdf",width = 40, height = 30, pointsize = 12,
+  max_prev
+
+
+ggsave("map_AD_all_cancers_prev_max_country.png",width = 40, height = 30, pointsize = 12,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #--- maps for Treatable AD----
@@ -212,20 +249,56 @@ cancer_colors_treat<- cancer_colors%>%filter(cancer%in%allc_treat$cancer)
 palette1_named_treat =  setNames(object = cancer_colors_treat$Color.Hex, nm = cancer_colors_treat$cancer)
 
 
+# Calculate the frequency of each cancer type to order legend by top cancer site by number of countries who have that top cancer site
+cancer_freq <-allc %>%
+  select(country_code, cancer)%>%
+  distinct()%>%
+  group_by(cancer)%>%
+  dplyr::mutate(counts=n())%>%
+  dplyr::select(-country_code)%>%
+  ungroup()%>%
+  distinct()%>%
+  arrange(desc(counts))%>%
+  dplyr::mutate(rankc=row_number())%>%
+  #  dplyr::select(-counts)
+  #labels for the counting:
+  dplyr::mutate(country_count = paste0(cancer, " (",as.character(counts), ")")) 
+
+# Reorder the factor levels of cancer based on frequency
+
+df_AD_map<-df_AD_map%>%
+  left_join(cancer_freq%>%
+              dplyr::select(-counts, -rankc), 
+            by=c("cancer"))
+
+df_AD_map$country_count <- factor(df_AD_map$country_count, levels = cancer_freq$country_count)
+
+
+
+cancer_colors_treat<- cancer_colors%>%
+  left_join(cancer_freq%>%
+              dplyr::select(-counts, -rankc), 
+            by=c("cancer"))%>%
+  filter(cancer%in%allc_treat$cancer)%>%
+  dplyr::select(-cancer)
+
+
+palette1_named_treat =  setNames(object = cancer_colors_treat$Color.Hex, nm = cancer_colors_treat$country_count)
+
 #Printing the map
 
 df_AD_map%>%
   ggplot() + 
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer, group= group))+
+               aes(x=long, y=lat,fill=country_count, group= group))+
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer, group= group),   
+               aes(x=long, y=lat,fill=country_count, group= group),   
                colour="grey10", 
                size = 0.4,
                show.legend=FALSE
   )+
   geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
-               aes(x=long, y=lat,fill=cancer,group= group),
+               aes(x=long, y=lat,fill=country_count,group= group),
                colour="grey10",
                size = 0.4,
                show.legend=FALSE)+
@@ -265,13 +338,14 @@ df_AD_map%>%
         legend.background = element_rect(fill= "transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest number treatable deaths"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number treatable deaths
+                           (Number of countries)"))+
   scale_fill_manual(values = palette1_named_treat)+
   #scale_color_manual(values=c("grey100", "grey10"))+
 #  scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))-> max_treat
 
-ggsave("map_AD_all_cancers_treatable_max_country.pdf",width = 40, height = 30, pointsize = 12,
+ggsave("map_AD_all_cancers_treatable_max_country.png",width = 40, height = 30, pointsize = 12,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #--- maps for total AD----
@@ -295,20 +369,60 @@ cancer_colors_treat_prev<- cancer_colors%>%
 palette1_named_treat_prev =  setNames(object = cancer_colors_treat_prev$Color.Hex, nm = cancer_colors_treat_prev$cancer)
 
 
+
+
+# Calculate the frequency of each cancer type to order legend by top cancer site by number of countries who have that top cancer site
+cancer_freq <-allc %>%
+  select(country_code, cancer)%>%
+  distinct()%>%
+  group_by(cancer)%>%
+  dplyr::mutate(counts=n())%>%
+  dplyr::select(-country_code)%>%
+  ungroup()%>%
+  distinct()%>%
+  arrange(desc(counts))%>%
+  dplyr::mutate(rankc=row_number())%>%
+  #  dplyr::select(-counts)
+  #labels for the counting:
+  dplyr::mutate(country_count = paste0(cancer, " (",as.character(counts), ")")) 
+
+# Reorder the factor levels of cancer based on frequency
+
+df_AD_map<-df_AD_map%>%
+  left_join(cancer_freq%>%
+              dplyr::select(-counts, -rankc), 
+            by=c("cancer"))
+
+df_AD_map$country_count <- factor(df_AD_map$country_count, levels = cancer_freq$country_count)
+
+
+
+cancer_colors_treat_prev<- cancer_colors%>%
+  left_join(cancer_freq%>%
+              dplyr::select(-counts, -rankc), 
+            by=c("cancer"))%>%
+  filter(cancer%in%allc_treat_prev$cancer)%>%
+  dplyr::select(-cancer)
+
+
+palette1_named_treat_prev =  setNames(object = cancer_colors_treat_prev$Color.Hex, nm = cancer_colors_treat_prev$country_count)
+
+
+
 #Printing the map
 
 df_AD_map%>%
   ggplot() + 
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer, group= group))+
+               aes(x=long, y=lat,fill=country_count, group= group))+
   geom_polygon(data=df_AD_map,
-               aes(x=long, y=lat,fill=cancer, group= group),   
+               aes(x=long, y=lat,fill=country_count, group= group),   
                colour="grey10", 
                size = 0.4,
                show.legend=FALSE
   )+
   geom_polygon(data=df_AD_map[df_AD_map$id == 82,],
-               aes(x=long, y=lat,fill=cancer,group= group),
+               aes(x=long, y=lat,fill=country_count,group= group),
                colour="grey10",
                size = 0.4,
                show.legend=FALSE)+
@@ -348,12 +462,13 @@ df_AD_map%>%
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest number avoidable deaths"))+
+  guides(fill=guide_legend(title="Cancer site with the highest number avoidable deaths
+                           (Number of countries)"))+
   scale_fill_manual(values = palette1_named_treat_prev)+
  # scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))->max_total
 
-ggsave("map_AD_all_cancers_treat_prev_max_country.pdf", width = 40, height = 30, pointsize = 12,
+ggsave("map_AD_all_cancers_treat_prev_max_country.png", width = 40, height = 30, pointsize = 12,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
@@ -362,6 +477,6 @@ ggarrange(max_prev, max_treat,max_total,
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
-ggsave("map_AD_max.pdf",width = 40, height =70,limitsize = FALSE,
+ggsave("map_AD_max.png",width = 40, height =70,limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

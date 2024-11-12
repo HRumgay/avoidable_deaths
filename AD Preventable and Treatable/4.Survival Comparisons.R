@@ -226,7 +226,7 @@ p<-ggplot(surv_differences, aes(x=cancer_label, y=surv_dif)) +
   labs(x = "Cancer", y = "Net Survival Difference between ages 70-74 and 75+")
 p
 
-ggsave("surv_Differences.pdf",width = 20, height = 10, pointsize = 12) 
+ggsave("surv_Differences.png",width = 20, height = 10, pointsize = 12) 
 
 
 #looking in entire dataset
@@ -259,7 +259,7 @@ p2<-ggplot(surv_differences_all, aes(x=cancer_label, y=surv_dif)) +
   facet_grid(1 ~ age_group)
 p2
 
-ggsave("surv_Differences_all_age_groups.pdf",width = 20, height = 10, pointsize = 12) 
+ggsave("surv_Differences_all_age_groups.png",width = 20, height = 10, pointsize = 12) 
 
 
 
@@ -518,39 +518,39 @@ p2_new_HDI_0_rel
 #
 # Saving the outputs
 
-ggsave("surv_Differences_all_age_groups_bigger_20.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_bigger_20.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new) 
-ggsave("surv_Differences_all_age_groups_all.pdf", width = 20, height = 14, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_all.png", width = 20, height = 14, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_0) 
-ggsave("surv_Differences_all_age_groups_HDI_bigger_20.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_HDI_bigger_20.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_HDI) 
-ggsave("surv_Differences_all_age_groups_HDI_all.pdf", width = 20, height = 14, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_HDI_all.png", width = 20, height = 14, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_HDI_0) 
-ggsave("surv_Differences_all_age_groups_Leukemia.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_Leukemia.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_0_leuk) 
-ggsave("surv_Differences_all_age_groups_HDI_all_Leukemia.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_HDI_all_Leukemia.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_HDI_0_leuk) 
 
 # All differences with direction
 
-ggsave("surv_Differences_all_age_groups_bigger_20_posneg.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_bigger_20_posneg.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_neg) 
-ggsave("surv_Differences_all_age_groups_all_posneg.pdf", width = 20, height = 14, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_all_posneg.png", width = 20, height = 14, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_0_neg) 
-ggsave("surv_Differences_all_age_groups_HDI_bigger_20_posneg.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_HDI_bigger_20_posneg.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_HDI_neg) 
-ggsave("surv_Differences_all_age_groups_HDI_all_posneg.pdf", width = 20, height = 14, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_HDI_all_posneg.png", width = 20, height = 14, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_HDI_0_neg) 
-ggsave("surv_Differences_all_age_groups_Leukemia_posneg.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_Leukemia_posneg.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_0_leuk_neg) 
-ggsave("surv_Differences_all_age_groups_HDI_all_Leukemia_posneg.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_HDI_all_Leukemia_posneg.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_HDI_0_neg_leuk) 
 
 #relative differences 
 
-ggsave("surv_Differences_all_age_groups_all_relative.pdf", width = 20, height = 14, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_all_relative.png", width = 20, height = 14, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_0_rel) 
-ggsave("surv_Differences_all_age_groups_HDI_all_relative.pdf", width = 20, height = 14, pointsize = 12, 
+ggsave("surv_Differences_all_age_groups_HDI_all_relative.png", width = 20, height = 14, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=p2_new_HDI_0_rel) 
 
 
@@ -700,22 +700,22 @@ plot_survt_dif_all_rel
 
 #Writing the new diagnostic plots
 
-ggsave("time_surv_dif_ages.pdf", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
+ggsave("time_surv_dif_ages.png", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_ages) 
-ggsave("time_surv_dif_ages_all.pdf", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
+ggsave("time_surv_dif_ages_all.png", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_ages_all) 
-ggsave("time_surv_dif_HDI.pdf", width = 20, height = 20, pointsize = 12, 
+ggsave("time_surv_dif_HDI.png", width = 20, height = 20, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_HDI) 
-ggsave("time_surv_dif_all.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("time_surv_dif_all.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_all) 
 
 #relative plots
 # 
-# ggsave("time_surv_dif_ages_all_rel.pdf", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
+# ggsave("time_surv_dif_ages_all_rel.png", width = 20, height = 50, pointsize = 12,  limitsize = FALSE,
 #        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_big_dif_ages_all_rel) 
-ggsave("time_surv_dif_HDI_rel.pdf", width = 20, height = 20, pointsize = 12, 
+ggsave("time_surv_dif_HDI_rel.png", width = 20, height = 20, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_dif_HDI_rel) 
-ggsave("time_surv_dif_all_rel.pdf", width = 20, height = 10, pointsize = 12, 
+ggsave("time_surv_dif_all_rel.png", width = 20, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=plot_survt_dif_all_rel) 
 
 
@@ -1087,31 +1087,31 @@ surv_curv_Corpus
 
 # Printing the files 
 
-ggsave("surv_curv_meso.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_meso.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_meso) 
-ggsave("surv_curv_prostate.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_prostate.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_prostate) 
-ggsave("surv_curv_Myeloma.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Myeloma.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Myeloma) 
-ggsave("surv_curv_Breast.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Breast.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Breast) 
-ggsave("surv_curv_Brain.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Brain.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_brain) 
-ggsave("surv_curv_Vagina.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Vagina.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_vagina) 
-ggsave("surv_curv_Thyroid.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Thyroid.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Thyroid) 
-ggsave("surv_curv_Mesathalioma.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Mesathalioma.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Mesathalioma) 
-ggsave("surv_curv_Oesophagus.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Oesophagus.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Oesophagus)
-ggsave("surv_curv_Stomach.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Stomach.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Stomach)
-ggsave("surv_curv_Cervix.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Cervix.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Cervix)
-ggsave("surv_curv_Colorectal.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Colorectal.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Colorectal)
-ggsave("surv_curv_Corpus.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Corpus.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Corpus)
 
 
@@ -1147,7 +1147,7 @@ surv_curv_Australia<-Australia%>%
 surv_curv_Australia
 
 
-ggsave("surv_curv_Australia_literuture.pdf", width = 30, height = 40, pointsize = 12, path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\Relevant Literature comparisons\\", plot=surv_curv_Australia) 
+ggsave("surv_curv_Australia_literuture.png", width = 30, height = 40, pointsize = 12, path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\Relevant Literature comparisons\\", plot=surv_curv_Australia) 
 
 # plot some random countries for some cancer sites
 
@@ -1253,19 +1253,19 @@ surv_curv_mesothalioma_random<-surv_random_tplot%>%
 surv_curv_mesothalioma_random
 
 
-ggsave("surv_curv_Corpus_random.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Corpus_random.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Corpus_random)
-ggsave("surv_curv_Breast_random.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Breast_random.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Breast_random)
-ggsave("surv_curv_Stomach_random.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_Stomach_random.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_Stomach_random)
 
 
 
-ggsave("surv_curv_thyroid_random.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_thyroid_random.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_thyroid_random)
 
 
-ggsave("surv_curv_mesothalioma_random.pdf", width = 30, height = 10, pointsize = 12, 
+ggsave("surv_curv_mesothalioma_random.png", width = 30, height = 10, pointsize = 12, 
        path="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Survival Checks\\", plot=surv_curv_mesothalioma_random)
 

@@ -207,9 +207,9 @@ piedp %>%
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   
-  labs(title="Preventable", caption= paste(formatC(round(table_1_1$AD_prev,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_prev,2)*100, "%"))-> pie.prev
+  labs(title="Preventable", caption= paste(formatC(round(table_1_1$AD_prev,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_prev,3)*100, "%"))-> pie.prev
 pie.prev
-ggsave("pie.prev.pdf",pie.prev,width=5.43 ,height=2.43,
+ggsave("pie.prev.png",pie.prev,width=5.43 ,height=2.43,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #treatable pie
@@ -240,10 +240,10 @@ piedt %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+# move caption to the left)+
   theme(legend.position = "none")+ 
-  labs(title="Treatable", caption= paste(formatC(round(table_1_1$AD_treat,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_treat,2)*100, "%"))-> pie.treat
+  labs(title="Treatable", caption= paste(formatC(round(table_1_1$AD_treat,-3), format="d", big.mark=",")," total deaths, ",  round(table_1_1$pAD_treat,3)*100, "%"))-> pie.treat
 pie.treat
 
-ggsave("pie.treat.pdf",pie.treat,width=5.43 ,height=2.43,
+ggsave("pie.treat.png",pie.treat,width=5.43 ,height=2.43,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #avoidable pie
@@ -274,9 +274,9 @@ pieda %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="Avoidable", caption= paste(formatC(round(table_1_1$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(table_1_1$pAD_treat_prev,2)*100, "%"))-> pie.avoid
+  labs(title="Avoidable", caption= paste(formatC(round(table_1_1$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(table_1_1$pAD_treat_prev,3)*100, "%"))-> pie.avoid
 pie.avoid
-ggsave("pie.avoid.pdf",pie.avoid,width=5.43 ,height=2.43,
+ggsave("pie.avoid.png",pie.avoid,width=5.43 ,height=2.43,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
@@ -292,12 +292,56 @@ library(gridExtra)
 # palette1_named_pied =  setNames(object = cancer_colors_pied$Color.Hex, nm = cancer_colors_pied$cancer)
 
 
-#
+# Object to define colors and rank for overall AD
+Avoidable_Deaths_Simulated_All %>%
+  as.data.frame()%>%
+  filter(cancer_code%in% c(20, 23, 8, 11, 15, 34, 6, 27, 7, 10 ))%>% #ten cancer sites plus last one to create the other category
+  group_by(cancer_code) %>%
+  dplyr::mutate(AD_treat_prev = sum(AD_treat, AD_prev, na.rm = TRUE),
+         #AD_prev = sum(AD_prev, na.rm = TRUE),
+         #AD_treat = sum(AD_treat, na.rm = TRUE),
+         #total_deaths2 = sum(total_deaths2, na.rm = TRUE)
+         ) %>%
+  filter(!is.na(cancer_code)) %>%
+  select(cancer, cancer_code, #AD_prev, AD_treat, 
+  AD_treat_prev#, total_deaths2
+  ) %>%
+  unique() %>%
+  left_join(col %>%
+              select(cancer_label:Color.Hex) %>%
+              filter(cancer_label != "Colorectum")) %>%
+  pivot_longer(AD_treat_prev,
+               names_to = "AD_cat",
+               values_to = "AD") %>%
+  as.data.frame()%>%
+  group_by(AD_cat) %>%
+  dplyr::mutate(total = sum(AD))%>%
+  group_by(cancer_label)%>%
+  dplyr::mutate(percent = AD / total)%>%
+  arrange(AD) %>%
+  ungroup()%>%
+  dplyr::mutate(rankc = row_number()) %>%
+  group_by(AD_cat) %>%
+  mutate(AD = case_when(rankc == 1 ~ sum(AD[rankc == 1]),
+                       TRUE ~ AD),
+        percent = case_when(rankc == 1 ~ sum(percent[rankc == 1]),
+                           TRUE ~ percent),
+         rankc = case_when(rankc == 1 ~ 1,
+                           TRUE ~ rankc),
+         Color.Hex = case_when(rankc == 1 ~ "#DCDCDC",
+                               TRUE ~ Color.Hex),
+         cancer = case_when(rankc == 1 ~ "Other sites",
+                            TRUE ~ cancer)) %>%
+  select(cancer, Color.Hex, AD_cat, AD, percent, 
+         rankc) %>%
+  unique() -> AD_by_cancer_site_labels
+
+
 
 #Creating combined legend 
 
 
-pies91 <-   as.data.table(AD_by_cancer_site_1)%>%
+pies91 <-   as.data.table(AD_by_cancer_site_labels)%>%
   select(-AD,-AD_cat,-rankc)%>%
   distinct()%>%
   group_by(cancer)%>%
@@ -305,10 +349,11 @@ pies91 <-   as.data.table(AD_by_cancer_site_1)%>%
     ungroup()%>%
     distinct()%>%
   dplyr::mutate(rankc=row_number())%>%
-  arrange(desc(cancer))%>%
+  #arrange(desc(cancer))%>%
+ # arrange(desc(cancer))%>%
   filter(cancer!="Other sites")
 
-pies9 <-   as.data.table(AD_by_cancer_site_1)%>%
+pies9 <-   as.data.table(AD_by_cancer_site_labels)%>%
   select(-AD,-AD_cat,-rankc)%>%
   distinct()%>%
   group_by(cancer)%>%
@@ -353,15 +398,17 @@ get_only_legend <- function(plot) {
 }
 
 # extract legend from plot1 using above function
-legend <- get_only_legend(plot1_legend)   
+
+legend <- get_only_legend(plot1_legend)
+
 
 # final combined plot with shared legend
-combined_plot <-   grid.arrange(pie.prev, pie.treat,pie.avoid, ncol = 3)
+combined_plot <-   grid.arrange(pie.prev, pie.treat, pie.avoid, ncol = 3)
 Top_4_cancer<- grid.arrange(combined_plot, legend, ncol = 2, widths= c(0.85, 0.15))
 
 Top_4_cancer
 #Saving the output
-ggsave("pie.all.pdf",Top_4_cancer,width=15 ,height=10,
+ggsave("pie.all.png",Top_4_cancer,width=15 ,height=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #avoidable pie for HDI group 1
@@ -393,7 +440,7 @@ pied1 %>%
   theme(legend.position = "none")+ 
   labs(title="Low HDI", caption= paste(formatC(round(AD_by_HDI_all2[1,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all2[1,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi1
 pie.avoid.hdi1
-# ggsave("pie.avoid.hdi1.pdf",pie.avoid.hdi1,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi1.png",pie.avoid.hdi1,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
@@ -425,7 +472,7 @@ pied2 %>%
   theme(legend.position = "none")+ 
   labs(title="Medium HDI", caption= paste(formatC(round(AD_by_HDI_all2[2,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all2[2,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi2
 pie.avoid.hdi2
-# ggsave("pie.avoid.hdi2.pdf",pie.avoid.hdi2,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi2.png",pie.avoid.hdi2,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 pied3 <- as.data.table(AD_by_cancer_site_1_HDI %>%filter(AD_cat=="AD_treat_prev",hdi_group==3) )
@@ -456,7 +503,7 @@ pied3 %>%
   theme(legend.position = "none")+ 
   labs(title="High HDI", caption= paste(formatC(round(AD_by_HDI_all2[3,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all2[3,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi3
 pie.avoid.hdi3
-# ggsave("pie.avoid.hdi3.pdf",pie.avoid.hdi3,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi3.png",pie.avoid.hdi3,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
@@ -488,7 +535,7 @@ pied4 %>%
   theme(legend.position = "none")+ 
   labs(title="Very High HDI", caption= paste(formatC(round(AD_by_HDI_all2[4,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all2[4,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi4
 pie.avoid.hdi4
-# ggsave("pie.avoid.hdi4.pdf",pie.avoid.hdi4,width=5.43 ,height=2.43,
+# ggsave("pie.avoid.hdi4.png",pie.avoid.hdi4,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #combined plot - edit below to match the HDI plots
@@ -518,9 +565,24 @@ pies10 <- as.data.table(AD_by_cancer_site_1_HDI)%>%
   distinct()%>%
   dplyr::mutate(rankc=row_number())%>%
   arrange(desc(cancer))%>%
-  mutate(cancer=as.factor(cancer))%>%
+#  mutate(cancer=as.factor(cancer))%>%
   filter(cancer=="Other sites")%>%
-  full_join(pies101)
+  full_join(pies101)%>%
+  #fixing order so its by how they are displayed, left from right
+  mutate(rank=case_when( cancer=="Cervix uteri"  ~ 12, 
+                         cancer=="Breast"  ~ 11,
+                         cancer=="Liver"  ~ 10,
+                         cancer=="Stomach"  ~ 9,
+                         cancer=="Colorectal"  ~ 8,
+                         cancer=="Lung"  ~ 7,
+                         cancer=="Lip, oral cavity"  ~ 6,
+                         cancer=="Oesophagus"  ~ 5,
+                         cancer=="Pancreas"  ~ 4,
+                         cancer=="Other sites"  ~ 1,
+  ))%>%
+  filter(!cancer%in%c("Prostate", "Leukaemia", "Non-Hodgkin lymphoma"))%>%
+  arrange(rank)%>%
+  mutate(cancer=as.factor(cancer))
 
 pies10 %>%
   ggplot(aes(x = 2, y = percent, fill =
@@ -573,6 +635,6 @@ Top_4_cancerhdi <-    grid.arrange(combined_plothdi,
 Top_4_cancerhdi
 
 #Saving the output
-ggsave("piesHDI.pdf", Top_4_cancerhdi, width=15, height=10,
+ggsave("piesHDI.png", Top_4_cancerhdi, width=15, height=10,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

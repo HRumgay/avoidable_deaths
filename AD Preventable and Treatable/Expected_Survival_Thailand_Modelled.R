@@ -1,5 +1,6 @@
 library("relsurv")
 library("mexhaz")
+library("readstata13")
 
 ## Function used to calculate the expected rate / cumulative rate
 calcExpect <- function(time,event,id=NULL,data,ratetable,rmap,conv.time=365.241,names=c("mua","MUA")){
@@ -63,16 +64,16 @@ life<-life%>%as.data.frame()%>%
 
 
 Iran<-read.dta13(life_file_list[15])%>%as.data.frame()
-Iran<-Iran%>% clean_names()%>%rename("country"="region")
+Iran<-Iran%>% clean_names()%>%dplyr::rename("country"="region")
 
 Martinique<-read.dta13(life_file_list[21])%>%as.data.frame()
-Martinique<-Martinique%>%select(-country)%>% clean_names()%>%rename("country"="region")
+Martinique<-Martinique%>%select(-country)%>% clean_names()%>%dplyr::rename("country"="region")
 
 Mauritius<-read.dta13(life_file_list[22])%>%as.data.frame()
-Mauritius<-Mauritius%>%clean_names()%>%rename("region"="country")
+Mauritius<-Mauritius%>%clean_names()%>%dplyr::rename("region"="country")
 
 puerto_rico<-read.dta13(life_file_list[27])%>%as.data.frame()
-puerto_rico<- puerto_ricos%>%clean_names()%>%rename("region"="country")
+puerto_rico<- puerto_rico%>%clean_names()#%>%dplyr::rename("region"="country")
 
 life<-life%>%full_join(Mauritius)%>%full_join(Martinique)
 
@@ -202,14 +203,14 @@ for (j in 0:20){
 # 
 # SurvExpNew_age_cats_men2<-SurvExpNew_age_cats_men%>%
 #   as.data.frame()%>%
-#   rename("age"="V1")%>% #age coded in age groups of five years like globocan
-#   rename("ES"="V2")%>%
+#   dplyr::rename("age"="V1")%>% #age coded in age groups of five years like globocan
+#   dplyr::rename("ES"="V2")%>%
 #   mutate(sex=1)
 
 SURVCAN_expected_Survival<-SurvExpNew_age_cats_women%>%
   as.data.frame()%>%
-  rename("age" = "V1")%>% #age coded in age groups of five years like globocan
-  rename("ES" = "V2")%>%
+  dplyr::rename("age" = "V1")%>% #age coded in age groups of five years like globocan
+  dplyr::rename("ES" = "V2")%>%
   mutate(sex = 2)
 
 expected_survcan[[p]]<-SURVCAN_expected_Survival
