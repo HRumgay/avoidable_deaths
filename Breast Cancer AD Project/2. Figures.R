@@ -4,6 +4,7 @@ library(ggpubr)
 
 
 #Script for main figures in manuscript 
+
 AD_all2
 AD_continent2
 AD_HDI2
@@ -28,7 +29,7 @@ AD_11<-Avoidable_Deaths_age_cat2%>%
   dplyr::rename("pAD"="pAD_max")%>%
   dplyr::rename("pAD_Lower"="pAD_Lower_max")%>%
   dplyr::rename("pAD_Upper"="pAD_Upper_max")%>%
-  mutate(Reference="100% Net Survival")
+  mutate(Reference=">60% Stage 1 and 2 at diagnosis")
 
 # AD_12<-Avoidable_Deaths_age_cat2%>%
 #   select(  "country_code", "country_label","age_cat",
@@ -43,7 +44,7 @@ AD_props <- Avoidable_Deaths_age_cat2 %>%
   select(  "country_code", "country_label","age_cat",
            "cancer_code", "cancer_label",
            "pAD", "pAD_Lower", "pAD_Upper" ) %>%
-  mutate(Reference = "Sweden") %>%
+  mutate(Reference = "Norway") %>%
   full_join(AD_11) %>%
   #full_join(AD_12)%>%
   filter(pAD!=0)
@@ -69,6 +70,10 @@ library(RColorBrewer)
 continents2<-continents %>% dplyr::rename("continent_label"="country_label")
 
 AD_props%>% 
+  mutate(age_cat=case_when(age_cat=="Overall" ~ "Overall",
+                           age_cat=="15-49" ~ "15-49 years",
+                           age_cat=="50-99" ~ "50-99 years",
+  ))%>%
   as.data.frame()%>%
   left_join(HDI%>%select(-country_label),
             by=c("country_code"))%>%
@@ -79,7 +84,7 @@ AD_props%>%
   left_join(continents2,by=c("continent"))%>%
   arrange(continent, desc(pAD))%>%
   group_by(continent_label, age_cat) %>%
-  filter(Reference=="Sweden")->AD_props_2
+  filter(Reference=="Norway")->AD_props_2
 
 AD_prop_order<-AD_props_2%>%
   ungroup%>%
@@ -118,8 +123,13 @@ AD_props_2%>%
   scale_colour_brewer(palette = "Set1")+
   coord_flip()+
   labs(y =  "Avoidable Deaths Breast Cancer Deaths (%)", x ="Country")+
-  ggtitle("Proportion Avoidable Deaths for Breast Cancer in SURVCAN-3, by Age Group")+
+  #ggtitle("Proportion Avoidable Deaths for Breast Cancer in SURVCAN-3, by Age Group")+
   theme_minimal()+
+    theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        strip.text = element_text(size = 20),
+        legend.text = element_text(size = 20),
+        legend.title = element_text(size = 20))+
   facet_wrap(continent_label ~ age_cat, scales = "free", 
   #switch = "both",
   strip.position = c("top")
@@ -129,7 +139,7 @@ AD_props_2%>%
 figure_2
 
 ggsave(plot=figure_2, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\figure_2_props.png", 
-       width=15 , height=10)
+       width=25 , height=25)
 
 #Figure 3 - lollipop chart comparing the secondary analysis 
 
@@ -149,8 +159,8 @@ AD_props_low %>%
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
-             Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
+            # title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
+            # Reference survival that of Puerto Rico (67% stage 1/2 at diagnosis)",
 ggtheme = theme_pubr()) -> pAD_Breast_plot_low
 
 
@@ -171,8 +181,8 @@ AD_props_mid %>%
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
-             Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
+          #   title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
+            #       Reference survival that of Puerto Rico (67% stage 1/2 at diagnosis)",
 ggtheme = theme_pubr())   ->pAD_Breast_plot_mid
 
 
@@ -193,15 +203,15 @@ AD_props_upp %>%
              # position = position_dodge2(1),
              xlab="Country", 
              ylab="Proportion Treatable Avoidable Deaths (pAD, %)",
-             title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
-             Reference when reference survival is that of Swedebe, and the theoretical maximum survival",
+            # title="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
+             #       Reference survival that of Puerto Rico (67% stage 1/2 at diagnosis)",
 ggtheme = theme_pubr())   ->pAD_Breast_plot_upp
 
 
 
 AD_props_overall_order<-AD_props_overall%>%
   ungroup%>%
-  filter(Reference=="Sweden")%>%
+  filter(Reference=="Norway")%>%
   select(country_label,  pAD)%>%
   group_by(country_label)%>%
   dplyr::arrange(desc(pAD))%>%
@@ -225,11 +235,18 @@ pAD_Breast_plot_overall <- ggplot(AD_props_overall, aes(x = country_label, y = p
   geom_errorbar(aes(ymin = pAD_Lower, ymax = pAD_Upper), width = 0.4) +
   geom_text(aes(label = round(pAD, 1)), color = "white", size = 3.5, vjust = 0.5) +
   coord_flip() +
-  labs(x = "Country", y = "Proportion Treatable Avoidable Deaths (pAD, %)",
-       title ="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
-             Reference when reference survival is that of Sweden, and the theoretical maximum survival") +
+  labs(x = "Country", y = "Avoidable breast cancer deaths (%)",
+    #   title ="Proportion Treatable Avoidable Deaths for Breast Cancer in SURVCAN-3 in 2022, 
+    #          Reference survival that of Puerto Rico (67% stage 1/2 at diagnosis)",
+    ) +
   scale_color_manual(values = c("blue", "#FC4E07", "green")) +
-  theme_pubr()
+  theme_pubr()+ 
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        strip.text = element_text(size = 20),
+        legend.text = element_text(size = 20),
+        legend.title = element_text(size = 20))+
+  guides(fill=guide_legend(title="Survival comparator"))
 
 pAD_Breast_plot_overall
 
@@ -248,7 +265,7 @@ pAD_Breast_plot_overall
 
 
 ggsave(plot=pAD_Breast_plot_overall, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\primary_secondary_lollipop_overall.png", 
-       width=20 , height=15)
+       width=25 , height=20)
 
 
 

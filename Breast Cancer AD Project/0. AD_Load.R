@@ -175,9 +175,3 @@ ten_cancer_sites <-
 
 
 HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Data\\HDI2018_GLOBOCAN2020.csv")
-
-
-
-
-
-

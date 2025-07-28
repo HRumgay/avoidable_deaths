@@ -56,6 +56,21 @@ globocan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\P
   # distinct()
   dplyr::select(-cancer_label)
 
+
+globocan_mort <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
+  as.data.frame()%>%
+  filter(type==1, 
+         sex!=0)%>%
+  # group_by(country_code, cancer_code, sex, age)%>%
+  # mutate(cases=sum(cases),
+  #        py=sum(py))%>%
+  # ungroup()%>%
+  # distinct()
+  dplyr::select(-cancer_label, -py)%>%
+  dplyr::rename("deaths"="cases")%>%
+  select(-type, -country_label)
+
+
 PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")%>%
   as.data.frame()%>%
   distinct()%>%
@@ -73,6 +88,54 @@ PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PR
   filter(!(sex==1& cancer_code%in% c(20, 21, 22, 23, 24, 25)))%>%
   filter(!(sex==2& cancer_code%in% c(26:28)))%>%
   filter(cancer_code!=40)
+
+
+
+globocan_UIs2 <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\source\\Globocan_UIs.csv")%>%
+  as.data.frame()
+
+globocan_UIs3<-globocan_UIs2%>%
+  filter(type==0,
+         sex==0)%>%
+  filter(!country_code%in%c(928, # Melanesia
+                           954, # Micronesia
+                           957, # Polynesia
+                           964 #Micronesia/Polynesia
+  ))%>%
+  dplyr::select(sex, country_code, cancer_code, total, total.low, total.high)%>%
+  mutate(var.low = case_when(total!=0 ~ abs((total.low-total)/total), 
+                             total==0 ~0),
+         var.high= case_when(total!=0 ~  abs((total.high-total)/total),
+                             total==0 ~0)
+         )%>%
+  dplyr::select( country_code, cancer_code, var.low, var.high)
+ 
+
+globocan_UIs_nesia<-globocan_UIs2%>%
+  filter(type==0,
+         sex==0)%>%
+  filter(country_code%in%c(928, # Melanesia
+                            954, # Micronesia
+                            957, # Polynesia
+                            964 #Micronesia/Polynesia
+  ))%>%
+  dplyr::select(sex, country_code, cancer_code, total, total.low, total.high)%>%
+  mutate(country_code=999)%>%
+  group_by(sex, country_code, cancer_code)%>%
+  mutate(total=sum(total),
+         total.low=sum(total.low),
+         total.high=sum(total.high))%>%
+  distinct()%>%
+  mutate(var.low = case_when(total!=0 ~ abs((total.low-total)/total), 
+                             total==0 ~0),
+         var.high= case_when(total!=0 ~  abs((total.high-total)/total),
+                             total==0 ~0)
+  )%>%
+  dplyr::select( country_code, cancer_code, var.low, var.high)
+
+globocan_UIs<-globocan_UIs3%>%
+  full_join(globocan_UIs_nesia)
+
 
 
 
@@ -156,6 +219,7 @@ Survival_Modelled2<-Survival_Modelled3%>%
 #filter(age<=16)
 
 #Grouped survival estimates for the
+
 Survival_Modelled2_lip<-Survival_Modelled3%>%
   filter(cancer_code==41)%>%
   dplyr::mutate(cancer_code=1,
@@ -165,6 +229,8 @@ Survival_Modelled2_salivary<-Survival_Modelled3%>%
   filter(cancer_code==41)%>%
   dplyr::mutate(cancer_code=2,
                 cancer_label="Salivary glands")
+
+#Fix this
 
 Survival_Modelled2_oropharynx<-Survival_Modelled3%>%
   filter(cancer_code==42)%>%
@@ -176,11 +242,18 @@ Survival_Modelled2_naso<-Survival_Modelled3%>%
   dplyr::mutate(cancer_code=4,
                 cancer_label="Nasopharynx")
 
+Survival_Modelled2_hypo<-Survival_Modelled3%>%
+  filter(cancer_code==42)%>%
+  dplyr::mutate(cancer_code=5,
+                cancer_label="Hypoharynx")
+
 Survival_Modelled<-Survival_Modelled2%>%
   full_join(Survival_Modelled2_lip)%>%
   full_join(Survival_Modelled2_salivary)%>%
   full_join(Survival_Modelled2_oropharynx)%>%
-  full_join(Survival_Modelled2_naso)
+  full_join(Survival_Modelled2_naso)%>%
+  full_join(Survival_Modelled2_hypo)
+  
 
 # Check so cancer codes match up
 

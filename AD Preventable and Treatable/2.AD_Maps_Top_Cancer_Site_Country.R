@@ -14,8 +14,36 @@ library(ggpubr)
 
 setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
 
-AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall)
-cancerss<-Avoidable_Deaths_Simulated_All_age_cat_overall%>%select(cancer_code, cancer)%>%distinct()
+Avoidable_Deaths_Simulated_All_age_cat_overall2<-Avoidable_Deaths_Simulated_All_age_cat%>% #Object to plot overall age standardized on world maps 
+  as.data.frame()%>%
+  dplyr::filter(age_cat=="Overall")%>%
+  dplyr::rename("AD_treat_prev.asr"="AD_sum.asr")%>%
+  ungroup()%>%
+  dplyr::group_by(country_code,cancer_code)%>%
+  dplyr::mutate(total_deaths=sum(total_deaths2,na.rm=T))%>%
+  #select(-total_deaths2,-AD_sum)%>%
+  dplyr::mutate(AD_treat_prev=sum(AD_treat, AD_prev,na.rm=T))%>%
+  dplyr::mutate(AD_treat=sum(AD_treat,na.rm=T))%>%
+  #dplyr::mutate(AD_treat_not_prev=sum(AD_treat_not_prev,na.rm=T))%>%
+  dplyr::mutate(AD_prev=sum(AD_prev,na.rm=T))%>%
+  dplyr::mutate(AD_unavoid=sum(AD_unavoid,na.rm=T))%>%
+  dplyr::mutate(pAD_treat=AD_treat/total_deaths)%>%
+  #dplyr::mutate(pAD_treat_not_prev=AD_treat_not_prev/total_deaths)%>%
+  dplyr::mutate(pAD_prev=AD_prev/total_deaths)%>%
+  dplyr::mutate(pAD_unavoid=AD_unavoid/total_deaths)%>%
+  dplyr::mutate(pAD_treat_prev=AD_treat_prev/total_deaths)%>%
+  as.data.frame()%>%
+  select( "country_code","country_label","cancer_code", "cancer", 
+          "AD_prev","pAD_prev",    
+          "AD_treat",  "pAD_treat" ,
+          # AD_treat_not_prev, pAD_treat_not_prev,
+          "AD_treat_prev", "pAD_treat_prev",
+          "AD_unavoid",   "pAD_unavoid" ,        
+          "total_deaths", "AD_prev.asr", "AD_treat.asr", "AD_treat_prev.asr", "AD_unavoid.asr", "total.deaths.asr")
+
+
+AD_Map <- as.data.table(Avoidable_Deaths_Simulated_All_age_cat_overall2)
+cancerss<-Avoidable_Deaths_Simulated_All_age_cat_overall2%>%select(cancer_code, cancer)%>%distinct()
 cancer_colors<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\cancer_color_2018.csv", sep=",")%>%
   as.data.frame()%>%
   select(cancer_code, Color.Hex)%>%
@@ -219,8 +247,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  guides(fill=guide_legend(title="Cancer site with the highest number preventable deaths
-                           (Number of countries)"))+
+  guides(fill=guide_legend(title="Cancer diagnosis with the most \n preventable deaths"))+
   #scale_color_manual(name = cancer,values=df_AD_map$Color.Hex)+
   scale_fill_manual(values = palette1_named_prev)+
   #scale_fill_lancet()+
@@ -338,8 +365,7 @@ df_AD_map%>%
         legend.background = element_rect(fill= "transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest number treatable deaths
-                           (Number of countries)"))+
+  guides(fill=guide_legend(title="Cancer diagnosis with the most \n treatable deaths"))+
   scale_fill_manual(values = palette1_named_treat)+
   #scale_color_manual(values=c("grey100", "grey10"))+
 #  scale_fill_lancet()+
@@ -462,21 +488,20 @@ df_AD_map%>%
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer site with the highest number avoidable deaths
-                           (Number of countries)"))+
+  guides(fill=guide_legend(title="Cancer diagnosis with the most \n avoidable deaths overall"))+
   scale_fill_manual(values = palette1_named_treat_prev)+
  # scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))->max_total
 
-ggsave("map_AD_all_cancers_treat_prev_max_country.png", width = 40, height = 30, pointsize = 12,
+ggsave("map_AD_all_cancers_treat_prev_max_country.png", width = 40, height = 30, pointsize = 12, dpi=600,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
 
-ggarrange(max_prev, max_treat,max_total,  
+ggarrange( max_prev, max_treat,max_total, 
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
-ggsave("map_AD_max.png",width = 40, height =70,limitsize = FALSE,
+ggsave("Figure_4.pdf", width = 37*0.75, height =62*0.8, dpi=600, limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

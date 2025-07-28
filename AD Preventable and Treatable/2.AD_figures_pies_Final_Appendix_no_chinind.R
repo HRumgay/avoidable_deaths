@@ -263,11 +263,11 @@ Avoidable_Deaths_Simulated_All %>%
   dplyr::arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat) %>% 
-  dplyr::mutate(AD=case_when(rankc<29~sum(AD[rankc<29]),
+  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
                       TRUE~AD),
-         percent=case_when(rankc<29~sum(percent[rankc<29]),
+         percent=case_when(rankc<30~sum(percent[rankc<30]),
                            TRUE~percent), 
-         rankc=case_when(rankc<29~1,
+         rankc=case_when(rankc<30~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -297,11 +297,11 @@ Avoidable_Deaths_Simulated_All %>%
   arrange(AD) %>% 
   dplyr::mutate(rankc = as.numeric(dplyr::row_number())) %>% 
   group_by(AD_cat, hdi_group) %>% 
-  dplyr::mutate(AD=case_when(rankc<29~sum(AD[rankc<29]),
+  dplyr::mutate(AD=case_when(rankc<30~sum(AD[rankc<30]),
                       TRUE~AD),
-         percent=case_when(rankc<29~sum(percent[rankc<29]),
+         percent=case_when(rankc<30~sum(percent[rankc<30]),
                            TRUE~percent), 
-         rankc=case_when(rankc<29~1,
+         rankc=case_when(rankc<30~1,
                          TRUE~rankc),
          Color.Hex=case_when(rankc==1~"#DCDCDC",
                              TRUE~Color.Hex),
@@ -319,9 +319,9 @@ piedp %>%
              width=2*sqrt(table_1_1_alt$AD_prev/table_1_1_alt$AD_treat_prev/pi))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
-                               scales::percent(percent, accuracy = 1)), x = 2.75),
+                               scales::percent(percent, accuracy = 0.1L)), x = 2.75),
             position = position_stack(vjust=0.5),
-            size=3) +
+            size=5) +
   coord_polar(theta = "y") +
   scale_fill_identity("Cancer site", labels = piedp$cancer,
                       guide = "legend") +
@@ -340,7 +340,10 @@ piedp %>%
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   
-  labs(title="Preventable", caption= paste(formatC(round(table_1_1_alt$AD_prev,-3), format="d", big.mark=",")," total deaths, ",round(100*table_1_1_alt$pAD_prev,2) ,"%"))-> pie.prev
+  labs(title="Preventable", caption= paste(formatC(round(table_1_1_alt$AD_prev,-3), format="d", big.mark=",")," total deaths, ",
+                                           sprintf("%.1f", round(100*table_1_1_alt$pAD_prev,2)) ,"%"))+
+  theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
+  theme(plot.title = element_text(size = 18)) -> pie.prev
 pie.prev
 # ggsave("pie.prev.png",pie.prev,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -353,9 +356,9 @@ piedt %>%
            width=2*sqrt(table_1_1_alt$AD_treat/table_1_1_alt$AD_treat_prev/pi))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
-                               scales::percent(percent, accuracy = 1)), x = 2.75),
+                               scales::percent(percent, accuracy = 0.1L)), x = 2.75),
             position = position_stack(vjust=0.5),
-            size=3) +
+            size=5) +
   coord_polar(theta = "y") +
   scale_fill_identity("Cancer site", labels = piedt$cancer,
                       guide = "legend") +
@@ -373,7 +376,10 @@ piedt %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+  # move caption to the left)+
   theme(legend.position = "none")+ 
-  labs(title="Treatable", caption= paste(formatC(round(table_1_1_alt$AD_treat,-3), format="d", big.mark=",")," total deaths, ",round(100*table_1_1_alt$pAD_treat,2) ,"%"))-> pie.treat
+  labs(title="Treatable", caption= paste(formatC(round(table_1_1_alt$AD_treat,-3), format="d", big.mark=",")," total deaths, ",
+                                         sprintf("%.1f",round(100*table_1_1_alt$pAD_treat,2)) ,"%"))+
+  theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
+  theme(plot.title = element_text(size = 18))-> pie.treat
 pie.treat
 
 # ggsave("pie.treat.png",pie.treat,width=5.43 ,height=2.43,
@@ -387,9 +393,9 @@ pieda %>%
              width=2)) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
-                               scales::percent(percent, accuracy = 1)), x = 2.75),
+                               scales::percent(percent, accuracy = 0.1L)), x = 2.75),
             position = position_stack(vjust=0.5),
-            size=3) +
+            size=5) +
   coord_polar(theta = "y") +
   scale_fill_identity("Cancer site", labels = pieda$cancer,
                       guide = "legend") +
@@ -407,7 +413,10 @@ pieda %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="Avoidable", caption= paste(formatC(round(table_1_1_alt$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ",round(100*table_1_1_alt$pAD_treat_prev,2) ,"%"))-> pie.avoid
+  labs(title="Avoidable", caption= paste(formatC(round(table_1_1_alt$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ",
+                                         sprintf("%.1f",round(100*table_1_1_alt$pAD_treat_prev,2)) ,"%"))+
+  theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
+  theme(plot.title = element_text(size = 18))-> pie.avoid
 pie.avoid
 # ggsave("pie.avoid.png",pie.avoid,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -466,6 +475,8 @@ pies9 %>%
   guides(fill = guide_legend(reverse = TRUE))+
   theme(plot.background= element_blank(),
         plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        legend.text = element_text(size = 16),
+        legend.title = element_text(size = 16),
         panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.text.y=element_blank(),
@@ -496,7 +507,7 @@ Top_4_cancer<- grid.arrange(combined_plot, legend, ncol = 2, widths= c(0.85, 0.1
 
 Top_4_cancer
 #Saving the output
-ggsave("pie.all_alternate.png",Top_4_cancer,width=15 ,height=10,
+ggsave("pie.all_alternate.png",Top_4_cancer,width=20 ,height=8, dpi=700,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 #avoidable pie for HDI group 1
@@ -508,9 +519,9 @@ pied1 %>%
                                                labels = unique(pied1$Color.Hex)))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
-                               scales::percent(percent, accuracy = 1)), x = 2.75),
+                               scales::percent(percent, accuracy = 0.1L)), x = 2.75),
             position = position_stack(vjust=0.5),
-            size=2) +
+            size=5) +
   coord_polar(theta = "y") +
   scale_fill_identity("Cancer site", labels = pied1$cancer,
                       guide = "legend") +
@@ -528,7 +539,10 @@ pied1 %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="Low HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[1,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[1,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi1_alt
+  labs(title="Low HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[1,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", 
+                                       sprintf("%.1f",round(AD_by_HDI_all_alt2[1,]$pAD_treat_prev_tot, 2)), "%"))+
+  theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
+  theme(plot.title = element_text(size = 18)) -> pie.avoid.hdi1_alt
 pie.avoid.hdi1_alt
 # ggsave("pie.avoid.hdi1_alt.png",pie.avoid.hdi1_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -540,9 +554,9 @@ pied2 %>%
                                                labels = unique(pied2$Color.Hex)))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
-                               scales::percent(percent, accuracy = 1)), x = 2.75),
+                               scales::percent(percent, accuracy = 0.1L)), x = 2.75),
             position = position_stack(vjust=0.5),
-            size=2) +
+            size=5) +
   coord_polar(theta = "y") +
   scale_fill_identity("Cancer site", labels = pied2$cancer,
                       guide = "legend") +
@@ -560,7 +574,10 @@ pied2 %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="Medium HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[2,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[2,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi2_alt
+  labs(title="Medium HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[2,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ",
+                                          sprintf("%.1f",round(AD_by_HDI_all_alt2[2,]$pAD_treat_prev_tot, 2)), "%"))+
+  theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
+  theme(plot.title = element_text(size = 18)) -> pie.avoid.hdi2_alt
 pie.avoid.hdi2_alt
 # ggsave("pie.avoid.hdi2_alt.png",pie.avoid.hdi2_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -571,9 +588,9 @@ pied3 %>%
                                                labels = unique(pied3$Color.Hex)))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
-                               scales::percent(percent, accuracy = 1)), x = 2.75),
+                               scales::percent(percent, accuracy = 0.1L)), x = 2.75),
             position = position_stack(vjust=0.5),
-            size=2) +
+            size=5) +
   coord_polar(theta = "y") +
   scale_fill_identity("Cancer site", labels = pied3$cancer,
                       guide = "legend") +
@@ -591,7 +608,10 @@ pied3 %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="High HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[3,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[3,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi3_alt
+  labs(title="High HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[3,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ",
+                                        sprintf("%.1f", round(AD_by_HDI_all_alt2[3,]$pAD_treat_prev_tot, 2)), "%"))+
+  theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
+  theme(plot.title = element_text(size = 18)) -> pie.avoid.hdi3_alt
 pie.avoid.hdi3_alt
 # ggsave("pie.avoid.hdi3_alt.png",pie.avoid.hdi3_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -603,15 +623,16 @@ pied4 %>%
                                                labels = unique(pied4$Color.Hex)))) +
   geom_bar(width = 1, stat = "identity") +
   geom_text(aes(label = paste0(formatC(round_any(AD,100), format="f", big.mark=",", digits=0),"\n ", 
-                               scales::percent(percent, accuracy = 1)), x = 2.75),
+                               scales::percent(percent, accuracy = 0.1L)), x = 2.75),
             position = position_stack(vjust=0.5),
-            size=2) +
+            size=5) +
   coord_polar(theta = "y") +
   scale_fill_identity("Cancer site", labels = pied4$cancer,
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
   theme(plot.background= element_blank(),
-        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        plot.title = element_text(size=16, margin=margin(0,0,0,0),hjust = 0.5),
+        legend.text = element_text(size = 14),
         panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.text.y=element_blank(),
@@ -623,7 +644,10 @@ pied4 %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="Very High HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[4,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", round(AD_by_HDI_all_alt2[4,]$pAD_treat_prev_tot, 2), "%")) -> pie.avoid.hdi4_alt
+  labs(title="Very High HDI", caption= paste(formatC(round(AD_by_HDI_all_alt2[4,]$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ", 
+                                             sprintf("%.1f", round(AD_by_HDI_all_alt2[4,]$pAD_treat_prev_tot, 2)), "%"))+
+  theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
+  theme(plot.title = element_text(size = 18)) -> pie.avoid.hdi4_alt
 pie.avoid.hdi4_alt
 # ggsave("pie.avoid.hdi4_alt.png",pie.avoid.hdi4_alt,width=5.43 ,height=2.43,
 #        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -671,7 +695,9 @@ pies10 %>%
                       guide = "legend") +
   guides(fill = guide_legend(reverse = TRUE))+
   theme(plot.background= element_blank(),
-        plot.title = element_text(size=12, margin=margin(0,0,0,0),hjust = 0.5),
+        plot.title = element_text(size=16, margin=margin(0,0,0,0),hjust = 0.5),
+        legend.text = element_text(size = 16),
+        legend.title = element_text(size = 16),
         panel.background = element_blank(),
         axis.text.x=element_blank(),
         axis.text.y=element_blank(),
@@ -712,6 +738,6 @@ Top_4_cancerhdi <-    grid.arrange(combined_plothdi,
 Top_4_cancerhdi
 
 #Saving the output
-ggsave("piesHDI_alternate.png",Top_4_cancerhdi,width=15 ,height=10,
+ggsave("piesHDI_alternate.png",Top_4_cancerhdi,width=18 ,height=15, dpi=700,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

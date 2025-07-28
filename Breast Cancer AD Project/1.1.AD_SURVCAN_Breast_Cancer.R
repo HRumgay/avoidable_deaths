@@ -1,4 +1,57 @@
-  
+#determining stage reference
+
+stage_surv_countries <- bcan_SURV %>%
+  filter(include == "Included") %>%
+  select(country, stage) %>%
+  mutate(stage_num = case_when(
+    # Stage 0: Tis, N0, M0
+    grepl("Tis", stage) & grepl("N0", stage) & grepl("M0", stage) ~ "Stage 0",
+    
+    # Stage I and 2: T1-T2, N0, M0
+    ((grepl("T1", stage) | grepl("T2", stage)) & 
+       grepl("N0", stage) & 
+       grepl("M0", stage))| 
+      ((grepl("T1", stage) | grepl("T2", stage)) & 
+         grepl("N1", stage) & 
+         grepl("M0", stage))~ "Stage 12",
+    # 
+    # # Stage II: T1-T2, N1, M0
+    # (grepl("T1", stage) | grepl("T2", stage)) & 
+    #   grepl("N1", stage) & 
+    #   grepl("M0", stage) ~ "Stage II",
+    
+    # Stage III: T1-T4, N2-N3, M0
+    (grepl("T1", stage) | grepl("T2", stage) | grepl("T3", stage) | grepl("T4", stage)) & 
+      (grepl("N2", stage) | grepl("N3", stage)) & 
+      grepl("M0", stage) ~ "Stage III",
+    
+    # Stage IV: T1-T4, N1-N3, M1
+    (grepl("T1", stage) | grepl("T2", stage) | grepl("T3", stage) | grepl("T4", stage)) & 
+      (grepl("N1", stage) | grepl("N2", stage) | grepl("N3", stage)) & 
+      grepl("M1", stage) ~ "Stage IV",
+    
+    # Default case if no criteria are met
+    TRUE ~ "Unknown Stage"
+  ))%>%
+  filter(!stage_num%in%c("Stage 0", NA))%>%
+  group_by(country)%>%
+  mutate(tot_cases=n())%>%
+  group_by(country,stage_num)%>%
+  mutate(stage_cases=n())%>%
+  ungroup()%>%
+  mutate(percent_early=stage_cases/tot_cases*100)%>%
+  select(-stage)%>%
+  distinct()
+
+
+stage_surv_countries
+
+
+
+
+
+
+
   ES2<-p%>%as.data.frame()
   
   ten_cancer_sites <-
@@ -8,8 +61,9 @@
   
   
   #Prepping cancer real world data
-  bcan_SURV2 <- bcan_SURV %>%+
-    distinct()%>%
+  bcan_SURV2 <- bcan_SURV %>%
+    as.data.frame()%>%
+    dplyr::distinct()%>%
     filter(surv_ddtot>0)%>%
     filter(include == "Included") %>%
     filter(age >= 15, age <= 99) %>%
@@ -635,16 +689,16 @@ table_diagnosis<-  bcan_SURV3%>%
     full_join(HDI_PR)
   
   
-  #Calculating references - Sweden 2017-2021 survival scaled by population size: 
+  #Calculating references - Norway 2018-2022 survival scaled by population size: 
   
-  ref_swe2 <- data.frame(age=c(18,	17,	16,	15,	14,	13,	12,	11,	10,	9,	8,	7,	6,	5,	4,	3,	2,	1),
+  ref_nor2 <- data.frame(age=c(18,	17,	16,	15,	14,	13,	12,	11,	10,	9,	8,	7,	6,	5,	4,	3,	2,	1),
                          pop=c(169094,	157277,	244475,	278834,	272046,	283956,	322032,	328522,	326852,	311807,	324093,	366224,	342303,	271506,	282470,	303163,	301757,	287625),
                          surv_ref=c(82.7, 82.7,	93.1,	93.1,	95.4,	95.4,	94.8,	94.8,	94,	94,	94,	94,	94,	94,	94,	94,	94,	94)
   )
   
   
   
-  ref_swe_overall<-ref_swe2%>%
+  ref_nor_overall<-ref_nor2%>%
     filter(age>=4)%>%
     dplyr::mutate(age_cat = "Overall")%>%
     select(-age)%>%
@@ -655,7 +709,7 @@ table_diagnosis<-  bcan_SURV3%>%
     distinct()
   
   
-  ref_swe<-ref_swe2%>%
+  ref_nor<-ref_nor2%>%
     filter(age>=4)%>%
     dplyr::mutate(age_cat = case_when(
       age>=4 & age<11~ "15-49",
@@ -667,9 +721,19 @@ table_diagnosis<-  bcan_SURV3%>%
     select(-pop)%>%
     ungroup()%>%
     distinct()%>%
-    full_join(ref_swe_overall)
+    full_join(ref_nor_overall)
   
+  # Extracting Puerto Rico estimates for GBCI 60% early diagnosis role
   
+  puerto_ref<-NS_OS%>%
+    filter(country_code==630)%>%
+    select(age_cat,Five_Year_Net_Surv)%>%
+    distinct()%>%
+    rename("sixty_ref"="Five_Year_Net_Surv")
+    
+  
+
+  #final file for analysis of AD
   
   NS_OS_PAF <- NS_OS %>%
     #filter(age_cat!="Overall")%>%
@@ -685,7 +749,7 @@ table_diagnosis<-  bcan_SURV3%>%
     mutate(cancer = as.character(cancer)) %>%
     distinct() %>%
     filter(Five_Year_all_cause_Surv < 1, Five_Year_Net_Surv < 1) %>% #filtering out values for which the algorithm failed
-    left_join(ref_swe, by=c("age_cat"))%>%
+    left_join(ref_nor, by=c("age_cat"))%>%
     left_join(HDI %>% select(country_code, hdi_group), by = c("country_code")) %>%
     ungroup() %>%
     group_by(age_cat, hdi_group) %>%
@@ -693,7 +757,9 @@ table_diagnosis<-  bcan_SURV3%>%
       max_ref = max(Five_Year_Net_Surv)) %>%
     dplyr::rename("country_label" = "country") %>%
     ungroup() %>%
-    select(-hdi_group)
+    select(-hdi_group)%>%
+    left_join(puerto_ref, by =c("age_cat"))
+    
   
   ####################################################################################
   #
@@ -724,10 +790,10 @@ table_diagnosis<-  bcan_SURV3%>%
       # AD_unavoid_max = total_overall * (1 - max_ref * es),
       # 
       # #Changing to have absolute max
-      AD_max = (1 - Five_Year_Net_Surv) * es  * total_overall,
-      AD_Lower_max = (1 - NS_Upper_CI) *   es * total_overall,
-      AD_Upper_max = (1 - NS_Lower_CI) *  es * total_overall,
-      AD_unavoid_max = total_overall * (1 - 1 * es),
+      AD_max = (sixty_ref - Five_Year_Net_Surv) * es  * total_overall,
+      AD_Lower_max = (sixty_ref - NS_Upper_CI) *   es * total_overall,
+      AD_Upper_max = (sixty_ref - NS_Lower_CI) *  es * total_overall,
+      AD_unavoid_max = total_overall * (1 - sixty_ref * es),
       total_deaths_max = AD_max + AD_unavoid_max,
       
       
@@ -773,6 +839,21 @@ table_diagnosis<-  bcan_SURV3%>%
       "total_deaths", "total_overall"#, "total_deaths_max"
       )
   
+  
+  # Removing negative results for sensitivity analysis as we only care about the positive ones
+  
+  Avoidable_Deaths<-Avoidable_Deaths%>%
+    mutate(
+    AD_Lower_max = case_when(
+      AD_max <0 ~ 0,
+      AD_max >= 0 ~ AD_Lower_max),
+    AD_Upper_max = case_when(
+      AD_max <0 ~ 0,
+      AD_max >= 0 ~ AD_Upper_max
+       ),
+    AD_max = case_when(
+      AD_max <0 ~ 0,
+      AD_max >= 0 ~ AD_max))
   
   #Keeping subgroups for which both aren't available seperate from the overall group (to filter countries from the overall)
   AD_countries_low <- Avoidable_Deaths %>% 
@@ -1499,8 +1580,7 @@ age_ss_lowtohigh<-Avoidable_Deaths_age_cat2%>%
   
   age_ss_hightolow$country_label
   
-  
-age_ss
+ 
 
 #Comparing lower and higher age group
   

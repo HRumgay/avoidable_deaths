@@ -103,7 +103,7 @@ colors_red_GCO <- c("#99000d","#cb181d","#ef3b2c","#fb6a4a", "#fc9272", "#fcbba1
 #--- maps for 93% AD----
 
 allc <- AD_Map%>%filter(age_cat=="Overall",
-                        Reference=="Sweden")
+                        Reference=="Norway")
 
 
 break_quantile <- quantile(allc$pAD, probs = seq(0, 1, by = 0.125), na.rm = T)
@@ -183,7 +183,7 @@ ggplot() +
     legend.position =c(0.18, -0.02),
     legend.background = element_rect(fill="transparent"),
     plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Avoidable breast cancer deaths (%)",
+  scale_fill_manual(name = "Proportion of avoidable deaths (%)",
         values= colors_green_GCO,
         labels= c(labels_leg, "No data"), 
         na.value = "#cccccc",
@@ -201,7 +201,7 @@ ggsave(plot=AD_map_93, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_
 
 allc <- AD_Map%>%
   filter(age_cat=="Overall", 
-         Reference=="Max by HDI")
+         Reference==">60% Stage 1 and 2 at diagnosis")
 
 break_quantile <- quantile(allc$pAD, probs = seq(0, 1, by = 0.125), na.rm = T)
 
@@ -276,17 +276,17 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion of treatable deaths (%), 100% reference survival",
+  scale_fill_manual(name = "Proportion of treatable deaths (%),\n reference with >60% of diagnoses in stage I/II",
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
                     drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))->AD_map_max
+  scale_linetype_manual(values=c("solid", "11")) -> AD_map_max
 
 
-ggsave("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_max_prop.pdf", width = 40, height = 30, pointsize = 12) 
+ggsave("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Figures\\map_AD_breast_max_prop.png", width = 40, height = 30, pointsize = 12) 
 
 
 ggarrange( AD_map_93, AD_map_max,

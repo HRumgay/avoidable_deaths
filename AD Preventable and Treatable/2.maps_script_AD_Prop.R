@@ -174,8 +174,8 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"), 
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=28),
+        legend.title = element_text(size=28, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
@@ -184,10 +184,10 @@ ggplot() +
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
-                    drop=FALSE)+
+                    drop=FALSE) +
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))->AD_map_prev
+  scale_linetype_manual(values=c("solid", "11"))  -> AD_map_prev
 
 ggsave("map_AD_all_cancers_prev_prop.png",width = 40, height = 30, pointsize = 12,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
@@ -263,8 +263,8 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"), 
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=28),
+        legend.title = element_text(size=28, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
@@ -354,8 +354,8 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"), 
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=28),
+        legend.title = element_text(size=28, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
@@ -367,19 +367,18 @@ ggplot() +
                     drop=FALSE)+
   guides(fill = guide_legend(reverse = FALSE))+
   scale_color_manual(values=c("grey100", "grey10"))+
-  scale_linetype_manual(values=c("solid", "11"))->AD_map_total
+  scale_linetype_manual(values=c("solid", "11"))-> AD_map_total
 
 
 ggsave("map_AD_all_cancers_preventable_treatable_prop.png",width = 40, height = 30, pointsize = 12,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
 
-ggarrange( AD_map_total, AD_map_prev, AD_map_treatable, 
+ggarrange(  AD_map_prev, AD_map_treatable, AD_map_total,
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
 
-
-ggsave("map_AD_prop.png", width = 40, height =67, limitsize = FALSE,
+ggsave("Figure_1.pdf",  width = 37*0.75, height =64*0.8, dpi=600, limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
