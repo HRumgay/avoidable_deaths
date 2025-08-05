@@ -370,13 +370,20 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
 # as.data.frame()
 
 #capping mortality so it doesn't go over globocan for expected deaths
-Avoidable_Deaths_Simulated_All3 <- Avoidable_Deaths_Simulated_All3%>%
-  left_join(globocan_mort)%>%
-  mutate(total_deaths2= case_when(
-    total_deaths2<=deaths~ total_deaths2,
-    total_deaths2>deaths~ deaths
-  ))%>%
-  select(-deaths)
+
+# Avoidable_Deaths_Simulated_All3 <- Avoidable_Deaths_Simulated_All3%>%
+#   left_join(globocan_mort)%>%
+#   filter(deaths>AD_prev+AD_treat)
+
+
+
+Avoidable_Deaths_Simulated_All3 <- Avoidable_Deaths_Simulated_All3#%>%
+  # left_join(globocan_mort)%>%
+  # mutate(total_deaths2= case_when(
+  #   total_deaths2<=deaths~ total_deaths2,
+  #   total_deaths2>deaths~ deaths
+  # ))%>%
+  # select(-deaths)
 
 
 colorectal<-Avoidable_Deaths_Simulated_All3%>%
@@ -1598,9 +1605,9 @@ AD_by_HDI_all2<-AD_by_HDI_all%>%
          AD_treat_prev.high= AD_treat_prev+AD_treat_prev*var.high,
          pAD_treat_prev.low= pAD_treat_prev-pAD_treat_prev*var.low,
          pAD_treat_prev.high= pAD_treat_prev+pAD_treat_prev*var.high,
-         AD_unavoid.low= AD_unavoid-AD_unavoid*var.low,
-         AD_unavoid.high= AD_unavoid+AD_unavoid*var.high,
-         pAD_unavoid.low= pAD_unavoid-pAD_unavoid*var.low,
+         AD_unavoid.low = AD_unavoid-AD_unavoid*var.low,
+         AD_unavoid.high = AD_unavoid+AD_unavoid*var.high,
+         pAD_unavoid.low = pAD_unavoid-pAD_unavoid*var.low,
          pAD_unavoid.high= pAD_unavoid+pAD_unavoid*var.high,
          total_deaths.low= total_deaths-total_deaths*var.low,
          total_deaths.high= total_deaths+total_deaths*var.high,

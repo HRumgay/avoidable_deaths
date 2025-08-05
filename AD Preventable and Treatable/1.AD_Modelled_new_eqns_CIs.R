@@ -371,11 +371,13 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
 
 Avoidable_Deaths_Simulated_All3 <- Avoidable_Deaths_Simulated_All3%>%
   left_join(globocan_mort)%>%
-  mutate(total_deaths2= case_when(
-    total_deaths2<=deaths~ total_deaths2,
-    total_deaths2>deaths~ deaths
-  ))%>%
+ mutate(total_deaths2= case_when(
+  total_deaths2<=deaths~ deaths, #total_deaths2,
+   total_deaths2>deaths~ deaths
+ ))%>%
   select(-deaths)
+
+
 
 
 colorectal<-Avoidable_Deaths_Simulated_All3%>%
