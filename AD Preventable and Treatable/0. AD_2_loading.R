@@ -70,6 +70,45 @@ globocan_mort <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langseli
   dplyr::rename("deaths"="cases")%>%
   select(-type, -country_label)
 
+#New UV Data
+# 
+# PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")%>%
+#   as.data.frame()%>%
+#   distinct()%>%
+#   dplyr::select(-country_label, -af.uv, -af.comb)%>%
+#   group_by(country_code, sex,
+#            cancer_code, age)%>%
+#   filter(sex!=0)%>%
+#   # dplyr::mutate(cases=as.numeric(cases),
+#   #              cases.prev=as.numeric(cases.prev))%>%
+#   as.data.frame()%>%
+#   dplyr::select(-cases,-py, -cases.prev,-cases.notprev)%>%
+#   left_join(globocan, by=c("cancer_code", "country_code", "age", "sex"))#%>%
+# 
+# 
+# UV <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Melanoma\\Results\\1.paf_uv_detailed_age.csv", sep = ";", dec = ",")%>%
+#   as.data.frame()%>%
+#   select(country_code,sex, age, af.uv)%>%
+#   mutate(af.uv=as.numeric(af.uv))%>%
+#   mutate(cancer_code=16)
+# 
+# 
+# 
+# PAFs<-PAFs%>%
+#   left_join(UV)#%>%
+# 
+# PAFs$af.uv[ is.na( PAFs$af.uv ) ] <- 0
+# 
+# 
+# PAFs<-PAFs%>%
+#   mutate(af.comb=1- (1-af.tob)*(1-af.alc)*(1-af.inf)*(1-af.obe)*(1-af.uv))%>%
+# mutate(cases.prev=cases*af.comb,
+#        cases.notprev=cases*(1-af.comb))%>%
+#   filter(!(sex==1& cancer_code%in% c(20, 21, 22, 23, 24, 25)))%>%
+#   filter(!(sex==2& cancer_code%in% c(26:28)))%>%
+#   filter(cancer_code!=40)
+
+#NO NEW uv
 
 PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")%>%
   as.data.frame()%>%
@@ -82,7 +121,7 @@ PAFs <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PR
   #              cases.prev=as.numeric(cases.prev))%>%
   as.data.frame()%>%
   dplyr::select(-cases,-py, -cases.prev,-cases.notprev)%>%
-  left_join(globocan, by=c("cancer_code", "country_code", "age", "sex"))%>%
+  left_join(globocan, by=c("cancer_code", "country_code", "age", "sex"))#%>%
   mutate(cases.prev=cases*af.comb,
          cases.notprev=cases*(1-af.comb))%>%
   filter(!(sex==1& cancer_code%in% c(20, 21, 22, 23, 24, 25)))%>%

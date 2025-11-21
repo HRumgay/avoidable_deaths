@@ -247,7 +247,7 @@ ggplot() +
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  guides(fill=guide_legend(title="Cancer diagnosis with the most \n preventable deaths"))+
+  guides(fill=guide_legend(title=str_wrap("Cancer diagnosis with the most deaths avoidable through primary prevention", 25)  ))+
   #scale_color_manual(name = cancer,values=df_AD_map$Color.Hex)+
   scale_fill_manual(values = palette1_named_prev)+
   #scale_fill_lancet()+
@@ -365,7 +365,7 @@ df_AD_map%>%
         legend.background = element_rect(fill= "transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer diagnosis with the most \n treatable deaths"))+
+  guides(fill=guide_legend(title=str_wrap("Cancer diagnosis with the most deaths avoidable through early detection and treatment", 25)  ))+
   scale_fill_manual(values = palette1_named_treat)+
   #scale_color_manual(values=c("grey100", "grey10"))+
 #  scale_fill_lancet()+
@@ -488,7 +488,7 @@ df_AD_map%>%
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   
-  guides(fill=guide_legend(title="Cancer diagnosis with the most \n avoidable deaths overall"))+
+  guides(fill=guide_legend(title=str_wrap("Cancer diagnosis with the most deaths avoidable through primary prevention and early detection and treatment combined", 25)  ))+
   scale_fill_manual(values = palette1_named_treat_prev)+
  # scale_fill_lancet()+
   scale_linetype_manual(values=c("solid", "11"))->max_total
@@ -502,6 +502,6 @@ ggarrange( max_prev, max_treat,max_total,
           labels = c("a)", "b)", "c)"),
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
-ggsave("Figure_4.pdf", width = 37*0.75, height =62*0.8, dpi=600, limitsize = FALSE,
+ggsave("Figure_4.pdf", width = 37*0.75, height =68*0.8, dpi=600, limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

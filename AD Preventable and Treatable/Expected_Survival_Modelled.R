@@ -9,6 +9,7 @@ library("mexhaz")
 library("data.table")
 library("numbers")
 
+
 load("p.RData") # load who_ghe_group mortality file
 load("country_codes.RData")
 

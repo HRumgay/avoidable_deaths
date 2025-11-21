@@ -18,12 +18,12 @@ AD_country_all_cancers%>%select(country_label)%>%distinct()
 
 # load AD results
 
-AD_country_all_cancers2
 
+AD_country_all_cancers2_editable
 
 #I:\Studies\Survival\SurvCan\Data\Oliver_Langselius\AD_PREV_TREAT\Data
 
-AD_Map <- as.data.table(AD_country_all_cancers2)
+AD_Map <- as.data.table(AD_country_all_cancers2_editable)
 
 # load id for each country
 
@@ -175,12 +175,12 @@ ggplot() +
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
         legend.text = element_text(size=28),
-        legend.title = element_text(size=28, hjust = 1),
+        legend.title = element_text(size=24, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion of preventable deaths (%)",
+  scale_fill_manual(name = str_wrap("Proportion of deaths avoidable through primary prevention (%)", 25),
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -264,12 +264,12 @@ ggplot() +
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
         legend.text = element_text(size=28),
-        legend.title = element_text(size=28, hjust = 1),
+        legend.title = element_text(size=24, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion of treatable deaths (%)",
+  scale_fill_manual(name = str_wrap("Proportion of deaths avoidable through early detection and treatment (%)", 25),
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -355,12 +355,12 @@ ggplot() +
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
         legend.text = element_text(size=28),
-        legend.title = element_text(size=28, hjust = 1),
+        legend.title = element_text(size=24, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Proportion of avoidable deaths (%)",
+  scale_fill_manual(name = str_wrap("Proportion of deaths avoidable through primary prevention and early detection and treatment combined (%)", 25),
                     values= colors_green_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -379,6 +379,6 @@ ggarrange(  AD_map_prev, AD_map_treatable, AD_map_total,
           ncol = 1, nrow = 3,
           font.label = list(size = 60, color = "black"))
 
-ggsave("Figure_1.pdf",  width = 37*0.75, height =64*0.8, dpi=600, limitsize = FALSE,
+ggsave("Figure_1.pdf",  width = 37*0.75, height =70*0.8, dpi=600, limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 

@@ -1,4 +1,4 @@
-## script to plot maps of cASR
+## script to plot maps of preventable and treatable ASRs
 
 library(data.table)
 library(ggplot2)
@@ -14,11 +14,12 @@ setwd("C:\\Users\\langseliuso\\Documents\\GitHub\\avoidable_deaths\\AD Preventab
 
 # load AD results
 
+
 AD_country_all_cancers2
 
 
 
-AD_Map <- as.data.table(AD_country_all_cancers2)
+AD_Map <- as.data.table(AD_country_all_cancers2_editable)
 
 # load id for each country
 dict_id <-  as.data.table(read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_map.csv", sep=","))
@@ -168,8 +169,8 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"), 
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
@@ -177,13 +178,13 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"),
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total ASR of Preventable Deaths \n (Deaths per 100,000 People) ",
+  scale_fill_manual(name = str_wrap("Total ASR of deaths avoidable through primary prevention (Deaths per 100,000 People)", 30),
                     values= colors_blue_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -266,13 +267,13 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"), 
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total ASR of Treatable Deaths \n (Deaths per 100,000 People)",
+  scale_fill_manual(name = str_wrap("Total ASR of deaths avoidable through early detection and treatment (Deaths per 100,000 People)", 30),
                     values= colors_blue_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -282,8 +283,8 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"),
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
@@ -365,13 +366,13 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"), 
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
-  scale_fill_manual(name = "Total ASR of Avoidable Deaths \n (Deaths per 100,000 People)",
+  scale_fill_manual(name = str_wrap("Total ASR of deaths avoidable through primary prevention and early detection and treatment combined (Deaths per 100,000 People)", 30),
                     values= colors_blue_GCO,
                     labels= labels_leg, 
                     na.value = "#cccccc",
@@ -380,8 +381,8 @@ ggplot() +
   theme(legend.key.width= unit(2.6, "cm"),
         legend.key.height= unit(1.4, "cm"),
         legend.direction= "vertical",
-        legend.text = element_text(size=24),
-        legend.title = element_text(size=24, hjust = 1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=20, hjust = 1),
         legend.title.align=0.5,
         legend.position =c(0.18, -0.02),
         legend.background = element_rect(fill="transparent"),
@@ -400,5 +401,5 @@ ggarrange(AD_map_prev.asr, AD_map_treatable.asr,AD_map_total.asr,
           font.label = list(size = 60, color = "black"))
 
 
-ggsave("map_AD_asr.png", width = 37*0.75, height =64*0.8, dpi=600, limitsize = FALSE,
+ggsave("map_AD_asr.pdf", width = 37*0.75, height =66*0.8, dpi=600, limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 

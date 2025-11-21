@@ -340,7 +340,7 @@ piedp %>%
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
   
-  labs(title="Preventable", caption= paste(formatC(round(table_1_1_alt$AD_prev,-3), format="d", big.mark=",")," total deaths, ",
+  labs(title="Primary prevention", caption= paste(formatC(round(table_1_1_alt$AD_prev,-3), format="d", big.mark=",")," total deaths, ",
                                            sprintf("%.1f", round(100*table_1_1_alt$pAD_prev,2)) ,"%"))+
   theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
   theme(plot.title = element_text(size = 18)) -> pie.prev
@@ -376,7 +376,7 @@ piedt %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+  # move caption to the left)+
   theme(legend.position = "none")+ 
-  labs(title="Treatable", caption= paste(formatC(round(table_1_1_alt$AD_treat,-3), format="d", big.mark=",")," total deaths, ",
+  labs(title="Early detection and treatment", caption= paste(formatC(round(table_1_1_alt$AD_treat,-3), format="d", big.mark=",")," total deaths, ",
                                          sprintf("%.1f",round(100*table_1_1_alt$pAD_treat,2)) ,"%"))+
   theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
   theme(plot.title = element_text(size = 18))-> pie.treat
@@ -413,7 +413,7 @@ pieda %>%
         strip.background = element_blank(),
         plot.caption = element_text(hjust = 0.5, face = "italic"))+
   theme(legend.position = "none")+ 
-  labs(title="Avoidable", caption= paste(formatC(round(table_1_1_alt$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ",
+  labs(title="Preventable and early detection and treatment", caption= paste(formatC(round(table_1_1_alt$AD_treat_prev,-3), format="d", big.mark=",")," total deaths, ",
                                          sprintf("%.1f",round(100*table_1_1_alt$pAD_treat_prev,2)) ,"%"))+
   theme(plot.caption = element_text(hjust = 0.5, face = "italic", size = 18))+
   theme(plot.title = element_text(size = 18))-> pie.avoid
