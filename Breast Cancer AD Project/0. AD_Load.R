@@ -62,7 +62,7 @@ country_codes <-
 
 #life tables
 
-life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
+life_table<-read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\life_table_SURVCAN.csv")%>%
   mutate(region = replace(region, region == "Cote d'Ivoire", "C?te d'Ivoire")) %>%
   mutate(region = replace(region, region == "France", "Martinique")) %>%
   mutate(region=replace(region,region=="Korea","South Korea"))%>%
@@ -78,13 +78,13 @@ life_table<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_La
   select(-country)%>%
   distinct()
 
-globocan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
+globocan <- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
   as.data.frame()%>%
   filter(type==0, 
          sex!=0)%>%
   select(-cancer_label, -country_label)
 
-PAFs10 <-  read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")
+PAFs10 <-  read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\combinedPAFs_cases_02.06.23.csv")
 
 PAFs<-PAFs10%>%
   as.data.frame()%>%
@@ -111,6 +111,14 @@ HDI <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliv
 
 
 bcan_SURV <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\SURVCANALL_cc_breast_11May2022.csv")# %>% as.data.frame() Data\\Oliver_Langselius\\SURVCANALL_cc.csv
+
+
+#check all countries
+
+bcan_SURV_c2<-bcan_SURV%>%
+  dplyr::select(country)%>%
+  distinct()
+
 
 Thailand_popmort <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Research visits\\Oliver_Langselius\\Thai Data\\popmort_Thailand.csv") %>% as.data.frame() %>%
   left_join(country_codes, by = c("region" = "country_label"))
@@ -144,16 +152,16 @@ Reference_Survival_Survcan<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\
 
 
 
-load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\ExpectedSurvival.RData")
+load("I:\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\ExpectedSurvival.RData")
 
 #Seychelles population
 
 
 
-load("I:\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_pop2020.RData")
+load("I:\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_pop2020.RData")
 
 
-Seychelles_pop<-read.delim("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Data\\AFSEY10_pop_end.txt",  sep = "|", )%>%
+Seychelles_pop<-read.delim("I:\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\Breast Cancer\\Data\\AFSEY10_pop_end.txt",  sep = "|", )%>%
   filter(year==2019,sex==2)%>%
   select(sex, agegrp, pop, -year)%>%
   mutate(country_code=690, 

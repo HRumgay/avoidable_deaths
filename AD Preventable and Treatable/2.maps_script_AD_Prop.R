@@ -382,3 +382,6 @@ ggarrange(  AD_map_prev, AD_map_treatable, AD_map_total,
 ggsave("Figure_1.pdf",  width = 37*0.75, height =70*0.8, dpi=600, limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\oliver_langselius\\AD_PREV_TREAT\\Figures") 
 
+
+
+

@@ -121,7 +121,7 @@ stage_surv_countries
 
   #to check - it matches what is below
   
-table_diagnosis<-  bcan_SURV3%>%  
+table_diagnosis <-  bcan_SURV3%>%  
     ungroup()%>%
     group_by(country, age_cat)%>%
     mutate(min_year=min(year),
@@ -614,7 +614,7 @@ table_diagnosis<-  bcan_SURV3%>%
   
   table(bSURV$age_cat)
   
-  PAFs_age_Cat<- PAFs %>%
+  PAFs_age_Cat <- PAFs %>%
     #  filter(country_label == "Thailand") %>%
     mutate(age_cat = "Overall") %>%
     #  left_join(ES2%>%filter(sex==2, year==2012), by=c("country_code","age_cat","sex"))%>%
@@ -858,21 +858,32 @@ table_diagnosis<-  bcan_SURV3%>%
   #Keeping subgroups for which both aren't available seperate from the overall group (to filter countries from the overall)
   AD_countries_low <- Avoidable_Deaths %>% 
     filter(age_cat == "15-49") %>% 
-    filter(!country_label%in%c("Kenya","Namibia", "Mauritius", "Seychelles", "South Africa", "Iran"))%>%
+    filter(!country_label%in%c("Kenya", "Mauritius", "Seychelles", "South Africa", "Iran"))%>%
     select(country_label)
   
   AD_countries_upp <- Avoidable_Deaths %>% 
     filter(age_cat == "50-99") %>% 
-    filter(!country_label%in%c("Namibia", "Kenya"))%>%
+    filter(!country_label%in%c("Kenya"))%>%
     select(country_label)
   
   
   AD_countries_overall <-  Avoidable_Deaths %>% 
     filter(age_cat == "Overall") %>%
-    filter(country_label%in%c("Kenya","Namibia", "Mauritius", "Seychelles", "South Africa", "Iran"))%>%
+    filter(country_label%in%c("Kenya", "Mauritius", "Seychelles", "South Africa", "Iran"))%>%
     select(country_label)
   
+#check which countries are in the list above...
   
+  overall1 <-  AD_countries_overall 
+  
+  a1<- AD_countries_upp 
+  
+  a2<- AD_countries_low 
+  
+overall1%>%filter(!country_label%in%a2$country_label)  
+
+
+
   no_overall_upp <-  AD_countries_low %>% filter(!country_label %in% AD_countries_upp$country_label)
   
   no_overall_low <-AD_countries_upp %>% filter(!country_label %in% AD_countries_low$country_label)
@@ -1524,6 +1535,96 @@ table_diagnosis<-  bcan_SURV3%>%
   
   write.csv2(AD_table_countries, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_countries_Survcan.csv", row.names = F)
   
+  
+  
+  #Secondary analysis on the number of avoidable deaths by screening status
+ screening_status<- read.csv("I:\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\Breast Cancer\\Data\\screening_status_by_Country.csv")
+  
+  
+  Avoidable_Deaths_age_cat2_screening <-Avoidable_Deaths_age_cat2%>%
+    left_join( screening_status, by=c("country_label"))%>%
+    dplyr::select(screening_status, -country_label, -country_code, age_cat,
+                  AD, AD_Lower, AD_Upper,
+                  total_deaths)%>%
+    distinct()%>%
+    group_by(screening_status, age_cat)%>%
+    mutate(
+      AD = sum(AD),
+      AD_Lower = sum(AD_Lower),
+      AD_Upper = sum(AD_Upper),
+      total_deaths=sum(total_deaths)
+    )%>%
+    distinct()%>%
+    mutate(pAD = AD/ total_deaths*100,
+           pAD_Lower = AD_Lower/ total_deaths*100,
+  
+      pAD_Upper = AD_Upper/ total_deaths*100)
+
+  
+  Avoidable_Deaths_age_cat2_screening
+  
+  
+  #comparing to canscreen:
+  
+  
+  
+  Avoidable_Deaths_age_cat2_screening_cancscreen <-Avoidable_Deaths_age_cat2%>%
+    left_join( screening_status, by=c("country_label"))%>%
+    dplyr::select(screening_status_cancscreen, -country_label, -country_code, age_cat,
+                  AD, AD_Lower, AD_Upper,
+                  total_deaths)%>%
+    distinct()%>%
+    group_by(screening_status_cancscreen, age_cat)%>%
+    mutate(
+      AD = sum(AD),
+      AD_Lower = sum(AD_Lower),
+      AD_Upper = sum(AD_Upper),
+      total_deaths=sum(total_deaths)
+    )%>%
+    distinct()%>%
+    mutate(pAD = AD/ total_deaths*100,
+           pAD_Upper = AD_Upper/ total_deaths*100,
+           pAD_Lower = AD_Lower/ total_deaths*100)
+  
+  Avoidable_Deaths_age_cat2_screening_cancscreen  
+  
+  
+  #formatting
+  
+  
+AD_table_countries_screening <- Avoidable_Deaths_age_cat2 %>%
+    mutate(
+      "Number 1" = paste0(AD, " (", AD_Lower, ", ", AD_Upper, ")"),
+      "Proportion 1 (%)" = paste0(pAD, " (", pAD_Lower, ", ", pAD_Upper, ")"),
+      #"ASR 1" = paste0(AD.asr, " (", AD_Lower.asr, ", ", AD_Upper.asr, ")"),
+      "Rate 1" = paste0(AD.rate, " (", AD_Lower.rate, ", ", AD_Upper.rate, ")"),
+      #  "Number 2" = paste0(AD_med, " (", AD_Lower_med, ", ", AD_Upper_med, ")"),
+      #  "Proportion 2 (%)" = paste0(pAD_med, " (", pAD_Lower_med, ", ", pAD_Upper_med, ")"),
+      "Number 3" = paste0(AD_max, " (", AD_Lower_max, ", ", AD_Upper_max, ")"),
+      "Proportion 3 (%)" = paste0(pAD_max, " (", pAD_Lower_max, ", ", pAD_Upper_max, ")"),
+      "Rate 3" = paste0(AD_max.rate, " (", AD_Lower_max.rate, ", ", AD_Upper_max.rate, ")")
+    ) %>%
+    dplyr::rename("Country" = "country_label") %>%
+    dplyr::rename("Age Group" = "age_cat") %>%
+    select(
+      "Country",
+      "Age Group",
+      "Number 1",
+      "Proportion 1 (%)",
+      # "ASR 1",
+      "Rate 1",
+      # "Number 2",
+      #  "Proportion 2 (%)",
+      "Number 3",
+      "Proportion 3 (%)",
+      "Rate 3",
+    )
+  
+  
+  
+#write the results
+  
+write.csv2(  AD_table_countries_screening, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\Oliver_Langselius\\Breast Cancer\\Results\\table_screening.csv", row.names = F)
   
   
   
