@@ -113,7 +113,7 @@ popmort<-popmort2%>%
   dplyr::mutate(mx=1-prob)%>%
   dplyr::mutate(country_code=as.numeric(country_code))%>%
   dplyr::group_by(country_code,age,year)%>%
-  dplyr::summarize(country_label, 
+  dplyr::select(country_label, 
                    country_code,
                    age_label)%>% 
   as.data.frame()%>%
@@ -162,7 +162,7 @@ Countries_Simulated <-countries_5y%>%
     ))%>%
   dplyr::filter(age_cat!="0-15")%>%
   dplyr::group_by(country_label,cancer_label,age_cat)%>%
-  dplyr::summarize(country_code,country_label, cancer_code, cancer_label,
+  dplyr::select(country_code,country_label, cancer_code, cancer_label,
                    age, age_cat,
                    rel_surv, hdi_group)%>%
   as.data.frame()
@@ -174,7 +174,7 @@ simulated_overall<-Countries_Simulated%>%
   as.data.frame()%>%
   droplevels()%>%
   dplyr::group_by(country_label,cancer_label, age_cat,age)%>%
-  dplyr::summarize(country_code,country_label, cancer_code, cancer_label,rel_surv,
+  dplyr::select(country_code,country_label, cancer_code, cancer_label,rel_surv,
                    age_cat, age, hdi_group)%>%
   distinct()%>%
   arrange(country_label,cancer_label, age)
