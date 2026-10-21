@@ -13,12 +13,8 @@
 
 # Expected survival
 
-ES3<-p%>%
-  as.data.frame()%>%
-  dplyr::filter(year==2019)%>%
-  dplyr::rename(ES="es")%>%
-  select(-country_label, -year)
-
+ES3<-ES_expanded
+  
 
 #Adding so the expected survival is the same for patients aged 70+
 # 
@@ -103,18 +99,18 @@ Survival_Modelled
 
 
 # Anchored and combined data set at t=5 with anchored values from Israel and Thailand
-
-popmort<-popmort2%>%
-  dplyr::filter(sex==0)%>%
-  dplyr::filter(year==2015)%>%
-  dplyr::mutate(mx=1-prob)%>%
-  dplyr::mutate(country_code=as.numeric(country_code))%>%
-  dplyr::group_by(country_code,age,year)%>%
-  dplyr::select(country_label, 
-                   country_code,
-                   age_label)%>% 
-  as.data.frame()%>%
-  distinct()
+# 
+# popmort<-popmort2%>%
+#   dplyr::filter(sex==0)%>%
+#   dplyr::filter(year==2015)%>%
+#   dplyr::mutate(mx=1-prob)%>%
+#   dplyr::mutate(country_code=as.numeric(country_code))%>%
+#   dplyr::group_by(country_code,age,year)%>%
+#   dplyr::select(country_label, 
+#                    country_code,
+#                    age_label)%>% 
+#   as.data.frame()%>%
+#   distinct()
 
 
 
@@ -161,7 +157,7 @@ Countries_Simulated <-countries_5y%>%
   dplyr::group_by(country_label,cancer_label,age_cat)%>%
   dplyr::select(country_code,country_label, cancer_code, cancer_label,
                    age, age_cat,
-                   rel_surv, hdi_group)%>%
+                   rel_surv)%>%
   as.data.frame()
 
 
@@ -172,10 +168,19 @@ simulated_overall<-Countries_Simulated%>%
   droplevels()%>%
   dplyr::group_by(country_label,cancer_label, age_cat,age)%>%
   dplyr::select(country_code,country_label, cancer_code, cancer_label,rel_surv,
-                   age_cat, age, hdi_group)%>%
+                   age_cat, age)%>%
   distinct()%>%
-  arrange(country_label,cancer_label, age)
-
+  arrange(country_label,cancer_label, age)%>%
+  
+  mutate(
+    country_code = replace(country_code, country_code == 160, 156), # China
+    # country_code = replace(country_code, country_code == 160, 156), # Curacao
+    
+  )
+# Simulated_Data_PAF_All%>%
+#   filter(cancer_code==7)%>%
+#   count(country_code, sex, age)%>%
+#   filter(n>1)
 
 
 # PAF combinations
@@ -183,39 +188,13 @@ simulated_overall<-Countries_Simulated%>%
 PAFs_age_Cat <- PAFs%>%
   distinct()%>%
   as.data.frame()%>%
-  dplyr::mutate(age = case_when(
-    age==0~ 0,
-    age==1~ 1,
-    age==2~ 2,
-    age==3~ 3,
-    age==4~ 4,
-    age>4 & age<9 ~ 4,
-    age==9 ~ 9,
-    age==10~ 10,
-    age==11~ 11,
-    age==12~ 12,
-    age==13~ 13,
-    age==14~ 14,
-    age==15~ 15,
-    #age>=16 ~ 16,
-    age==16 ~ 16,
-    age==17 ~ 17,
-    age==18 ~ 18,
-  ))%>%
-  as.data.frame()%>%
-  dplyr::mutate(
-    age_cat = case_when(
-      age>=4 & age<14 ~ "15-64",
-      age>=14 ~ "65-99",
-      age<4 ~"0-15"
-    ))%>%
   dplyr::filter(age_cat!="0-15")%>%
   droplevels()%>%
   as.data.frame()%>%
-  left_join(ES2, by=c("country_code","age","sex"))%>%
+  left_join(ES2, by=c("country_code","age","age_cat","sex"))%>%
   ungroup()%>%
   as.data.frame()%>%
-  select(country_code,country_label, cancer_code, cancer_label,
+  dplyr::select(country_code,country_label, hdi_group, cancer_code, cancer_label,
          age, sex,age_cat, 
          cases, cases.prev, 
          cases.notprev, af.comb,
@@ -242,7 +221,7 @@ PAFs_age_Cat <- PAFs%>%
   dplyr::mutate(af.comb = case_when(cases!=0 ~  cases.prev/cases,
                                     cases==0 ~ 0))%>%
   distinct()%>%
-  select(country_code,country_label, cancer_code, cancer_label,
+  select(country_code,country_label, hdi_group, cancer_code, cancer_label,
          age, sex,age_cat, 
          cases, cases.prev, 
          cases.notprev, af.comb,
@@ -258,7 +237,7 @@ PAFs2 <- PAFs_age_Cat%>%
   # dplyr::mutate(total_age_prev=sum(cases.prev, na.rm=T))%>%
   as.data.frame()%>%
   dplyr::group_by(country_code,cancer_code,age,sex)%>%
-  dplyr::select(country_label, cancer_label,
+  dplyr::select(country_label, cancer_label, hdi_group,
                 age_cat, age,  total_overall,cases,
                 cases.prev, ES, af.comb, py)%>%
   distinct()%>%
@@ -267,8 +246,11 @@ PAFs2 <- PAFs_age_Cat%>%
   select(-cancer_label,-country_label)
 
 
+
 Simulated_Data_PAF_1 <- simulated_overall%>%
   ungroup()%>%
+  #select only gastric cancer
+  dplyr::filter(cancer_code==7)%>%
   dplyr::filter(age_cat!="Overall")%>%
   left_join(PAFs2,by=c("country_code"="country_code",
                        "cancer_code"="cancer_code",
@@ -284,15 +266,14 @@ Simulated_Data_PAF_1 <- simulated_overall%>%
   as.data.frame()%>%
   dplyr::group_by(country_code,cancer_code, age, sex)%>%
   dplyr::select(country_code, 
-                country_label, 
+                country_label, hdi_group,
                 cancer_code, cancer_label,
                 age_cat, age, total_overall,
                 rel_surv,
                 af.comb,
                 rel_surv,
                 ES,
-                total_overall,
-                hdi_group, py)%>%
+                total_overall, py)%>%
   droplevels()%>%
   ungroup()%>%
   distinct()%>%
@@ -318,7 +299,7 @@ HDI_Region_Mapping2 <- HDI_Region_Mapping%>%
   distinct()
 
 
-
+#need to update all files with up to date country codes. Survival and some PAFs are old data here. Remapping needed
 
 Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
   dplyr::mutate(rel_surv=as.double(rel_surv))%>%
@@ -326,8 +307,8 @@ Simulated_Data_PAF_All <- Simulated_Data_PAF_1%>%
   dplyr::mutate(total_overall=as.double(total_overall))%>% 
   arrange(country_label,cancer_code,age,sex)%>%
   left_join(Reference_Survival, by=c("age","cancer_code"))%>%
-  select(-cancer_label)%>%
-  left_join(globocan_cancer_names,by=c("cancer_code"))%>%
+  #select(-cancer_label)%>%
+  #left_join(globocan_cancer_names,by=c("cancer_code"))%>%
   left_join(HDI_Region_Mapping2)
 #filter(continent==5) # change for region speciic analysiss
 
@@ -342,14 +323,14 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
   dplyr::mutate(AD_treat=(1-af.comb) *total_overall * (surv_ref-rel_surv) * ES)%>%
   #dplyr::mutate(AD_treat_not_prev = (1-af.comb) * total_overall * (surv_ref-rel_surv) * ES)%>% #scenario 1
   dplyr::mutate(AD_unavoid =total_overall*(1-ES*surv_ref-af.comb*ES*(1-surv_ref)))%>%
-  #dplyr::mutate(total_deaths2=total_overall*(1-ES*rel_surv))%>%
-  dplyr::mutate(total_deaths2=AD_prev+AD_treat+AD_unavoid)%>%
+  dplyr::mutate(total_deaths2=total_overall*(1-ES*rel_surv))%>%
+  dplyr::mutate(total_deaths3=AD_prev+AD_treat+AD_unavoid)%>%
   select("country_code","country_label","age_cat","age","sex","cancer_code","cancer_label",   
          "AD_treat",
          # "AD_treat_not_prev",
          "AD_prev",
          "AD_unavoid",
-         "total_deaths2",
+         "total_deaths2", "total_deaths3",
          "total_overall",
          "hdi_group", py)%>%
   dplyr::rename("cancer"="cancer_label")#%>%
@@ -376,34 +357,12 @@ Avoidable_Deaths_Simulated_All3<-Simulated_Data_PAF_All%>%
 
 
 
+Avoidable_Deaths_Simulated_All2 <- Avoidable_Deaths_Simulated_All3
 
-colorectal<-Avoidable_Deaths_Simulated_All3%>%
-  dplyr::filter(cancer_code%in%c("8","9"))%>%
-  dplyr::mutate(cancer="Colorectal",
-                cancer_code=8)%>%
-  dplyr::group_by(country_code, cancer_code, age, sex)%>%
-  dplyr::mutate(AD_prev=sum(AD_prev),
-                AD_treat=sum(AD_treat),
-                #  AD_treat_not_prev=sum(AD_treat_not_prev),
-                AD_unavoid=sum(AD_unavoid),
-                total_deaths2=sum(total_deaths2),
-                total_overall=sum(total_overall))%>%
-  distinct()%>%
-  as.data.frame()
-
-colorectal
-
-
-Avoidable_Deaths_Simulated_All2<-Avoidable_Deaths_Simulated_All3%>%
-  dplyr::filter(!cancer_code%in%c("8","9"))%>%
-  full_join(colorectal)%>%
-  dplyr::mutate(cancer = replace(cancer, cancer == "Liver and intrahepatic bile ducts", "Liver"))%>%
-  dplyr::mutate(cancer = replace(cancer, cancer == "Trachea, bronchus and lung", "Lung"))%>%
-  distinct()
 
 #Filter to only stomach cancer (cancer code)
 Avoidable_Deaths_Simulated_All2<-Avoidable_Deaths_Simulated_All2%>%
-  filter(cancer_code%in%c(6, 7, 8)) # stomach, oesophagus, colorectal
+  filter(cancer_code%in%c(7)) # stomach, oesophagus, colorectal 6, 7, 8
 
 # Globocan population data 
 # 
@@ -635,10 +594,10 @@ AD_by_HDI_all <-Avoidable_Deaths_Simulated_All%>%
   ungroup()%>%
   dplyr::mutate(hdi_group=as.numeric(hdi_group))%>%
   dplyr::mutate(hdi_group=case_when(
-    hdi_group==1~ 984,
-    hdi_group==2~ 983,
-    hdi_group==3~ 982,
-    hdi_group==4~ 981
+    hdi_group==1~ 984, # low
+    hdi_group==2~ 983, # medium
+    hdi_group==3~ 982, # high
+    hdi_group==4~ 981  # very-high
   )
   
   )%>%
@@ -1466,8 +1425,7 @@ AD_Region<-AD_Region2%>%
   dplyr::mutate(
     country_code= case_when(
       area %in% c(19)   ~ 999,
-      !area %in% c(19)  ~ country_code
-    ))%>% 
+      !area %in% c(19)  ~ country_code))%>% 
   #adding confidence intervals from Globocan uncertainty
   left_join(globocan_UIs, by=c("country_code","cancer_code", "sex" ))%>%
   mutate(AD_prev.low= AD_prev-AD_prev*var.low,
@@ -1581,7 +1539,7 @@ AD_Region<-AD_Region2%>%
 #World total
 
 table_1_11<-table_1_1%>%
-  mutate(country_code=900,cancer_code=39)%>%
+  mutate(country_code=900,cancer_code=7)%>%
   left_join(globocan_UIs, by=c("country_code","cancer_code", "sex" ))%>%
   mutate(AD_prev.low= AD_prev-AD_prev*var.low,
          AD_prev.high= AD_prev+AD_prev*var.high,
@@ -1928,7 +1886,7 @@ AD_Region
 AD_by_HDI
 table_1_11
 AD_Region
-AD_by_HDI_all2
+AD_by_HDI_all_cancer2
 AD_country_all_cancers2
 AD_cancer2
 Avoidable_Deaths_Simulated_All_age_cat_overall
@@ -1942,13 +1900,10 @@ data.table::fwrite(Avoidable_Deaths_Simulated_All, "\\\\Inti\\cin\\Studies\\Surv
 data.table::fwrite(Avoidable_Deaths_Simulated_All_age_cat, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_Simulated_All_Countries_age_cat.csv")
 data.table::fwrite(AD_Region, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_Region.csv")
 data.table::fwrite(table_1_11, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_Total.csv")
-data.table::fwrite(AD_by_HDI_all2, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_HDI_All_Cancers.csv")
+data.table::fwrite(AD_by_HDI_all_cancer2, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_HDI_All_Cancers.csv")
 data.table::fwrite(AD_country_all_cancers2, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_Country_All_Cancers.csv")
 data.table::fwrite(AD_cancer2, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_Cancer_by_Site.csv")
 data.table::fwrite(Avoidable_Deaths_Simulated_All_age_cat_overall, "\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Results\\AD_country_and_Cancer_by_Site.csv")
-
-
-
 
 
 #Summing up the number of cases for the ppt and checking so cases in data set are same before and after
@@ -1974,7 +1929,10 @@ number_cases_tot <- PAFs_age_Cat %>%
 
 number_cases_tot
 
-a<-Simulated_Data_PAF_All%>%filter(cancer_code==19)
+sum(globocan$cases[globocan$cancer_code == 7 & globocan$sex != 0], na.rm = TRUE)
+sum(PAFs$cases[PAFs$cancer_code == 7], na.rm = TRUE)
+
+a<-Simulated_Data_PAF_All%>%filter(cancer_code==7)
 sum(a$total_overall)
 
 # 
@@ -2071,7 +2029,7 @@ plot_data_combined<- country_preventable%>%
   full_join(country_avoidable)%>%
   dplyr::group_by(country_label, AD_cat)%>%
   # HDI file for 2019
-  left_join(HDI_2019%>%
+  left_join(HDI_2022%>%
               select(country_code,hdi_group, value),
             by= c("country_code", "hdi_group")
   )
@@ -2244,92 +2202,92 @@ bubble_data%>%
 
 
 
+# 
+# # pyramid plot of avoidable deaths by country. Left is female and right is male given by sex==2 and sex==1 respectively.
+# # with stacked bar plots by cancer site for each country
+# 
+# # Prepare country avoidable deaths data by sex and cancer
+# pyramid_avoidable <- Avoidable_Deaths_Simulated_All_age_cat %>%  
+#   filter(age_cat == "Overall", sex != 0) %>%
+#   dplyr::group_by(country_label, sex) %>%
+#   dplyr::mutate(AD_avoid = sum(AD_treat, AD_prev, na.rm = TRUE)) %>%
+#   dplyr::select(country_label, sex, AD_avoid) %>%
+#   dplyr::distinct() %>%
+#   as.data.frame()
+# 
+# # Get top 15 countries overall
+# top_countries <- pyramid_avoidable %>%
+#   group_by(country_label) %>%
+#   dplyr::mutate(total_AD = sum(AD_avoid, na.rm = TRUE)) %>%
+#   ungroup() %>%
+#   distinct(country_label, total_AD) %>%
+#   arrange(desc(total_AD)) %>%
+#   slice(1:15) %>%
+#   arrange(total_AD)
+# 
+# # Filter pyramid data to top countries and reshape for plotting
+# pyramid_plot_data <- pyramid_avoidable %>%
+#   filter(country_label %in% top_countries$country_label) %>%
+#   mutate(country_label = factor(country_label, levels = top_countries$country_label)) %>%
+#   mutate(AD_avoid_signed = ifelse(sex == 2, -AD_avoid, AD_avoid))
+# 
+# # Calculate totals by sex and country for labels
+# pyramid_totals <- pyramid_plot_data %>%
+#   group_by(country_label, sex) %>%
+#   dplyr::mutate(total_by_sex = sum(AD_avoid, na.rm = TRUE)) %>%
+#   ungroup() %>%
+#   distinct(country_label, sex, total_by_sex) %>%
+#   mutate(AD_avoid_signed_total = ifelse(sex == 2, -total_by_sex, total_by_sex))
+# 
+# # Define cancer colors (using consistent palette)
+# # cancer_colors <- pyramid_plot_data %>%
+# #   distinct(cancer) %>%
+# #   mutate(color = c("#E41A1C","#377EB8" ))# "#FF7F00"
+# 
+# # Create pyramid plot with stacked bars by cancer
+# pyramid_plot_country <- pyramid_plot_data %>%
+#   #left_join(cancer_colors, by = "cancer") %>%
+#   ggplot(aes(x = AD_avoid_signed, y = country_label, fill = sex)) +
+#   geom_col(width = 0.7, position = "stack") +
+#   geom_text(
+#     data = pyramid_totals,
+#     aes(x = AD_avoid_signed_total, y = country_label, label = formatC(total_by_sex, format = "d", big.mark = ","), fill = NA),
+#     hjust = ifelse(pyramid_totals$sex == 2, 1.1, -0.1),
+#     vjust = 0.5,
+#     size = 3.5,
+#     fontface = "bold",
+#     inherit.aes = FALSE
+#   ) +
+#   scale_x_continuous(
+#     labels = function(x) formatC(abs(x), format = "d", big.mark = ",")
+#   ) +
+#   scale_fill_manual(
+#     values = setNames(cancer_colors$color, cancer_colors$cancer),
+#     name = "Cancer Site"
+#   ) +
+#   labs(
+#     title = "Avoidable Deaths by Country, Sex, and Age Group (Top 15 Countries)",
+#     x = "Avoidable Deaths",
+#     y = "Country"
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     panel.grid.major.y = element_blank(),
+#     panel.grid.minor = element_blank(),
+#     plot.title = element_text(size = 14, face = "bold"),
+#     plot.caption = element_text(size = 10, face = "italic"),
+#     legend.position = "right"
+#   )
+# 
+# pyramid_plot_country
+# 
 
-# pyramid plot of avoidable deaths by country. Left is female and right is male given by sex==2 and sex==1 respectively.
+
+
+# pyramid plot of avoidable deaths by region. Left is female and right is male given by sex==2 and sex==1 respectively.
 # with stacked bar plots by cancer site for each country
 
-# Prepare country avoidable deaths data by sex and cancer
-pyramid_avoidable <- Avoidable_Deaths_Simulated_All_age_cat %>%  
-  filter(age_cat == "Overall", sex != 0) %>%
-  dplyr::group_by(country_label, sex, cancer) %>%
-  dplyr::mutate(AD_avoid = sum(AD_treat, AD_prev, na.rm = TRUE)) %>%
-  dplyr::select(country_label, sex, cancer, AD_avoid) %>%
-  dplyr::distinct() %>%
-  as.data.frame()
-
-# Get top 15 countries overall
-top_countries <- pyramid_avoidable %>%
-  group_by(country_label) %>%
-  dplyr::mutate(total_AD = sum(AD_avoid, na.rm = TRUE)) %>%
-  ungroup() %>%
-  distinct(country_label, total_AD) %>%
-  arrange(desc(total_AD)) %>%
-  slice(1:15) %>%
-  arrange(total_AD)
-
-# Filter pyramid data to top countries and reshape for plotting
-pyramid_plot_data <- pyramid_avoidable %>%
-  filter(country_label %in% top_countries$country_label) %>%
-  mutate(country_label = factor(country_label, levels = top_countries$country_label)) %>%
-  mutate(AD_avoid_signed = ifelse(sex == 2, -AD_avoid, AD_avoid))
-
-# Calculate totals by sex and country for labels
-pyramid_totals <- pyramid_plot_data %>%
-  group_by(country_label, sex) %>%
-  dplyr::mutate(total_by_sex = sum(AD_avoid, na.rm = TRUE)) %>%
-  ungroup() %>%
-  distinct(country_label, sex, total_by_sex) %>%
-  mutate(AD_avoid_signed_total = ifelse(sex == 2, -total_by_sex, total_by_sex))
-
-# Define cancer colors (using consistent palette)
-cancer_colors <- pyramid_plot_data %>%
-  distinct(cancer) %>%
-  mutate(color = c("#E41A1C", "#377EB8", "#FF7F00"))
-
-# Create pyramid plot with stacked bars by cancer
-pyramid_plot_country <- pyramid_plot_data %>%
-  left_join(cancer_colors, by = "cancer") %>%
-  ggplot(aes(x = AD_avoid_signed, y = country_label, fill = cancer)) +
-  geom_col(width = 0.7, position = "stack") +
-  geom_text(
-    data = pyramid_totals,
-    aes(x = AD_avoid_signed_total, y = country_label, label = formatC(total_by_sex, format = "d", big.mark = ","), fill = NA),
-    hjust = ifelse(pyramid_totals$sex == 2, 1.1, -0.1),
-    vjust = 0.5,
-    size = 3.5,
-    fontface = "bold",
-    inherit.aes = FALSE
-  ) +
-  scale_x_continuous(
-    labels = function(x) formatC(abs(x), format = "d", big.mark = ",")
-  ) +
-  scale_fill_manual(
-    values = setNames(cancer_colors$color, cancer_colors$cancer),
-    name = "Cancer Site"
-  ) +
-  labs(
-    title = "Avoidable Deaths by Country, Sex, and Cancer Site (Top 15 Countries)",
-    x = "Avoidable Deaths",
-    y = "Country"
-  ) +
-  theme_minimal() +
-  theme(
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor = element_blank(),
-    plot.title = element_text(size = 14, face = "bold"),
-    plot.caption = element_text(size = 10, face = "italic"),
-    legend.position = "right"
-  )
-
-pyramid_plot_country
-
-
-
-
-# pyramid plot of avoidable deaths by country. Left is female and right is male given by sex==2 and sex==1 respectively.
-# with stacked bar plots by cancer site for each country
-
-# Prepare country avoidable deaths data by sex and cancer
+# Prepare region avoidable deaths data by sex and cancer
 pyramid_avoidable <-  AD_Region_cancer_sites %>%  
   filter(sex != 0) %>%
   mutate(age_cat="Overall")%>%
@@ -2361,13 +2319,27 @@ pyramid_totals <- pyramid_plot_data %>%
   dplyr::mutate(total_by_sex = sum(AD_avoid, na.rm = TRUE)) %>%
   ungroup() %>%
   distinct(country_label, sex, total_by_sex) %>%
-  mutate(AD_avoid_signed_total = ifelse(sex == 2, -total_by_sex, total_by_sex))
+  mutate(AD_avoid_signed_total = ifelse(sex == 2, -total_by_sex, total_by_sex))%>%
+  arrange(total_by_sex)
 
+
+country_order <- top_regions$country_label
+
+pyramid_plot_data <- pyramid_plot_data %>%
+  mutate(
+    country_label = factor(
+      country_label,
+      levels = rev(country_order)
+    )
+  )
 
 # Create pyramid plot with stacked bars by cancer
 pyramid_plot_region <- pyramid_plot_data %>%
-  left_join(cancer_colors, by = "cancer") %>%
-  ggplot(aes(x = AD_avoid_signed, y = country_label, fill = cancer)) +
+  #left_join(cancer_colors, by = "cancer") %>%
+  mutate(sex_label=case_when(sex==1 ~ "Male",
+                             sex==2 ~ "Female"
+                             ))%>%
+  ggplot(aes(x = AD_avoid_signed, y = country_label, fill = sex_label)) +
   geom_col(width = 0.7, position = "stack") +
   geom_text(
     data = pyramid_totals,
@@ -2381,12 +2353,12 @@ pyramid_plot_region <- pyramid_plot_data %>%
   scale_x_continuous(
     labels = function(x) formatC(abs(x), format = "d", big.mark = ",")
   ) +
-  scale_fill_manual(
-    values = setNames(cancer_colors$color, cancer_colors$cancer),
-    name = "Cancer Site"
-  ) +
+ # scale_fill_manual(
+ #   values = setNames(cancer_colors$color, cancer_colors$cancer),
+#    name = "Cancer Site"
+#  ) +
   labs(
-    title = "Avoidable Deaths by region, Sex, and Cancer Site (Top 15 Regions)",
+ #   title = "Avoidable Deaths by region, Sex, and Cancer Site (Top 15 Regions)",
     x = "Avoidable Deaths",
     y = "Region"
   ) +
@@ -2479,249 +2451,346 @@ AD_country_all_cancers_age_cat <- Avoidable_Deaths_Simulated_All %>%
   dplyr::mutate(pAD_unavoid = AD_unavoid / total_deaths) %>%
   dplyr::mutate(pAD_treat_prev = AD_treat_prev / total_deaths) %>%
   dplyr::mutate(cancer = "All Cancer Sites") %>%
-  dplyr::mutate(cancer_code = 40) %>%
+  dplyr::mutate(cancer_code = 7) %>%
   select(-py, -w) %>%
   distinct() %>%
   ungroup() %>%
   distinct() %>%
   as.data.frame()
 
-
-# Extract region names and order from HDI_Region_Mapping
-region_mapping <- HDI_Region_Mapping %>%
-  dplyr::filter(
-    country_code >= 910 & country_code <= 931 |
-      country_code == 905 | country_code == 906 |
-      country_code == 954 | country_code == 957
-  ) %>%
-  select(area, country_label) %>%
-  dplyr::mutate(area = case_when(
-    area %in% c(19, 20, 21) ~ 19,
-    !area %in% c(19, 20, 21) ~ area
-  )) %>%
-  dplyr::mutate(
-    country_label = case_when(
-      area %in% c(19) ~ "Melanesia/ Micronesia/ Polynesia",
-      !area %in% c(19) ~ country_label
-    )
-  ) %>%
-  distinct() %>%
-  arrange(area)
-
-# Define region order
-region_order <- region_mapping$country_label
-
-# Get total AD_treat_prev from "Overall" category for each country
-total_ad_by_country <- AD_country_all_cancers_overall %>%
-  filter(sex == 0, age_cat == "Overall") %>%
-  left_join(HDI_Region_Mapping2, by = c("country_code")) %>%
-  group_by(country_label) %>%
-  dplyr::summarise(total_deaths2_overall = total_deaths2, .groups = "drop") %>%
-  dplyr::rename(country = country_label)
-
-# Prepare data for polar plot - stacked by age group, using proportions of AD_treat_prev
-polar_ad_data <- AD_country_all_cancers_age_cat %>%
-  filter(sex == 0, age_cat != "Overall") %>%
-  left_join(HDI_Region_Mapping2, by = c("country_code")) %>%
-  left_join(region_mapping, by = c("area")) %>%
-  group_by(country_label.x, country_label.y, age_cat, area) %>%
-  dplyr::summarise(AD_treat_prev = sum(AD_treat_prev, na.rm = TRUE), .groups = "drop") %>%
-  dplyr::rename(country = country_label.x, region = country_label.y) %>%
-  left_join(total_ad_by_country, by = "country") %>%
-  mutate(
-    prop_AD_treat_prev = AD_treat_prev / total_deaths2_overall,
-    pct_AD_treat_prev  = prop_AD_treat_prev * 100
-  ) %>%
-  mutate(region = factor(region, levels = region_order)) %>%
-  mutate(country_label = paste0(country, " (", region, ")")) %>%
-  arrange(region, country, age_cat)
-
-
-# ------------------------------------------------------------
-# NEW: sort countries WITHIN each region by total bar height
-#      and add spacer positions BETWEEN regions
-# ------------------------------------------------------------
-
-# Total stacked height per country
-country_summary <- polar_ad_data %>%
-  group_by(region, country, country_label) %>%
+# 
+# # Extract region names and order from HDI_Region_Mapping
+# region_mapping <- HDI_Region_Mapping %>%
+#   dplyr::filter(
+#     country_code >= 910 & country_code <= 931 |
+#       country_code == 905 | country_code == 906 |
+#       country_code == 954 | country_code == 957
+#   ) %>%
+#   select(area, country_label) %>%
+#   dplyr::mutate(area = case_when(
+#     area %in% c(19, 20, 21) ~ 19,
+#     !area %in% c(19, 20, 21) ~ area
+#   )) %>%
+#   dplyr::mutate(
+#     country_label = case_when(
+#       area %in% c(19) ~ "Melanesia/ Micronesia/ Polynesia",
+#       !area %in% c(19) ~ country_label
+#     )
+#   ) %>%
+#   distinct() %>%
+#   arrange(area)
+# 
+# # Define region order
+# region_order <- region_mapping$country_label
+# 
+# # Get total AD_treat_prev from "Overall" category for each country
+# total_ad_by_country <- AD_country_all_cancers_overall %>%
+#   filter(sex == 0, age_cat == "Overall") %>%
+#   left_join(HDI_Region_Mapping2, by = c("country_code")) %>%
+#   group_by(country_label) %>%
+#   dplyr::summarise(total_deaths2_overall = total_deaths2, .groups = "drop") %>%
+#   dplyr::rename(country = country_label)
+# 
+# # Prepare data for polar plot - stacked by age group, using proportions of AD_treat_prev
+# polar_ad_data <- AD_country_all_cancers_age_cat %>%
+#   filter(sex == 0, age_cat != "Overall") %>%
+#   left_join(HDI_Region_Mapping2, by = c("country_code")) %>%
+#   left_join(region_mapping, by = c("area")) %>%
+#   group_by(country_label.x, country_label.y, age_cat, area) %>%
+#   dplyr::summarise(AD_treat_prev = sum(AD_treat_prev, na.rm = TRUE), .groups = "drop") %>%
+#   dplyr::rename(country = country_label.x, region = country_label.y) %>%
+#   left_join(total_ad_by_country, by = "country") %>%
+#   mutate(
+#     prop_AD_treat_prev = AD_treat_prev / total_deaths2_overall,
+#     pct_AD_treat_prev  = prop_AD_treat_prev * 100
+#   ) %>%
+#   mutate(region = factor(region, levels = region_order)) %>%
+#   mutate(country_label = paste0(country, " (", region, ")")) %>%
+#   arrange(region, country, age_cat)
+# 
+# 
+# # ------------------------------------------------------------
+# # NEW: sort countries WITHIN each region by total bar height
+# #      and add spacer positions BETWEEN regions
+# # ------------------------------------------------------------
+# 
+# # Total stacked height per country
+# country_summary <- polar_ad_data %>%
+#   group_by(region, country, country_label) %>%
+#   dplyr::summarise(
+#     total_pct_country = sum(pct_AD_treat_prev, na.rm = TRUE),
+#     .groups = "drop"
+#   ) %>%
+#   arrange(region, desc(total_pct_country), country)
+# 
+# # Keep only regions actually present in the plotting data
+# regions_present <- country_summary %>%
+#   distinct(region) %>%
+#   pull(region) %>%
+#   as.character()
+# 
+# # Build plotting order with one spacer after each region (except the last)
+# plot_levels <- c()
+# region_bounds <- data.frame(
+#   region = character(),
+#   xmin = numeric(),
+#   xmax = numeric(),
+#   stringsAsFactors = FALSE
+# )
+# 
+# current_pos <- 1
+# 
+# for (i in seq_along(regions_present)) {
+#   
+#   reg <- regions_present[i]
+#   
+#   reg_labels <- country_summary %>%
+#     filter(as.character(region) == reg) %>%
+#     pull(country_label)
+#   
+#   reg_n <- length(reg_labels)
+#   
+#   reg_start <- current_pos
+#   reg_end   <- current_pos + reg_n - 1
+#   
+#   plot_levels <- c(plot_levels, reg_labels)
+#   
+#   region_bounds <- rbind(
+#     region_bounds,
+#     data.frame(
+#       region = reg,
+#       xmin = reg_start - 0.5,
+#       xmax = reg_end + 0.5,
+#       stringsAsFactors = FALSE
+#     )
+#   )
+#   
+#   current_pos <- reg_end + 1
+#   
+#   # add spacer after region except for last region
+#   if (i < length(regions_present)) {
+#     spacer_name <- paste0("spacer_", i)
+#     plot_levels <- c(plot_levels, spacer_name)
+#     current_pos <- current_pos + 1
+#   }
+# }
+# 
+# # Apply ordered factor levels
+# polar_ad_data <- polar_ad_data %>%
+#   mutate(
+#     country_label = factor(country_label, levels = plot_levels),
+#     x_id = as.numeric(country_label)
+#   )
+# 
+# # Axis labels: show labels only for real countries, blank for spacers
+# axis_labels <- plot_levels
+# axis_labels[grepl("^spacer_", axis_labels)] <- ""
+# 
+# # If you prefer shorter labels, use country names only on the axis:
+# country_label_lookup <- country_summary %>%
+#   select(country_label, country) %>%
+#   distinct()
+# 
+# for (j in seq_along(axis_labels)) {
+#   if (axis_labels[j] != "") {
+#     axis_labels[j] <- country_label_lookup$country[
+#       match(axis_labels[j], country_label_lookup$country_label)
+#     ]
+#   }
+# }
+# 
+# # Region fill colors for background wedges
+# region_fill_cols <- c(
+#   "#EAF2F8", "#FDEDEC", "#EAFAF1", "#FEF9E7", "#F4ECF7", "#EBF5FB",
+#   "#F9EBEA", "#E8F8F5", "#FCF3CF", "#EBDEF0", "#EAFAF1", "#FDEBD0"
+# )
+# 
+# region_fill_map <- setNames(
+#   region_fill_cols[seq_along(regions_present)],
+#   regions_present
+# )
+# 
+# region_bounds$fill_col <- region_fill_map[region_bounds$region]
+# 
+# # Define age group colors
+# age_colors <- c(
+#   # "70+" = "#FB8072",
+#   "15-64" = "#80B1D3",
+#   "65-99" = "#FDB462"
+#   # "15-29" = "#B3DE69",
+#   # "30-49" = "#FCCDE5",
+#   # "50-59" = "#D9D9D9",
+#   # "60-69" = "#BC80BD"
+# )
+# 
+# # Assign colors to available age groups
+# available_ages <- unique(polar_ad_data$age_cat)
+# age_colors_subset <- age_colors[names(age_colors) %in% available_ages]
+# 
+# # Get a suitable max y for background shading
+# y_max <- max(polar_ad_data$pct_AD_treat_prev, na.rm = TRUE) * 1.08
+# 
+# # ------------------------------------------------------------
+# # Create single polar plot with stacked bars
+# # ------------------------------------------------------------
+# polar_plot_ad <- ggplot()
+# 
+# # Add background region wedges (this fixes the shading problem)
+# for (i in seq_len(nrow(region_bounds))) {
+#   polar_plot_ad <- polar_plot_ad +
+#     annotate(
+#       "rect",
+#       xmin = region_bounds$xmin[i],
+#       xmax = region_bounds$xmax[i],
+#       ymin = 0,
+#       ymax = y_max,
+#       fill = region_bounds$fill_col[i],
+#       alpha = 0.28
+#     )
+# }
+# 
+# # Add stacked bars
+# polar_plot_ad <- polar_plot_ad +
+#   geom_col(
+#     data = polar_ad_data,
+#     aes(x = x_id, y = pct_AD_treat_prev, fill = age_cat),
+#     position = "stack",
+#     width = 0.85,
+#     color = "black",
+#     linewidth = 0.25
+#   ) +
+#   scale_fill_manual(
+#     values = age_colors_subset,
+#     name = "Age Group"
+#   ) +
+#   scale_x_continuous(
+#     breaks = seq_along(plot_levels),
+#     labels = axis_labels,
+#     expand = c(0, 0)
+#   ) +
+#   scale_y_continuous(
+#     labels = scales::comma,
+#     limits = c(0, y_max),
+#     expand = c(0, 0)
+#   ) +
+#   labs(
+#     title = "Global Avoidable Deaths (Preventable + Treatable) by Country and Age Group",
+#     subtitle = "Polar stacked bar plot grouped by region and sorted within region",
+#     x = "",
+#     y = "Proportion of Total Avoidable Deaths (%)",
+#     caption = "Data: Gastric cancer, both sexes. Proportions calculated from overall category totals."
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+#     plot.subtitle = element_text(size = 11, face = "italic", hjust = 0.5),
+#     plot.caption = element_text(size = 9, face = "italic"),
+#     axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5, size = 6),
+#     axis.text.y = element_text(size = 9),
+#     panel.grid.minor = element_blank(),
+#     panel.grid.major.x = element_blank(),
+#     legend.position = "right",
+#     legend.title = element_text(size = 10),
+#     legend.text = element_text(size = 9)
+#   ) +
+#   coord_polar(start = 0, direction = 1, clip = "off")
+# 
+# polar_plot_ad
+# Prepare region avoidable deaths data by sex, split into preventable and treatable
+pyramid_avoidable <- AD_Region_cancer_sites %>%
+  filter(sex != 0) %>%
+  dplyr::group_by(country_label, sex, cancer) %>%
   dplyr::summarise(
-    total_pct_country = sum(pct_AD_treat_prev, na.rm = TRUE),
+    AD_prev  = sum(AD_prev, na.rm = TRUE),
+    AD_treat = sum(AD_treat, na.rm = TRUE),
     .groups = "drop"
   ) %>%
-  arrange(region, desc(total_pct_country), country)
+  dplyr::group_by(country_label, sex) %>%
+  dplyr::summarise(
+    Preventable = sum(AD_prev, na.rm = TRUE),
+    Treatable   = sum(AD_treat, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  tidyr::pivot_longer(
+    cols = c(Preventable, Treatable),
+    names_to = "AD_cat",
+    values_to = "AD_avoid"
+  ) %>%
+  as.data.frame()
 
-# Keep only regions actually present in the plotting data
-regions_present <- country_summary %>%
-  distinct(region) %>%
-  pull(region) %>%
-  as.character()
+# sort regions by total avoidable deaths (preventable + treatable combined)
+top_regions <- pyramid_avoidable %>%
+  group_by(country_label) %>%
+  dplyr::mutate(total_AD = sum(AD_avoid, na.rm = TRUE)) %>%
+  ungroup() %>%
+  distinct(country_label, total_AD) %>%
+  arrange(desc(total_AD))
 
-# Build plotting order with one spacer after each region (except the last)
-plot_levels <- c()
-region_bounds <- data.frame(
-  region = character(),
-  xmin = numeric(),
-  xmax = numeric(),
-  stringsAsFactors = FALSE
-)
+# Filter pyramid data to top regions and reshape for plotting
+pyramid_plot_data <- pyramid_avoidable %>%
+  left_join(top_regions, by = c("country_label")) %>%
+  arrange(desc(total_AD)) %>%
+  select(-total_AD) %>%
+  mutate(AD_avoid_signed = ifelse(sex == 2, -AD_avoid, AD_avoid))
 
-current_pos <- 1
+# Calculate totals by sex and country for labels (summed across preventable + treatable)
+pyramid_totals <- pyramid_plot_data %>%
+  group_by(country_label, sex) %>%
+  dplyr::mutate(total_by_sex = sum(AD_avoid, na.rm = TRUE)) %>%
+  ungroup() %>%
+  distinct(country_label, sex, total_by_sex) %>%
+  mutate(AD_avoid_signed_total = ifelse(sex == 2, -total_by_sex, total_by_sex)) %>%
+  arrange(total_by_sex)
 
-for (i in seq_along(regions_present)) {
-  
-  reg <- regions_present[i]
-  
-  reg_labels <- country_summary %>%
-    filter(as.character(region) == reg) %>%
-    pull(country_label)
-  
-  reg_n <- length(reg_labels)
-  
-  reg_start <- current_pos
-  reg_end   <- current_pos + reg_n - 1
-  
-  plot_levels <- c(plot_levels, reg_labels)
-  
-  region_bounds <- rbind(
-    region_bounds,
-    data.frame(
-      region = reg,
-      xmin = reg_start - 0.5,
-      xmax = reg_end + 0.5,
-      stringsAsFactors = FALSE
-    )
-  )
-  
-  current_pos <- reg_end + 1
-  
-  # add spacer after region except for last region
-  if (i < length(regions_present)) {
-    spacer_name <- paste0("spacer_", i)
-    plot_levels <- c(plot_levels, spacer_name)
-    current_pos <- current_pos + 1
-  }
-}
+country_order <- top_regions$country_label
 
-# Apply ordered factor levels
-polar_ad_data <- polar_ad_data %>%
+pyramid_plot_data <- pyramid_plot_data %>%
   mutate(
-    country_label = factor(country_label, levels = plot_levels),
-    x_id = as.numeric(country_label)
+    country_label = factor(
+      country_label,
+      levels = rev(country_order)
+    )
   )
 
-# Axis labels: show labels only for real countries, blank for spacers
-axis_labels <- plot_levels
-axis_labels[grepl("^spacer_", axis_labels)] <- ""
-
-# If you prefer shorter labels, use country names only on the axis:
-country_label_lookup <- country_summary %>%
-  select(country_label, country) %>%
-  distinct()
-
-for (j in seq_along(axis_labels)) {
-  if (axis_labels[j] != "") {
-    axis_labels[j] <- country_label_lookup$country[
-      match(axis_labels[j], country_label_lookup$country_label)
-    ]
-  }
-}
-
-# Region fill colors for background wedges
-region_fill_cols <- c(
-  "#EAF2F8", "#FDEDEC", "#EAFAF1", "#FEF9E7", "#F4ECF7", "#EBF5FB",
-  "#F9EBEA", "#E8F8F5", "#FCF3CF", "#EBDEF0", "#EAFAF1", "#FDEBD0"
-)
-
-region_fill_map <- setNames(
-  region_fill_cols[seq_along(regions_present)],
-  regions_present
-)
-
-region_bounds$fill_col <- region_fill_map[region_bounds$region]
-
-# Define age group colors
-age_colors <- c(
-  # "70+" = "#FB8072",
-  "15-64" = "#80B1D3",
-  "65-99" = "#FDB462"
-  # "15-29" = "#B3DE69",
-  # "30-49" = "#FCCDE5",
-  # "50-59" = "#D9D9D9",
-  # "60-69" = "#BC80BD"
-)
-
-# Assign colors to available age groups
-available_ages <- unique(polar_ad_data$age_cat)
-age_colors_subset <- age_colors[names(age_colors) %in% available_ages]
-
-# Get a suitable max y for background shading
-y_max <- max(polar_ad_data$pct_AD_treat_prev, na.rm = TRUE) * 1.08
-
-# ------------------------------------------------------------
-# Create single polar plot with stacked bars
-# ------------------------------------------------------------
-polar_plot_ad <- ggplot()
-
-# Add background region wedges (this fixes the shading problem)
-for (i in seq_len(nrow(region_bounds))) {
-  polar_plot_ad <- polar_plot_ad +
-    annotate(
-      "rect",
-      xmin = region_bounds$xmin[i],
-      xmax = region_bounds$xmax[i],
-      ymin = 0,
-      ymax = y_max,
-      fill = region_bounds$fill_col[i],
-      alpha = 0.28
-    )
-}
-
-# Add stacked bars
-polar_plot_ad <- polar_plot_ad +
-  geom_col(
-    data = polar_ad_data,
-    aes(x = x_id, y = pct_AD_treat_prev, fill = age_cat),
-    position = "stack",
-    width = 0.85,
-    color = "black",
-    linewidth = 0.25
-  ) +
-  scale_fill_manual(
-    values = age_colors_subset,
-    name = "Age Group"
+# Create pyramid plot with stacked bars by Preventable/Treatable
+pyramid_plot_region <- pyramid_plot_data %>%
+  mutate(sex_label = case_when(
+    sex == 1 ~ "Male",
+    sex == 2 ~ "Female"
+  )) %>%
+  ggplot(aes(x = AD_avoid_signed, y = country_label, fill = AD_cat)) +
+  geom_col(width = 0.7, position = "stack") +
+  geom_text(
+    data = pyramid_totals,
+    aes(x = AD_avoid_signed_total, y = country_label,
+        label = formatC(total_by_sex, format = "d", big.mark = ","), fill = NA),
+    hjust = ifelse(pyramid_totals$sex == 2, 1.1, -0.1),
+    vjust = 0.5,
+    size = 3.5,
+    fontface = "bold",
+    inherit.aes = FALSE
   ) +
   scale_x_continuous(
-    breaks = seq_along(plot_levels),
-    labels = axis_labels,
-    expand = c(0, 0)
+    labels = function(x) formatC(abs(x), format = "d", big.mark = ",")
   ) +
-  scale_y_continuous(
-    labels = scales::comma,
-    limits = c(0, y_max),
-    expand = c(0, 0)
+  scale_fill_manual(
+    values = c("Preventable" = "#E41A1C", "Treatable" = "#377EB8"),
+    name = "Death Type"
   ) +
   labs(
-    title = "Global Avoidable Deaths (Preventable + Treatable) by Country and Age Group",
-    subtitle = "Polar stacked bar plot grouped by region and sorted within region",
-    x = "",
-    y = "Proportion of Total Avoidable Deaths (%)",
-    caption = "Data: Gastric cancer, both sexes. Proportions calculated from overall category totals."
+    x = "Avoidable Deaths",
+    y = "Region"
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 11, face = "italic", hjust = 0.5),
-    plot.caption = element_text(size = 9, face = "italic"),
-    axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5, size = 6),
-    axis.text.y = element_text(size = 9),
+    panel.grid.major.y = element_blank(),
     panel.grid.minor = element_blank(),
-    panel.grid.major.x = element_blank(),
-    legend.position = "right",
-    legend.title = element_text(size = 10),
-    legend.text = element_text(size = 9)
-  ) +
-  coord_polar(start = 0, direction = 1, clip = "off")
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.caption = element_text(size = 10, face = "italic"),
+    legend.position = "right"
+  )
 
-polar_plot_ad
+pyramid_plot_region
+
+
 

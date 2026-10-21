@@ -21,7 +21,7 @@ AD_country_all_cancers2
 
 
 
-AD_Map <- as.data.table(AD_country_all_cancers2_editable)
+AD_Map <- as.data.table(AD_country_all_cancers2_editable)%>%filter(sex==0)
 
 # load id for each country
 dict_id <-  as.data.table(read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\_shape\\id_OMS_official_general_map.csv", sep=","))
@@ -111,6 +111,9 @@ colors_green_GCO <- c("#005a32", "#238b45", "#41ab5d","#74c476", "#a1d99b","#c7e
 colors_red_GCO <- c("#99000d","#cb181d","#ef3b2c","#fb6a4a", "#fc9272", "#fcbba1", "#fee0d2", "#fff5f0")
 
 
+colors_blue_red_GCO <- c("#99000d","#ef3b2c","#fb6a4a", "#fc9272", "#fff5f0","#9ecae1", "#6baed6", "#2171b5", "#084594")
+
+
 #--- maps for Preventable AD----
 
 allc <- AD_Map#[sex == 2,][type==1,]
@@ -141,7 +144,7 @@ for(i in 2:length(break_quantile_t)) {
 
 labels_leg <- rev(labels_leg)
 
-color_graph <- colors_blue_GCO
+color_graph <- colors_blue_red_GCO
 
 ggplot() +
   geom_sf(data=df_data_map[!is.na(df_data_map$cutpoint),],
@@ -185,7 +188,7 @@ ggplot() +
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   scale_fill_manual(name = str_wrap("Total ASR of deaths avoidable through primary prevention (Deaths per 100,000 People)", 30),
-                    values= colors_blue_GCO,
+                    values= colors_blue_red_GCO,
                     labels= labels_leg,
                     na.value = "#cccccc",
                     drop=FALSE)+
@@ -269,7 +272,7 @@ ggplot() +
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   scale_fill_manual(name = str_wrap("Total ASR of deaths avoidable through early detection and treatment (Deaths per 100,000 People)", 30),
-                    values= colors_blue_GCO,
+                    values= colors_blue_red_GCO,
                     labels= labels_leg,
                     na.value = "#cccccc",
                     drop=FALSE)+
@@ -354,7 +357,7 @@ ggplot() +
         legend.background = element_rect(fill="transparent"),
         plot.margin = unit(c(0,0,0,0),"lines"))+
   scale_fill_manual(name = str_wrap("Total ASR of deaths avoidable through primary prevention and early detection and treatment combined (Deaths per 100,000 People)", 30),
-                    values= colors_blue_GCO,
+                    values= colors_blue_red_GCO,
                     labels= labels_leg,
                     na.value = "#cccccc",
                     drop=FALSE)+
@@ -367,12 +370,125 @@ ggsave("map_AD_all_cancers_preventable_treatable_ASR.png",width = 40, height = 3
 
 
 
-ggarrange(AD_map_prev.asr, AD_map_treatable.asr,AD_map_total.asr,
-          labels = c("a)", "b)", "c)"),
-          ncol = 1, nrow = 3,
-          font.label = list(size = 60, color = "black"))
+#add distributions
+library(ggpubr)
+library(ggridges)
+library(stringr)
+
+colors_blue_red_GCO <- c("#99000d","#ef3b2c","#fb6a4a", "#fc9272", "#fff5f0",
+                         "#9ecae1", "#6baed6", "#2171b5", "#084594")
+
+# Prepare data for density plot - combining preventable, treatable, and avoidable deaths
+density_data_preventable <- AD_Map %>%
+  select(country_code, country_label, AD_prev.asr) %>%
+  rename("AD.asr" = "AD_prev.asr") %>%
+  mutate(AD_cat = "Preventable")
+
+density_data_treatable <- AD_Map %>%
+  select(country_code, country_label, AD_treat.asr) %>%
+  rename("AD.asr" = "AD_treat.asr") %>%
+  mutate(AD_cat = "Treat")
+
+density_data_data <- AD_Map %>%
+  select(country_code, country_label, AD_treat_prev.asr) %>%
+  rename("AD.asr" = "AD_treat_prev.asr") %>%
+  mutate(AD_cat = "Avoidable") %>%
+  full_join(density_data_preventable) %>%
+  full_join(density_data_treatable)
+
+# Reusable function -- replicates the SAME quantile-cut binning used in the maps
+make_density_plot <- function(data, category) {
+  d <- data %>% filter(AD_cat == category)
+  
+  # Same quantile-break logic as the map code
+  break_quantile <- unique(quantile(d$AD.asr, probs = seq(0, 1, by = 0.125), na.rm = TRUE))
+  mids     <- (break_quantile[-1] + break_quantile[-length(break_quantile)]) / 2
+  cols     <- rev(colors_blue_red_GCO[seq_along(mids)])   # low -> high
+  stops    <- c(min(break_quantile), mids, max(break_quantile))
+  cols_ext <- c(cols[1], cols, cols[length(cols)])        # end stops stop NA tails
+  
+  ggplot(d, aes(x = AD.asr, y = 0, fill = after_stat(x))) +
+    geom_density_ridges_gradient(
+      color = NA,
+      scale = 3,
+      rel_min_height = 0.01
+    ) +
+    scale_fill_gradientn(
+      colours = cols_ext,
+      values  = scales::rescale(stops, from = range(break_quantile)),
+      limits  = range(break_quantile),
+      oob     = scales::squish,
+      guide   = "none"
+    ) +
+    labs(
+      x = "Age standardized Avoidable Deaths",
+      y = NULL
+    ) +
+    theme_minimal(base_size = 7) +
+    theme(
+      axis.title = element_text(size = 30),
+      axis.text = element_text(size = 20),
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(2, 2, 2, 2),
+      legend.position = "none"
+    )
+}
+
+density_plot_avoidable   <- make_density_plot(density_data_data, "Avoidable")
+density_plot_preventable <- make_density_plot(density_data_data, "Preventable")
+density_plot_treatable   <- make_density_plot(density_data_data, "Treat")
 
 
-ggsave("map_AD_asr.pdf", width = 37*0.75, height =66*0.8, dpi=600, limitsize = FALSE,
+# larger legend, applied only inside the composite (the standalone map PNGs are unaffected)
+big_legend <- theme(
+  legend.text       = element_text(size = 34),
+  legend.title      = element_text(size = 34, hjust = 0),
+  legend.key.width  = unit(3.4, "cm"),
+  legend.key.height = unit(2.2, "cm")
+)
+
+# Helper: left-side column = small density on top, legend below
+make_left_column <- function(map_plot, density_plot) {
+  # the legend comes from the MAP; "right" gives get_legend() a standard position
+  legend_grob <- get_legend(map_plot + big_legend + theme(legend.position = "right"))
+  density_no_legend <- density_plot + theme(legend.position = "none")
+  
+  ggarrange(
+    density_no_legend,
+    as_ggplot(legend_grob),
+    ncol = 1,
+    heights = c(0.35, 0.65)
+  )
+}
+
+# each map is paired with its OWN density plot
+left_a <- make_left_column(AD_map_prev.asr,      density_plot_preventable)
+left_b <- make_left_column(AD_map_treatable.asr, density_plot_treatable)
+left_c <- make_left_column(AD_map_total.asr,     density_plot_avoidable)
+
+# the maps no longer carry their own legend
+panel_a <- ggarrange(left_a, AD_map_prev.asr      + theme(legend.position = "none"),
+                     ncol = 2, nrow = 1, widths = c(0.25, 0.75))
+panel_b <- ggarrange(left_b, AD_map_treatable.asr + theme(legend.position = "none"),
+                     ncol = 2, nrow = 1, widths = c(0.25, 0.75))
+panel_c <- ggarrange(left_c, AD_map_total.asr     + theme(legend.position = "none"),
+                     ncol = 2, nrow = 1, widths = c(0.25, 0.75))
+
+# NULL rows are spacers, so b) and c) no longer sit under the previous panel
+ggarrange(
+  panel_a, NULL, panel_b, NULL, panel_c,
+  labels  = c("a)", "", "b)", "", "c)"),
+  ncol = 1, nrow = 5,
+  heights = c(1, 0.08, 1, 0.08, 1),
+  font.label = list(size = 60, color = "black")
+)
+
+ggsave("map_AD_asr.pdf", width = 40*0.85, height =60*0.8, dpi=600, limitsize = FALSE,
+       path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\oliver_langselius\\AD_PREV_TREAT\\Gastric2024") 
+
+
+ggsave("map_AD_asr.png", width = 40*0.85, height =60*0.8, dpi=500, limitsize = FALSE,
        path ="\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\oliver_langselius\\AD_PREV_TREAT\\Gastric2024") 
 

@@ -21,11 +21,16 @@ library(relsurv)
 library(janitor)
 library(data.table)
 
-setwd("C:\\Users\\langseliuso\\OneDrive - International Agency for Research on Cancer\\Documents\\GitHub\\avoidable_deaths\\AD Preventable and Treatable")
+setwd("C:\\Users\\langseliuso\\OneDrive - International Agency for Research on Cancer\\Documents\\GitHub\\avoidable_deaths\\Gastric_cancer")
 
 
 ########################
 #Comment from here
+
+#time trend data CI5 plus
+
+CI5_plus <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Gastric2024\\Data\\CI5plus.csv")%>% as.data.frame()
+
 
 load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\GCO_pop2020.RData")
 
@@ -38,15 +43,13 @@ HDI_Region_Mapping<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_
 
 load("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_pop2020.RData")
 
-country_codes <-
-  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
+country_codes <-  read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\GCO_country_info.csv", stringsAsFactors = FALSE) %>%
   filter(country_code<900) %>%
   dplyr::select(country_code, country_label)
 
 
-
 globocan <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\globocan.csv")%>%
-  as.data.frame()%>%
+  as.data.frame()#%>%
   filter(type==0, 
          sex!=0)%>%
   # group_by(country_code, cancer_code, sex, age)%>%
@@ -129,13 +132,16 @@ PAFs <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver
   filter(cancer_code!=40)
 
 
-
+# UIs
 globocan_UIs2 <- read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\PreGlobocan2022\\Globocan2022\\source\\Globocan_UIs.csv")%>%
   as.data.frame()
 
+
+globocan_UIs2
+
 globocan_UIs3<-globocan_UIs2%>%
-  filter(type==0,
-         sex==0)%>%
+  filter(type==0)%>%
+  filter(cancer_code== 7)%>%
   filter(!country_code%in%c(928, # Melanesia
                            954, # Micronesia
                            957, # Polynesia
@@ -147,12 +153,12 @@ globocan_UIs3<-globocan_UIs2%>%
          var.high= case_when(total!=0 ~  abs((total.high-total)/total),
                              total==0 ~0)
          )%>%
-  dplyr::select( country_code, cancer_code, var.low, var.high)
+  dplyr::select( sex, country_code, cancer_code, var.low, var.high)
  
 
 globocan_UIs_nesia<-globocan_UIs2%>%
-  filter(type==0,
-         sex==0)%>%
+  filter(type==0)%>%
+  filter(cancer_code== 7)%>%
   filter(country_code%in%c(928, # Melanesia
                             954, # Micronesia
                             957, # Polynesia
@@ -170,7 +176,7 @@ globocan_UIs_nesia<-globocan_UIs2%>%
          var.high= case_when(total!=0 ~  abs((total.high-total)/total),
                              total==0 ~0)
   )%>%
-  dplyr::select( country_code, cancer_code, var.low, var.high)
+  dplyr::select( sex, country_code, cancer_code, var.low, var.high)
 
 globocan_UIs<-globocan_UIs3%>%
   full_join(globocan_UIs_nesia)
@@ -319,6 +325,7 @@ globocan_cancer_names<-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data
 #   distinct()
 
 #write.csv(HDI_File, "~/Documents/R_Projects/Data/HDI_file_2019.csv")
+HDI_2019 <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\hdi_2019.csv") %>% as.data.frame()
 
 #HDI <-read.csv("~/Documents/R_Projects/Data/HDI_2019.csv") %>% as.data.frame()
 #Thailand_Survcan <-read.csv("\\\\Inti\\cin\\Studies\\Survival\\SurvCan\\Data\\_work\\Oliver_Langselius\\AD_PREV_TREAT\\Data\\ASTHABAN_cc.csv") %>% as.data.frame()
